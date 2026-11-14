@@ -1199,7 +1199,7 @@ async function boot(){
   const h = location.hash.slice(1); if (h === "operacoes"){ S.audSub = "ops"; go("auditoria"); } else if (["relatorio","cadeia","auditoria","juridico","evidencias"].includes(h)) go(h); else renderAll();
   if (window.KT_FB){
     await KT_FB.start(); subscribe();
-    setTimeout(() => { if (!S.sel && S.view==="orbita"){ const t = S.suppliers.find(s => s.nivel==="N1" && riskOf(s).level==="alto") || S.suppliers.find(s => s.nivel==="N1"); if (t) selectSup(t.id, true); } }, 2500);
+    setTimeout(() => { if (window.ORB_AUTOSEL !== false && !S.sel && S.view==="orbita"){ const t = S.suppliers.find(s => s.nivel==="N1" && riskOf(s).level==="alto") || S.suppliers.find(s => s.nivel==="N1"); if (t) selectSup(t.id, true); } }, 2500);
     return;
   }
   let db = null;
@@ -1215,7 +1215,7 @@ async function boot(){
   } else { Store.loadLocal(); setMode("local"); if (!Object.keys(Store.local.suppliers).length) seedLocal(); }
   subscribe();
   // abre já mirando a primeira trader de alto risco para a demonstração
-  setTimeout(() => { if (!S.sel && S.view==="orbita"){ const t = S.suppliers.find(s => s.nivel==="N1" && riskOf(s).level==="alto") || S.suppliers.find(s => s.nivel==="N1"); if (t) selectSup(t.id, true); } }, 1400);
+  setTimeout(() => { if (window.ORB_AUTOSEL !== false && !S.sel && S.view==="orbita"){ const t = S.suppliers.find(s => s.nivel==="N1" && riskOf(s).level==="alto") || S.suppliers.find(s => s.nivel==="N1"); if (t) selectSup(t.id, true); } }, 1400);
 }
 /* Dados de demonstração para o modo local (fora do app publicado com equipe, os exemplos vêm do banco compartilhado) */
 function seedLocal(){ (window.SEED || []).forEach(([col, id, body]) => Store.local[col][id] = body); Store.saveLocal(); }

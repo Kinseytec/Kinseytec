@@ -106,3 +106,63 @@ if (window.KT_DD) (() => {
       ${m.ficha ? `<details><summary class="sub">Ficha (anotações)</summary><p style="white-space:pre-wrap;font-size:13px;margin:6px 0 0">${esc(m.ficha)}</p></details>` : ""}`;
     b.firstElementChild.insertBefore(el, b.firstElementChild.children[1] || null); };
 })();
+
+/* ================= CELULAR E DOSSIÊ COMPACTO =================
+   Órbita abre com o globo livre (sem empresa selecionada), targets (N3) primeiro na faixa de empresas,
+   menu em uma linha com rolagem e dossiê com cabeçalho curto, resumo do target e abas em uma linha. */
+(() => {
+  window.ORB_AUTOSEL = false;
+  const ordem = {N3:0, N2:1, N1:2};
+  const _strip = renderStrip; renderStrip = function(){ _strip.apply(this, arguments);
+    const st = document.getElementById("strip"); if (!st) return;
+    [...st.querySelectorAll("[data-sel]")].map(b => [b, supById(b.dataset.sel)]).sort((x, y) => (ordem[x[1]?.nivel] ?? 3) - (ordem[y[1]?.nivel] ?? 3)).forEach(([b]) => st.appendChild(b)); };
+
+  const css = document.createElement("style");
+  css.textContent = `
+.dos-res{display:flex;flex-wrap:wrap;gap:6px;padding:8px 18px;border-bottom:1px solid var(--line);flex-shrink:0}
+.dos-res span{font-size:11.5px;border:1px solid var(--line-2);border-radius:999px;padding:3px 9px;color:var(--fog);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.dos-res span b{color:var(--muted);font-weight:600;margin-right:4px}
+@media (max-width:760px){
+  nav.tabs{display:flex!important;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  nav.tabs::-webkit-scrollbar{display:none}
+  nav.tabs button{flex:0 0 auto;min-width:74px;padding:7px 6px 6px;font-size:10px;gap:2px;white-space:nowrap}
+  nav.tabs button svg{width:20px;height:20px}
+  #v-orbita .hud{display:none}
+  #v-orbita .orb-busca{top:8px;left:10px;right:54px;width:auto;min-width:0;transform:none}
+  #v-orbita .orb-tit{display:none}
+  #v-orbita .orb-busca input{height:36px;font-size:14px}
+  #v-orbita .ctrls{top:8px;right:8px;gap:5px}
+  #v-orbita .ctrls button{width:36px;height:36px}
+  #v-orbita .lvl{top:52px;left:10px;right:54px;flex-direction:row;overflow-x:auto;scrollbar-width:none;gap:5px}
+  #v-orbita .lvl::-webkit-scrollbar{display:none}
+  #v-orbita .lvl button{flex:0 0 auto;height:26px;font-size:10px;padding:0 8px;white-space:nowrap}
+  #v-orbita .dock{gap:6px;padding-bottom:8px}
+  #v-orbita .target{max-height:34vh;overflow-y:auto;padding:8px 10px;font-size:12px;gap:4px 8px}
+  #v-orbita .target h3{font-size:14px}
+  #v-orbita .target .coords,#v-orbita .target .photos,#v-orbita .target a.btn{display:none}
+  #v-orbita .target .why{display:none}
+  #v-orbita .target .acts{margin-top:2px;gap:6px;position:sticky;bottom:-8px;z-index:1;background:rgba(1,20,48,.97);padding:6px 0 4px}
+  #v-orbita .strip .chip{font-size:12px;padding:6px 10px}
+  .sheet{max-height:calc(100% - 8px)!important}
+  .sheet-h{padding:10px 14px 8px!important}
+  .sheet-h h2{font-size:17px!important;line-height:1.2}
+  .sheet-h .eyebrow{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:10px}
+  .sheet .stabs{display:flex!important;overflow-x:auto!important;gap:4px!important;padding:6px 10px!important;scrollbar-width:none}
+  .sheet .stabs::-webkit-scrollbar{display:none}
+  .sheet .stabs button{flex:0 0 auto!important;flex-direction:row!important;white-space:nowrap!important;padding:6px 10px!important;font-size:12px!important;border-radius:999px}
+  .sheet .stabs .sn{display:none}
+  .dos-res{padding:6px 14px}
+  .sheet-b{padding:12px 14px!important}
+  .sheet-b .why li:nth-child(n+3){display:none}
+}`;
+  document.head.appendChild(css);
+
+  /* resumo do target logo abaixo do título do dossiê */
+  const etapa = k => (MA_FUNIL.find(f => f[0] === k) || [k, ""])[1];
+  const _open = openSupplier; openSupplier = function(id){ _open.apply(this, arguments); const s = supById(id), h = document.querySelector(".sheet .sheet-h"); if (!s || !h) return;
+    const r = riskOf(s), it = Object.values(s.interacoes || {}).filter(Boolean).sort((a, b) => String(b.data || b.em || "").localeCompare(String(a.data || a.em || "")))[0];
+    const L = [s.nivel === "N3" && r.level !== "na" ? ["Risco", RISK_LABEL[r.level] || r.level] : null, ["Segmento", s.perfil?.segmento || s.segmento || s.mapa?.segmentoTxt], s.mapa?.temperatura ? ["Temperatura", s.mapa.temperatura] : null,
+      s.etapa ? ["Etapa", etapa(s.etapa)] : null, s.mandato?.status ? ["Mandato", s.mandato.status] : null, it?.proximo ? ["Próximo passo", it.proximo] : null].filter(x => x && x[1]);
+    if (!L.length) return; const el = document.createElement("div"); el.className = "dos-res";
+    el.innerHTML = L.map(([k, v]) => `<span><b>${esc(k)}</b>${esc(String(v))}</span>`).join(""); h.after(el); };
+})();

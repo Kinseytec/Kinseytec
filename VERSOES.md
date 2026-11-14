@@ -1,5 +1,12 @@
 # Registro de versões
 
+## v2.7 — 2026-11-14 · M&A no celular: Órbita livre e dossiê compacto
+- Órbita no celular: o globo aparece inteiro, sem empresa aberta por cima; busca no topo, filtros por nível em uma linha, sem textos técnicos sobre o globo; o menu fica em uma linha com rolagem lateral
+- Faixa de empresas com os targets (N3) primeiro; ao tocar, cartão curto (local, nível, risco, etapa, mandato) com "Abrir dossiê" sempre visível
+- Dossiê compacto: título curto, resumo do target logo abaixo (risco, segmento, temperatura, etapa, mandato e próximo passo) e abas em uma linha com rolagem; no computador também ganha o resumo
+- A Órbita deixa de abrir automaticamente uma empresa ao carregar (também no computador)
+- Teste local com ajuste de tela para celular
+
 ## v2.6 — 2026-11-14 · Valuation: EBITDA apurado × múltiplos de mercado, sempre
 - Comparativo fixo no Valuation (Síntese e Múltiplos de mercado), no relatório em PDF e no PowerPoint: EBITDA do target pela base contábil (balancete, sem ajustes) e pela base financeira (ajustes da Due Diligence com OK no valuation; também com OK só nas análises e a média ajustada dos exercícios) frente ao EV/EBITDA de companhias do mesmo segmento e de segmentos semelhantes, e às transações comparáveis
 - Para cada EBITDA: enterprise value pela mediana do mesmo segmento e dos semelhantes, faixa p25 a p75 e equity, com desconto de liquidez de empresa fechada
