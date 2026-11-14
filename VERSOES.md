@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v2.3.1 — 2026-11-14 · Valuation: dívida líquida automática e equity value em todos os métodos
+- Dívida líquida automática pelo balancete da data-base: empréstimos e financiamentos de curto e longo prazo, caixa e aplicações, parcelamentos tributários, mútuos com sócios e provisões para contingências; cada valor editável pelo consultor (com volta ao valor do balancete) e cada item pode ser excluído
+- Ajustes de dívida da Due Diligence entram com o OK no valuation (pendentes aparecem, sem somar); complementos do consultor com tipo, valor base, ponderação e justificativa (contingências prováveis e possíveis, passivos trabalhistas e tributários, earn-out, dividendos e JCP, arrendamentos, mútuos, vencidos); botão para trazer as contingências possíveis da diligência jurídica; caixa mínimo operacional opcional
+- Nova aba "Dívida líquida · EV → Equity" com a ponte do enterprise value ao equity value; síntese com enterprise value e equity value (líquido de dívidas) por método, em tabela e em dois gráficos de faixas; múltiplos, transações e P/L com EV e equity; relatório de valuation (PDF e PowerPoint) e apresentação pós-NDA com a ponte e o equity
+- A mesma dívida líquida ajustada alimenta FCD, múltiplos, outras avaliações, PPA, matching e honorários
+
 ## v2.3 — 2026-11-14 · M&A: diligência jurídica, honorários, matching, buy-side e mapa da Kinsey
 - Termos do M&A em todas as telas, PDFs e PowerPoints: sem "fornecedores"; N1 investidores, N2 intermediadores e parceiros, N3 targets (vendedores), Kinsey Capital no lugar de "cliente contratante", Base M&A no lugar de "cadeia"
 - Diligência jurídica como área da Due Diligence: questionário inicial de 40 pontos (societário, contratos, endividamento, trabalhista, tributário, cível e consumidor, imobiliário, ambiental e regulatório, propriedade intelectual, compliance, LGPD e seguros) com documento esperado e evidência por resposta; inventário de contratos dos últimos 3 ou 5 anos e vigentes, com leitura automática de mudança de controle, exclusividade, não concorrência, multa, garantias, cessão vedada e renovação automática; processos e matriz de contingências (provável, possível, remota); evidências jurídicas; recomendações para o contrato conforme o lado da Kinsey; relatório em PDF com o advogado responsável

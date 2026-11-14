@@ -93,6 +93,55 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
     return {seg, bu, de, bl, size, keUSD, ke, kd, kdLiq:kd * (1 - t), wd, we, wacc:vl.waccManual != null ? vl.waccManual / 100 : w, waccCalc:w, selicLP, t};
   }
 
+  /* ---------------- DÍVIDA LÍQUIDA: DO ENTERPRISE VALUE AO EQUITY VALUE ----------------
+     Automática do balancete da data-base (dívida financeira, caixa e itens equivalentes a dívida), editável pelo
+     consultor; ajustes de dívida da Due Diligence entram com o OK no valuation; complementos do consultor
+     (contingências, earn-out, dividendos, arrendamentos e outras dívidas) com justificativa. */
+  const ITENS_DIV = [["empCP","Empréstimos e financiamentos · curto prazo","Dívida financeira"],["empLP","Empréstimos e financiamentos · longo prazo","Dívida financeira"],["caixa","(−) Caixa e aplicações financeiras","Caixa"],
+    ["parcTrib","Parcelamentos tributários","Equivalente a dívida"],["mutuoPassivo","Mútuos com sócios e partes relacionadas","Equivalente a dívida"],["provisoes","Provisões para contingências registradas","Equivalente a dívida"]];
+  const TIPOS_COMP = ["Contingência provável não provisionada","Contingência possível (ponderada)","Passivo trabalhista","Passivo tributário","Earn-out ou parcela de aquisição a pagar","Dividendos e JCP declarados","Passivo de arrendamento (CPC 06)","Mútuo ou dívida com sócios","Fornecedores ou tributos vencidos","Outra dívida ou item equivalente"];
+  function ponte(s, bp){
+    const G = bp.K.G, cfg = s.dd?.vl?.divida || {}, ov = cfg.ov || {}, AJ = D.ajustes(s, bp.per), procs = new Set(AJ.map(a => a.proc).filter(Boolean)), L = [];
+    ITENS_DIV.forEach(([g, rot, grupo]) => { const auto = g === "caixa" ? -G.caixa : G[g]; if (!auto) return; if (g === "parcTrib" && procs.has("x_parc")) return;
+      const o = ov[g] || {}; L.push({id:"b:" + g, chave:g, rot, grupo, origem:`Balancete ${bp.per}`, auto, v:o.v ?? auto, inc:o.inc ?? true, editado:o.v != null, edit:true}); });
+    if (cfg.caixaMin){ const v = Math.min(G.caixa, bp.rl * cfg.caixaMin / 100); L.push({id:"cxmin", rot:`Caixa mínimo operacional não deduzido (${fmt(cfg.caixaMin, 1)}% da receita)`, grupo:"Caixa", origem:"Consultor", v, inc:true}); }
+    AJ.filter(a => a.v.divida).forEach(a => L.push({id:"dd:" + a.id, rot:a.titulo, grupo:"Ajuste de Due Diligence", origem:D.okVal(a) ? `OK no valuation · ${a.val.por || ""}` : D.okFin(a) ? "aguardando OK no valuation" : "aguardando OK nas Análises financeiras", v:a.v.divida, inc:D.okVal(a), fixo:true}));
+    Object.entries(cfg.comp || {}).filter(([, c]) => c).forEach(([id, c]) => L.push({id:"c:" + id, cid:id, rot:c.titulo, grupo:"Complemento do consultor", origem:`${c.tipo}${c.pond != null && +c.pond !== 100 ? ` · ${fmt(+c.pond, 0)}% de ${mi(c.base)}` : ""}`, v:c.valor, inc:c.inc !== false, just:c.just, comp:true}));
+    const soma = f => L.filter(x => x.inc && f(x)).reduce((t, x) => t + x.v, 0);
+    return {L, total:soma(() => true), financ:soma(x => x.grupo === "Dívida financeira"), caixa:soma(x => x.grupo === "Caixa"), equiv:soma(x => x.grupo === "Equivalente a dívida"), dd:soma(x => x.grupo === "Ajuste de Due Diligence"), comp:soma(x => x.grupo === "Complemento do consultor"), reportada:bp.K.dl};
+  }
+  function vDivida(s, R){
+    const X = R.X, pt = X.pt, ed = D.ed() ? "" : "disabled", cfg = s.dd?.vl?.divida || {}, mid = (R.rec[0] + R.rec[1]) / 2, jdd = window.KT_JDD ? KT_JDD.contingencias(s) : null;
+    const grupos = ["Dívida financeira","Caixa","Equivalente a dívida","Ajuste de Due Diligence","Complemento do consultor"];
+    return `<div class="card" style="display:flex;flex-direction:column;gap:12px"><div class="head" style="margin:0"><div><h3>Dívida líquida · do enterprise value ao equity value</h3><p class="sub" style="margin:2px 0 0">Calculada automaticamente pelo balancete de ${esc(X.perBase)}. Ajuste valores, exclua itens ou acrescente complementos; vale para o FCD, os múltiplos e as outras avaliações.</p></div></div>
+      <div class="dd-kpis">${k("Dívida líquida reportada", mi(pt.reportada), "empréstimos − caixa do balancete")}${k("Dívida líquida ajustada", mi(pt.total), `equivalentes ${mi(pt.equiv)} · DD ${mi(pt.dd)} · complementos ${mi(pt.comp)}`)}${k("Enterprise value (faixa moderada)", `${mi(R.rec[0])} a ${mi(R.rec[1])}`)}${k("Equity value (líquido de dívidas)", `${mi(R.rec[0] - pt.total)} a ${mi(R.rec[1] - pt.total)}`)}</div>
+      <div class="tbl"><table><thead><tr><th>Item</th><th>Origem</th><th class="dd-num">Valor</th><th>Considerar</th><th></th></tr></thead><tbody>${grupos.map(g => { const L = pt.L.filter(x => x.grupo === g); return L.length ? `<tr><td colspan="5" class="eyebrow" style="padding-top:12px">${esc(g)}</td></tr>` + L.map(x => `<tr style="${x.inc ? "" : "opacity:.55"}">
+        <td style="min-width:200px">${esc(x.rot)}${x.just ? `<div class="sub" style="margin:2px 0 0;font-size:11.5px">${esc(x.just)}</div>` : ""}</td><td style="font-size:12px">${esc(x.origem)}${x.editado ? ` · valor do balancete ${mi(x.auto)}` : ""}</td>
+        <td class="dd-num">${x.edit || x.comp ? `<input data-dv="${x.id}" inputmode="decimal" value="${fmt(x.v / 1e3, 0)}" aria-label="Valor de ${esc(x.rot)} em R$ mil" style="width:110px;text-align:right" ${ed}> <span class="sub" style="font-size:11px">mil</span>` : mi(x.v)}</td>
+        <td>${x.fixo ? `<span class="sub" style="font-size:12px">${x.inc ? "sim (OK)" : "depende do OK"}</span>` : `<input type="checkbox" data-dinc="${x.id}" ${x.inc ? "checked" : ""} aria-label="Considerar ${esc(x.rot)}" ${ed}>`}</td>
+        <td style="text-align:right">${x.editado && D.ed() ? `<button type="button" class="btn sm ghost" data-drest="${x.chave}">Voltar ao balancete</button>` : x.comp && D.ed() ? `<button type="button" class="btn sm ghost" data-drm="${x.cid}">Remover</button>` : ""}</td></tr>`).join("") : ""; }).join("")}
+        <tr><td colspan="2"><b>Dívida líquida ajustada</b></td><td class="dd-num"><b>${mi(pt.total)}</b></td><td colspan="2"></td></tr></tbody></table></div>
+      <div class="form"><div class="fld"><label for="dv-cx">Caixa mínimo operacional (% da receita, não deduzido)</label><input id="dv-cx" inputmode="decimal" value="${cfg.caixaMin ? fmt(cfg.caixaMin, 1) : ""}" placeholder="0" ${ed}></div></div>
+      ${D.ponte(mid, pt.L.filter(x => x.inc).map(x => ({titulo:x.rot, v:{eq:-x.v}})), "eq", "Enterprise value (meio da faixa moderada)", "Equity value")}</div>
+      ${D.ed() ? `<form class="card" id="fdv" style="display:flex;flex-direction:column;gap:10px" novalidate><h3>Complemento de dívida</h3><p class="sub" style="margin:0">Contingências e outras dívidas que não estão no balancete nem nos ajustes da Due Diligence. Contingência possível pode ser ponderada pela probabilidade.</p><div class="form">
+        <div class="fld"><label for="dv-t">Tipo</label><select id="dv-t">${TIPOS_COMP.map(t => `<option>${t}</option>`).join("")}</select></div><div class="fld"><label for="dv-n">Descrição</label><input id="dv-n" placeholder="ex.: Processos tributários de ICMS"></div>
+        <div class="fld"><label for="dv-b">Valor base (R$ mil)</label><input id="dv-b" inputmode="decimal"></div><div class="fld"><label for="dv-p">Ponderação (%)</label><input id="dv-p" inputmode="decimal" value="100"></div>
+        <div class="fld full"><label for="dv-j">Justificativa e fonte</label><input id="dv-j" placeholder="ex.: relação de processos do advogado da empresa, prognóstico possível"></div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="submit" class="btn sm primary">Incluir complemento</button>${jdd && jdd.possivel ? `<button type="button" class="btn sm" id="dv-jdd">Trazer contingências possíveis da diligência jurídica (${mi(jdd.possivel)})</button>` : ""}</div></form>` : ""}`;
+  }
+  function bindDivida(host, s){
+    const up = p => D.up(s, {dd:{vl:{divida:p}}});
+    $$("[data-dv]", host).forEach(i => i.onchange = () => { const id = i.dataset.dv, v = (num(i.value) || 0) * 1e3; if (id.startsWith("b:")) up({ov:{[id.slice(2)]:{v:id === "b:caixa" ? -Math.abs(v) : v}}}); else if (id.startsWith("c:")) up({comp:{[id.slice(2)]:{valor:v}}}); });
+    $$("[data-dinc]", host).forEach(c => c.onchange = () => { const id = c.dataset.dinc; if (id.startsWith("b:")) up({ov:{[id.slice(2)]:{inc:c.checked}}}); else if (id.startsWith("c:")) up({comp:{[id.slice(2)]:{inc:c.checked}}}); });
+    $$("[data-drest]", host).forEach(b => b.onclick = () => up({ov:{[b.dataset.drest]:{v:null}}}));
+    $$("[data-drm]", host).forEach(b => b.onclick = () => up({comp:{[b.dataset.drm]:null}}));
+    const cx = $("#dv-cx", host); if (cx) cx.onchange = () => up({caixaMin:num(cx.value) || 0});
+    const f = $("#fdv", host); if (f) f.onsubmit = e => { e.preventDefault(); const b = (num($("#dv-b").value) || 0) * 1e3, p = num($("#dv-p").value) ?? 100, n = $("#dv-n").value.trim() || $("#dv-t").value, j = $("#dv-j").value.trim();
+      if (!b || !j){ toast(!b ? "Informe o valor base." : "Escreva a justificativa e a fonte."); return; }
+      up({comp:{["k" + Date.now().toString(36)]:{tipo:$("#dv-t").value, titulo:n, base:b, pond:p, valor:b * p / 100, just:j, inc:true, por:Store.me?.email || "", em:nowISO()}}}).then(() => toast("Complemento incluído na dívida líquida")); };
+    const jd = $("#dv-jdd", host); if (jd) jd.onclick = () => { const c = KT_JDD.contingencias(s); up({comp:{["kj" + Date.now().toString(36)]:{tipo:"Contingência possível (ponderada)", titulo:"Contingências possíveis da diligência jurídica", base:c.possivel, pond:30, valor:c.possivel * .3, just:"Processos com prognóstico possível na diligência jurídica, ponderados em 30% (ajuste a ponderação).", inc:true, por:Store.me?.email || "", em:nowISO()}}}).then(() => toast("Contingências possíveis incluídas (30%)")); };
+  }
+
   /* ---------------- CENÁRIOS (FCD) ---------------- */
   function contexto(s){
     const Bs = base(), H = historico(s), vl = s.dd?.vl || {}, L = linhasDe(s);
@@ -104,8 +153,8 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
     const mgs = H.anuais.map(p => p.mg).filter(x => x != null), mgHist = mgs.length ? mgs.reduce((a, b) => a + b, 0) / mgs.length : div(bp.eb, bp.rl), mgMax = mgs.length ? Math.max(...mgs) : div(bp.eb, bp.rl);
     const W = wacc(s, Bs, vl), K = bp.K;
     const capex = (vl.capex ?? (div(K.da, K.recLiq) * 100 || 3)) / 100, ncgp = (vl.ncgp ?? (div(K.ncg, K.recLiq) * 100 || 10)) / 100;
-    const dl = K.dl + bp.A.divida;
-    return {Bs, H, vl, bp, perBase, histL, total, mgHist, mgMax, W, capex, ncgp, dl, nomes, y0:bp.ano};
+    const pt = ponte(s, bp), dl = pt.total;
+    return {Bs, H, vl, bp, perBase, histL, total, mgHist, mgMax, W, capex, ncgp, dl, pt, nomes, y0:bp.ano};
   }
   function cenario(X, tipo, dw = 0){
     const {Bs, bp, vl, histL, W} = X, fRL = div(bp.rl, bp.rb) || 1, g = (1 + Bs.P.gReal.v / 100) * (1 + Bs.P.infBR.v / 100) - 1, w = W.wacc + dw;
@@ -175,7 +224,7 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
 
   /* ---------------- VIEW ---------------- */
   S.valTab = S.valTab || "sintese";
-  const TABS_V = [["sintese","Síntese"],["fcd","Fluxo de caixa descontado"],["mult","Múltiplos de mercado"],["outras","Outras avaliações"],["base","Base de apuração e mercado"],["rel","Relatório"]];
+  const TABS_V = [["sintese","Síntese"],["fcd","Fluxo de caixa descontado"],["mult","Múltiplos de mercado"],["outras","Outras avaliações"],["divida","Dívida líquida · EV → Equity"],["base","Base de apuração e mercado"],["rel","Relatório"]];
   const k = (l, v, sm) => `<div class="dd-k"><span>${l}</span><b>${v}</b>${sm ? `<small>${sm}</small>` : ""}</div>`;
   const tbl = (head, rows) => `<div class="tbl"><table><thead><tr>${head.map((h, i) => `<th${i ? ' class="dd-num"' : ""}>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
   const tr = cells => `<tr>${cells.map((c, i) => `<td${i ? ' class="dd-num"' : ""}>${c}</td>`).join("")}</tr>`;
@@ -185,6 +234,7 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
     const met = [["FCD · moderado (histórico)", mod.min, mod.max, `WACC ${pc(X.W.wacc)} ±1 p.p.`, "#4FB0F5"]];
     if (C.eb) met.push(["Múltiplos de mercado · EV/EBITDA", e * C.eb.p25 * d, e * C.eb.p75 * d, `${xx(C.eb.p25)} a ${xx(C.eb.p75)} (${C.eb.n} cias.), −${fmt(P.desc.v, 0)}% de liquidez`, "#4FB0F5"]);
     if (C.rec) met.push(["Múltiplos de mercado · EV/Receita", X.bp.rl * C.rec.p25 * d, X.bp.rl * C.rec.p75 * d, `${xx(C.rec.p25, 2)} a ${xx(C.rec.p75, 2)}`, "#4FB0F5"]);
+    const ll = X.bp.K.ll + X.bp.A.lucro; if (C.pl && ll > 0) met.push(["Múltiplos de mercado · P/L (equity)", ll * C.pl.p25 * d + X.dl, ll * C.pl.p75 * d + X.dl, `${xx(C.pl.p25)} a ${xx(C.pl.p75)} o lucro líquido ajustado de ${mi(ll)}`, "#4FB0F5"]);
     if (T.eb) met.push(["Transações comparáveis · EV/EBITDA", e * T.eb.p25, e * T.eb.p75, `${xx(T.eb.p25)} a ${xx(T.eb.p75)} (${T.eb.n} transações)`, "#4FB0F5"]);
     const pl = X.bp.K.PL + X.bp.A.pl; met.push(["Patrimônio líquido ajustado", pl + X.dl, pl + X.dl, "PL ajustado + dívida líquida (piso de referência)", "#7A8699"]);
     met.push(["FCD · otimista (justificado)", ot.min, ot.max, "premissas do consultor e novos negócios", "#C39BFF"]);
@@ -206,6 +256,7 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
     else if (S.valTab === "mult") corpo = vMult(s, R);
     else if (S.valTab === "outras") corpo = vOutras(s, R);
     else if (S.valTab === "rel") corpo = vRel(s, R);
+    else if (S.valTab === "divida") corpo = vDivida(s, R);
     host.innerHTML = h + tabs + `<div class="dd-split" style="margin-top:14px">${sd.html}<div style="display:flex;flex-direction:column;gap:14px;min-width:0">
       <div class="card" style="display:flex;flex-direction:column;gap:6px"><div class="head" style="margin:0"><div><div class="eyebrow">${esc(s.mandato?.codinome || "Target")} · ${esc(s.perfil?.segmento || s.segmento || "")}</div><h3>${esc(s.nome)}</h3></div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="sub" style="margin:0">Base ${esc(X.perBase || "—")}${X.H ? ` · ${X.H.anuais.length} exercício(s)` : ""}</span><button type="button" class="btn sm" id="v-pf">Cadastro</button></div></div>
@@ -217,16 +268,18 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
     $$("[data-just]", host).forEach(b => b.onclick = () => justificar(s, b.dataset.just, b.dataset.jtxt));
     if (!X.vazio){ const AJ = D.ajustes(s, X.perBase), mid = R.C.eb ? R.C.eb.med * (1 - X.Bs.P.desc.v / 100) : 6;
       D.bindAjustes(host, s, AJ, a => `<div class="card" style="padding:10px 12px"><b>Impacto estimado no valuation</b><div class="sub" style="margin:4px 0 0">Enterprise value ${D.mil(a.v.ebitda * mid)} (EBITDA ${D.mil(a.v.ebitda)} × ${xx(mid)}) · equity ${D.mil(a.v.ebitda * mid - a.v.divida)}</div></div>`);
-      bindFcd(host, s, R); bindMult(host, s, R); bindOutras(host, s); bindRel(host, s, R); }
+      bindFcd(host, s, R); bindMult(host, s, R); bindOutras(host, s); bindRel(host, s, R); bindDivida(host, s); }
   };
 
   function vSintese(s, R){
     const {X, mod, ot, met, rec} = R, AJ = D.ajustes(s, X.perBase);
     return `<div class="card" style="display:flex;flex-direction:column;gap:12px"><h3>Avaliação comparativa</h3>
-      <div class="dd-kpis">${k("Faixa moderada (recomendada)", `${mi(rec[0])} a ${mi(rec[1])}`, "enterprise value · FCD histórico e múltiplos de mercado")}${k("Equity · faixa moderada", `${mi(rec[0] - X.dl)} a ${mi(rec[1] - X.dl)}`, `dívida líquida ajustada ${mi(X.dl)}`)}
+      <div class="dd-kpis">${k("Enterprise value · faixa moderada", `${mi(rec[0])} a ${mi(rec[1])}`, "FCD histórico e múltiplos de mercado")}${k("(−) Dívida líquida ajustada", mi(X.dl), `balancete ${mi(X.pt.reportada)} + ajustes e complementos`)}${k("Equity value · faixa moderada", `${mi(rec[0] - X.dl)} a ${mi(rec[1] - X.dl)}`, "líquido de dívidas · 100% do capital")}
         ${k("FCD otimista (justificado)", `${mi(ot.min)} a ${mi(ot.max)}`, "não usar como referência principal")}${k("EBITDA na base", mi(X.bp.eb), `margem ${pc(div(X.bp.eb, X.bp.rl))} · WACC ${pc(X.W.wacc)}`)}</div>
-      ${D.faixas(met.map(m => [m[0], m[1], m[2]]), rec[0], rec[1])}
-      ${tbl(["Método", "EV mínimo", "EV máximo", "Equity médio", "Base"], met.map(m => tr([`<b>${esc(m[0])}</b>`, mi(m[1]), mi(m[2]), mi((m[1] + m[2]) / 2 - X.dl), `<span style="font-size:12px">${esc(m[3])}</span>`])))}
+      <h3 style="font-size:14px">Enterprise value por método</h3>${D.faixas(met.map(m => [m[0], m[1], m[2]]), rec[0], rec[1])}
+      <h3 style="font-size:14px">Equity value por método (líquido da dívida de ${mi(X.dl)})</h3>${D.faixas(met.map(m => [m[0], m[1] - X.dl, m[2] - X.dl]), rec[0] - X.dl, rec[1] - X.dl)}
+      ${tbl(["Método", "EV mínimo", "EV máximo", "Equity mínimo", "Equity máximo", "Base"], met.map(m => tr([`<b>${esc(m[0])}</b>`, mi(m[1]), mi(m[2]), mi(m[1] - X.dl), mi(m[2] - X.dl), `<span style="font-size:12px">${esc(m[3])}</span>`])))}
+      <p class="sub" style="margin:0">Dívida líquida detalhada na aba "Dívida líquida · EV → Equity": automática do balancete, com ajustes da Due Diligence e complementos do consultor.</p>
       <p class="sub" style="margin:0">A Kinsey apresenta a investidores a faixa moderada. O cenário otimista aparece separado, com as justificativas do consultor.</p></div>
       <div class="card" style="display:flex;flex-direction:column;gap:10px"><h3>Ajustes de Due Diligence no valuation</h3><p class="sub" style="margin:0">OK do consultor no valuation, depois do OK nas Análises financeiras.</p>${D.tabAjustes(AJ, "val")}</div>`;
   }
@@ -279,11 +332,12 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
       ${C.L.length ? `<div class="tbl"><table><thead><tr><th></th><th>Companhia</th><th>Segmento</th><th class="dd-num">EV/EBITDA</th><th class="dd-num">EV/Receita</th><th class="dd-num">P/L</th><th class="dd-num">Margem EBITDA</th><th>Fonte e data</th></tr></thead><tbody>${C.L.map(c => `<tr style="${c.excl || c.fora ? "opacity:.5" : ""}">
         <td><input type="checkbox" data-comp="${esc(c.id)}" ${c.excl ? "" : "checked"} ${c.fora || !ed() ? "disabled" : ""} aria-label="Usar ${esc(c.nome)}"></td><td><b>${esc(c.nome)}</b>${c.ticker ? ` <span class="mono" style="font-size:11.5px">${esc(c.ticker)}</span>` : ""}${c.fora ? `<div class="sub" style="margin:0;font-size:11px">fora da faixa válida</div>` : ""}</td><td>${esc(c.seg)}${c.mesmo ? "" : " (semelhante)"}</td>
         <td class="dd-num">${xx(c.evEb)}</td><td class="dd-num">${xx(c.evRec, 2)}</td><td class="dd-num">${xx(c.pl)}</td><td class="dd-num">${pc(c.mg)}</td><td style="font-size:11.5px">${esc(c.fonte || c.origem)} · ${esc(c.data || "")}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty">Nenhum comparável do segmento. Inclua pela base Kinsey ou atualize pela CVM/B3.</div>`}
-      ${tbl(["Múltiplo (p25 · mediana · p75)", "Mercado", "Aplicado ao target", "EV resultante"], [
-        tr(["EV/EBITDA", st(C.eb), C.eb ? `EBITDA ${mi(X.bp.eb)} × (1 − ${fmt(X.Bs.P.desc.v, 0)}%)` : "—", C.eb ? `${mi(X.bp.eb * C.eb.p25 * d)} a ${mi(X.bp.eb * C.eb.p75 * d)}` : "—"]),
-        tr(["EV/Receita", st(C.rec, v => xx(v, 2)), C.rec ? `receita líquida ${mi(X.bp.rl)}` : "—", C.rec ? `${mi(X.bp.rl * C.rec.p25 * d)} a ${mi(X.bp.rl * C.rec.p75 * d)}` : "—"]),
-        tr(["P/L (equity)", st(C.pl), C.pl ? `lucro líquido ${mi(X.bp.K.ll + X.bp.A.lucro)}` : "—", C.pl ? `equity ${mi((X.bp.K.ll + X.bp.A.lucro) * C.pl.p25 * d)} a ${mi((X.bp.K.ll + X.bp.A.lucro) * C.pl.p75 * d)}` : "—"]),
-        tr(["Margem EBITDA do setor", st(C.mg, pc), `target ${pc(div(X.bp.eb, X.bp.rl))}`, ""])])}
+      ${tbl(["Múltiplo (p25 · mediana · p75)", "Mercado", "Aplicado ao target", "EV resultante", "Equity (líquido de dívidas)"], [
+        tr(["EV/EBITDA", st(C.eb), C.eb ? `EBITDA ${mi(X.bp.eb)} × (1 − ${fmt(X.Bs.P.desc.v, 0)}%)` : "—", C.eb ? `${mi(X.bp.eb * C.eb.p25 * d)} a ${mi(X.bp.eb * C.eb.p75 * d)}` : "—", C.eb ? `${mi(X.bp.eb * C.eb.p25 * d - X.dl)} a ${mi(X.bp.eb * C.eb.p75 * d - X.dl)}` : "—"]),
+        tr(["EV/Receita", st(C.rec, v => xx(v, 2)), C.rec ? `receita líquida ${mi(X.bp.rl)}` : "—", C.rec ? `${mi(X.bp.rl * C.rec.p25 * d)} a ${mi(X.bp.rl * C.rec.p75 * d)}` : "—", C.rec ? `${mi(X.bp.rl * C.rec.p25 * d - X.dl)} a ${mi(X.bp.rl * C.rec.p75 * d - X.dl)}` : "—"]),
+        tr(["P/L (equity)", st(C.pl), C.pl ? `lucro líquido ${mi(X.bp.K.ll + X.bp.A.lucro)}` : "—", C.pl ? `${mi((X.bp.K.ll + X.bp.A.lucro) * C.pl.p25 * d + X.dl)} a ${mi((X.bp.K.ll + X.bp.A.lucro) * C.pl.p75 * d + X.dl)}` : "—", C.pl ? `${mi((X.bp.K.ll + X.bp.A.lucro) * C.pl.p25 * d)} a ${mi((X.bp.K.ll + X.bp.A.lucro) * C.pl.p75 * d)}` : "—"]),
+        tr(["Margem EBITDA do setor", st(C.mg, pc), `target ${pc(div(X.bp.eb, X.bp.rl))}`, "", ""])])}
+      <p class="sub" style="margin:0">Equity = enterprise value − dívida líquida ajustada de ${mi(X.dl)}.</p>
       <p class="sub" style="margin:0">Desconto de liquidez de ${fmt(X.Bs.P.desc.v, 0)}% (base de apuração) por se tratar de empresa fechada.</p></div>`;
   }
   function bindMult(host, s){
@@ -316,7 +370,7 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
     return `<div class="card" style="display:flex;flex-direction:column;gap:10px"><div class="head" style="margin:0"><div><h3>Transações comparáveis (fusões e aquisições)</h3><p class="sub" style="margin:2px 0 0">Múltiplos pagos em aquisições de controle no segmento e em semelhantes. Já incluem prêmio de controle: sem desconto de liquidez.</p></div>
       ${ed() ? `<div style="display:flex;gap:6px"><button type="button" class="btn sm" id="tr-add">+ Transação</button><button type="button" class="btn sm" id="tr-imp">Importar planilha</button></div>` : ""}</div>
       ${T.L.length ? tbl(["Alvo · comprador", "Data", "EV", "EV/EBITDA", "EV/Receita"], T.L.map(t => `<tr><td><b>${esc(t.alvo)}</b><div class="sub" style="margin:0;font-size:11.5px">${esc(t.comprador || "")} · ${esc(t.seg)} · ${esc(t.fonte || "")}</div></td><td class="dd-num">${esc(t.data || "")}</td><td class="dd-num">${mi(t.ev)}</td><td class="dd-num">${xx(t.evEb)}</td><td class="dd-num">${xx(t.evRec, 2)}</td></tr>`)) : `<div class="empty">Nenhuma transação registrada para o segmento.</div>`}
-      ${T.eb ? `<p class="sub" style="margin:0">Mediana EV/EBITDA ${xx(T.eb.med)} (p25 ${xx(T.eb.p25)}, p75 ${xx(T.eb.p75)}): EV de ${mi(X.bp.eb * T.eb.p25)} a ${mi(X.bp.eb * T.eb.p75)}.</p>` : ""}</div>
+      ${T.eb ? `<p class="sub" style="margin:0">Mediana EV/EBITDA ${xx(T.eb.med)} (p25 ${xx(T.eb.p25)}, p75 ${xx(T.eb.p75)}): EV de ${mi(X.bp.eb * T.eb.p25)} a ${mi(X.bp.eb * T.eb.p75)}; equity de ${mi(X.bp.eb * T.eb.p25 - X.dl)} a ${mi(X.bp.eb * T.eb.p75 - X.dl)}.</p>` : ""}</div>
       <div class="card" style="display:flex;flex-direction:column;gap:8px"><h3>Patrimônio líquido ajustado</h3>
       ${tbl(["", "Valor"], [tr(["Patrimônio líquido do balancete", mi(X.bp.K.PL)]), tr(["Ajustes de Due Diligence com OK no valuation", mi(X.bp.A.pl)]), tr(["<b>PL ajustado (equity)</b>", `<b>${mi(pl)}</b>`]), tr(["Enterprise value equivalente", mi(pl + X.dl)])])}
       <p class="sub" style="margin:0">Referência de piso: o valor contábil ajustado dos ativos líquidos.</p></div>`;

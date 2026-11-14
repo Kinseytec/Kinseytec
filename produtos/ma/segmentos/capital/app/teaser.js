@@ -36,7 +36,7 @@ if (window.KT_DD && window.KT_VAL) (() => {
     const linhas = (p.linhas || []).map(l => ({nome:l.nome, pct:l.pct, desc:pre ? "" : l.desc}));
     const noticias = ((S.mercado?.noticias_seg || {})[seg] || []).filter(n => POS.test(n.titulo)).slice(0, pre ? 3 : 6);
     const materiais = pre ? [] : S.evidences.filter(e => e.supplierId === s.id && /apresenta|release|institucional|teaser|comunicado/i.test(e.tipo + " " + (e.nome || ""))).map(e => `${e.tipo}${e.nome ? ": " + e.nome : ""}`);
-    const valor = !pre && t.mostrarValor && R ? `Faixa indicativa de enterprise value: ${mi(R.rec[0])} a ${mi(R.rec[1])} (cenário moderado).` : "";
+    const valor = !pre && t.mostrarValor && R ? `Faixa indicativa (cenário moderado): enterprise value de ${mi(R.rec[0])} a ${mi(R.rec[1])}; equity value de ${mi(R.rec[0] - X.dl)} a ${mi(R.rec[1] - X.dl)}, líquido da dívida de ${mi(X.dl)}.` : "";
     return {codinome, subtitulo, transacao, kpis, serie, destaques:[...new Set(destaques)].slice(0, 8), mercado, linhas, noticias, materiais, dd, valor, descricao:pre ? (t.descricaoPre || "") : (p.descricao || ""), pesquisa:pre ? "" : [t.pesquisa, t.regiao].filter(Boolean).join("\n\n")};
   }
 
