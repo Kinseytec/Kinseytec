@@ -45,7 +45,7 @@ const DOCAN = (() => {
     const n = String(nome || "").toLowerCase(), t = blob.type || "", buf = await blob.arrayBuffer();
     if (/pdf/.test(t) || /\.pdf$/.test(n)){ const L = await IMP.lerPDF(buf); return L.map(r => r.join(" ")).join("\n"); }
     if (/wordprocessingml/.test(t) || /\.docx$/.test(n)){ const d = await IMP.lerDOCX(buf); return [...(d.linhas || []), ...(d.tabela || []).map(r => r.join(" "))].join("\n"); }
-    if (/^text\/|xml|json|csv/.test(t) || /\.(txt|xml|csv)$/.test(n)){ let s = new TextDecoder().decode(buf); if (s.includes("�")) s = new TextDecoder("latin1").decode(buf); return s; }
+    if (/^text\/|xml|json|csv/.test(t) || /\.(txt|xml|csv)$/.test(n)){ let s = new TextDecoder().decode(buf); if (s.includes("\uFFFD")) s = new TextDecoder("latin1").decode(buf); return s; }
     return null;
   }
 

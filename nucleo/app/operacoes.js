@@ -179,7 +179,7 @@ const OPS = (() => {
     const sep = ["\t", ";", "|", ","].map(c => [c, ls[0].split(c).length]).sort((a, b) => b[1] - a[1])[0][0];
     return ls.map(l => { const out = []; let cur = "", q = false; for (const ch of l){ if (ch === '"') q = !q; else if (ch === sep && !q){ out.push(cur); cur = ""; } else cur += ch; } out.push(cur); return out.map(x => x.trim()); });
   }
-  const texto = buf => { let t = new TextDecoder("utf-8").decode(buf); if (t.includes("�")) t = new TextDecoder("latin1").decode(buf); return t; };
+  const texto = buf => { let t = new TextDecoder("utf-8").decode(buf); if (t.includes("\uFFFD")) t = new TextDecoder("latin1").decode(buf); return t; };
 
   /* lê um arquivo de acordo com o tipo escolhido; devolve {itens, eventos, aviso} */
   async function ler(f, tipo){

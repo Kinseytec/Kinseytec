@@ -67,7 +67,7 @@ const PERS = (() => {
     else if (/\.docx$/.test(n)){ const d = await IMP.lerDOCX(buf); rows = d.tabela && d.tabela.length > 1 ? d.tabela : (d.linhas || []).map(l => [l]); }
     else if (/\.pdf$/.test(n)) rows = (await IMP.lerPDF(buf)).map(r => [r.join(" ")]);
     else if (/\.(xls|doc)$/.test(n)) throw new Error("antigo");
-    else { let t = new TextDecoder("utf-8").decode(buf); if (t.includes("�")) t = new TextDecoder("latin1").decode(buf);
+    else { let t = new TextDecoder("utf-8").decode(buf); if (t.includes("\uFFFD")) t = new TextDecoder("latin1").decode(buf);
       const ls = t.split(/\r?\n/).filter(l => l.trim()), sep = ["\t", ";", "|"].map(c => [c, (ls[0] || "").split(c).length]).sort((a, b) => b[1] - a[1])[0];
       rows = ls.map(l => sep[1] > 1 ? l.split(sep[0]).map(x => x.replace(/^"|"$/g, "").trim()) : [l.trim()]); }
     rows = rows.map(r => r.map(c => String(c ?? "").trim())).filter(r => r.some(Boolean));

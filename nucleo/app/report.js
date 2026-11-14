@@ -290,7 +290,7 @@ function rptPptx(){
 
 /* ---------- download, histórico e tela ---------- */
 async function rptSave(bytes, name, mime){
-  const dl = window.__ktHost?.use ? await __ktHost.use("downloads").catch(() => null) : null;
+  const H = window.__ktHost?.use ? window.__ktHost : window.claude?.use ? window.claude : null, dl = H ? await H.use("downloads").catch(() => null) : null;
   if (dl){ try{ await dl.save({filename:name, data:new Blob([bytes], {type:mime})}); }catch(e){ if (e?.code !== "cancelled") toast("Download não concluído."); } return; }
   const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([bytes], {type:mime})); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
 }

@@ -105,7 +105,7 @@ const ORG = (() => {
     const n = f.name.toLowerCase(), buf = await f.arrayBuffer(); let rows;
     if (/\.zip$/.test(n)){ const z = await IMP.unzip(buf), k = Object.keys(z).find(k => /\.(csv|txt)$/i.test(k)); if (!k) throw new Error("zip"); rows = csvRows(await z[k].get()); }
     else if (/\.xlsx$|\.xlsm$/.test(n)) rows = await IMP.lerXLSX(buf); else if (/\.ods$/.test(n)) rows = await IMP.lerODS(buf); else if (/\.pdf$/.test(n)) rows = await IMP.lerPDF(buf);
-    else { let t = new TextDecoder("utf-8").decode(buf); if (t.includes("�")) t = new TextDecoder("latin1").decode(buf); rows = csvRows(t); }
+    else { let t = new TextDecoder("utf-8").decode(buf); if (t.includes("\uFFFD")) t = new TextDecoder("latin1").decode(buf); rows = csvRows(t); }
     const reDoc = /(\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}|[\d*Xx]{3}\.?\d{3}\.?\d{3}-?[\d*Xx]{2})/;
     let hi = -1, cd = -1, cn = -1, ci = [];
     for (let r = 0; r < Math.min(rows.length, 15); r++){ const h = rows[r].map(c => semAc(c)); const d = h.findIndex(c => /cpf|cnpj/.test(c) && c.length < 60);

@@ -180,7 +180,7 @@ const IMP = (() => {
     if (/\.docx$/.test(n)){ const d = await lerDOCX(buf); return d.tabela ? deTabela(d.tabela) : deTexto(d.linhas); }
     if (/\.pdf$/.test(n)){ const L = await lerPDF(buf), t = deTabela(L); return t.length ? t : deTexto(L.map(r => r.join(" ; "))); }
     if (/\.xls$|\.doc$/.test(n)) throw new Error("antigo");
-    let t = new TextDecoder("utf-8").decode(buf); if (t.includes("�")) t = new TextDecoder("latin1").decode(buf);
+    let t = new TextDecoder("utf-8").decode(buf); if (t.includes("\uFFFD")) t = new TextDecoder("latin1").decode(buf);
     return deCSV(t);
   }
 
