@@ -1,0 +1,395 @@
+/* ================= IDIOMA PT / EN (camada de tradução da interface) ================= */
+const EN = {
+"Advogado responsável":"Responsible attorney","Advogado responsável:":"Responsible attorney:","OAB (UF e número)":"Bar registration (OAB, state and number)","Nome completo":"Full name","Informe o nome completo e a OAB do advogado responsável (ex.: OAB/SP 123.456).":"Enter the full name and bar registration (OAB) of the responsible attorney (e.g. OAB/SP 123.456).","Validação jurídica":"Legal validation","Registre o advogado que validou.":"Record the attorney who validated it.","Advogado(s) responsável(is):":"Responsible attorney(s):",
+"Fontes públicas para consulta":"Public sources to check","Inteligência do setor · fontes públicas":"Sector intelligence · public sources","Alertas e operações recentes":"Recent alerts and operations","Notícias públicas que ajudam a identificar padrões de risco na cadeia. Use para orientar a investigação e a inspeção.":"Public news that helps identify risk patterns in the chain. Use it to guide investigation and inspection.","Fonte ↗":"Source ↗","Receita Federal · CNPJ ↗":"Federal Revenue · tax ID ↗","Sintegra · inscrição estadual ↗":"Sintegra · state registration ↗","PGFN · lista de devedores ↗":"PGFN · debtors list ↗","Portal da Transparência · CEIS/CNEP (empresas punidas) ↗":"Transparency Portal · CEIS/CNEP (sanctioned companies) ↗","MTE · Cadastro de Empregadores (lista suja) ↗":"Labor Ministry · Employers Register (slave-labor list) ↗","IBAMA · áreas embargadas ↗":"IBAMA · embargoed areas ↗","SICAR · consulta pública do CAR ↗":"SICAR · CAR public lookup ↗","MapBiomas Alerta · desmatamento ↗":"MapBiomas Alerta · deforestation ↗",
+"Fale com a Kinsey BR":"Talk to Kinsey BR","WhatsApp e telefone:":"WhatsApp and phone:",
+"Órbita":"Orbit","Cadeia":"Chain","Auditoria":"Audit","Jurídico":"Legal","Evidências":"Evidence","Seções":"Sections",
+"Tour com a Kim":"Tour with Kim","Origem e risco":"Origin and risk","Modo local":"Local mode","Equipe conectada":"Team connected","Conectando…":"Connecting…",
+"Dados salvos só neste aparelho":"Data saved on this device only","Cacau":"Cocoa","Brasil":"Brazil","Cotações ›":"Quotes ›","Registrar ›":"Record ›","Cotação ainda não registrada":"Quote not recorded yet",
+"ALVOS":"TARGETS","ALTO RISCO":"HIGH RISK","ALVO TRAVADO":"TARGET LOCKED","VARREDURA":"SCANNING","APROXIMANDO…":"APPROACHING…","CENTRO":"CENTER","KINSEYTEC – CACAU · ÓRBITA":"KINSEYTEC – CACAU · ORBIT",
+"⟿ ROTAS":"⟿ ROUTES","Níveis visíveis":"Visible levels","Aproximar":"Zoom in","Afastar":"Zoom out","Visão do Brasil":"Brazil view","Fechar alvo":"Close target","Globo com a localização dos fornecedores de cacau":"Globe with cocoa supplier locations",
+"Abrir dossiê":"Open dossier","Satélite ↗":"Satellite ↗","Google Earth 3D ↗":"Google Earth 3D ↗","Nenhuma foto no local ainda. Capture em Evidências.":"No on-site photos yet. Capture them in Evidence.",
+"Alto risco":"High risk","Médio risco":"Medium risk","Baixo risco":"Low risk","Em avaliação":"Under review","Por que ALTO risco":"Why HIGH risk","Por que MÉDIO risco":"Why MEDIUM risk","Por que BAIXO risco":"Why LOW risk",
+"Ainda faltam respostas, investigação ou evidências para classificar":"Answers, investigation or evidence still missing to rate","Nenhum indicador de risco relevante até agora":"No relevant risk indicator so far",
+"CNPJ ativo na Receita Federal":"Tax ID active at the Federal Revenue Service","Sem alertas na investigação (dívidas, processos, sócios)":"No investigation alerts (debts, lawsuits, partners)","NDA e termo LGPD assinados":"NDA and LGPD consent signed","Balanço de massa conferido":"Mass balance checked",
+"Mapeamento da cadeia":"Chain mapping","Fornecedores N1 → N2 → N3":"Suppliers N1 → N2 → N3","Traders que vendem ao cliente contratante (N1), seus fornecedores (N2) e os produtores na origem (N3).":"Traders selling to the contracting client (N1), their suppliers (N2) and the producers at origin (N3).",
+"Importar ficha do fornecedor":"Import supplier form","Importar traders":"Import traders","Cadastrar fornecedor":"Register supplier","N1 · Traders":"N1 · Traders","N2 · Fornecedores":"N2 · Suppliers","N3 · Produtores":"N3 · Producers",
+"Todos":"All","Todas":"All","Buscar por nome, CNPJ ou município":"Search by name, tax ID or city","Buscar fornecedor N1, N2 ou N3 por nome, CNPJ/CPF ou município":"Search N1, N2 or N3 supplier by name, tax ID or city","Lista do cliente":"Client List","Árvore da cadeia":"Chain tree","Exportar Excel (.csv)":"Export Excel (.csv)",
+"Nível":"Level","Fornecedor":"Supplier","Local":"Location","Vende para":"Sells to","Risco":"Risk","Risco ▲":"Risk ▲","Pontos":"Points","Principal motivo":"Main reason","Classificar":"Classify","Automático":"Automatic",
+"Cliente contratante":"Contracting client","· contratante · fábrica Ilhéus/BA":"· client · Ilhéus/BA factory","— ponto de referência da cadeia":"— chain reference point","analista":"analyst","NDA pendente":"NDA pending","NDA ✓":"NDA ✓",
+"Dados":"Data","Investigação":"Investigation","NDA / LGPD":"NDA / LGPD","Questionário":"Questionnaire","Documentos":"Documents","Inspeção":"Inspection","Testes":"Tests","Concluir dossiê":"Complete dossier",
+"Ver em órbita":"View in orbit","+ Evidência":"+ Evidence","+ Vincular N2":"+ Link N2","+ Vincular N3":"+ Link N3","Editar":"Edit","CNPJ / CPF":"Tax ID (CNPJ / CPF)","Inscrição estadual":"State registration","Abertura":"Opening date","Volume anual":"Annual volume",
+"Localização":"Location","Estocagem":"Storage","Extração":"Extraction","CAR":"CAR (rural registry)","Área de cacau":"Cocoa area","Contratação":"Hiring","Responsável":"Person in charge","registro de demonstração":"demo record",", pode ser excluído em Editar.":", can be deleted in Edit.",
+"Investigação da trader":"Trader investigation","Investigação do fornecedor":"Supplier investigation","Consultas em Receita Federal, PGFN, tribunais, Juntas Comerciais, Cadastro de Empregadores do MTE, IBAMA e mídia. Registre o resultado e a fonte de cada consulta.":"Checks with the Federal Revenue Service, PGFN, courts, Commercial Registries, the Labor Ministry Employers Registry, IBAMA and media. Record the result and source of each check.",
+"Sem alertas":"No alerts","Situação cadastral do CNPJ":"Tax ID registration status","Não consultado":"Not checked","Data da consulta":"Check date","Ativa":"Active","Inapta":"Unfit","Suspensa":"Suspended","Baixada":"Closed","Nula":"Void",
+"Dívida ativa (PGFN / estado / município)":"Outstanding tax debt (PGFN / state / city)","Protestos em cartório":"Protested debts","Processos trabalhistas relevantes":"Relevant labor lawsuits","Processos criminais da empresa ou dos sócios":"Criminal cases of the company or partners",
+"Sócio ou administrador politicamente exposto (PEP / envolvimento político)":"Politically exposed partner or officer (PEP / political ties)","Sócio preso, denunciado ou sob investigação":"Partner imprisoned, charged or under investigation",
+"Sócios abrem e fecham empresas rapidamente (CNPJs baixados ou inaptos nos últimos 3 anos)":"Partners open and close companies quickly (tax IDs closed or unfit in the last 3 years)","Mídia negativa (trabalho escravo, desmatamento, fraude)":"Negative media (slave labor, deforestation, fraud)",
+"Cadastro de Empregadores do MTE (lista suja)":"Labor Ministry Employers Registry (dirty list)","Embargo ambiental (IBAMA / SEMAS-PA)":"Environmental embargo (IBAMA / SEMAS-PA)","Nº de empresas":"No. of companies","Fonte, processo ou observação":"Source, case or note",
+"Dados de sócios são pessoais (LGPD): registre só o necessário à diligência e sempre com a fonte pública consultada.":"Partner data is personal (LGPD): record only what the due diligence needs, always with the public source consulted.",
+"Sim":"Yes","Não":"No","N/A":"N/A","Conferido":"Checked","Pendente":"Pending","Conforme":"Compliant","Com ressalva":"With reservation","Não conforme":"Non-compliant",
+"Texto em avaliação.":"Text under review.","Minuta-base de NDA e termo LGPD (minuta v0.1 — para avaliação jurídica). O Jurídico da Kinsey BR revisa e aprova a versão final antes de enviá-la às traders.":"Base draft of the NDA and LGPD consent (draft v0.1 — for legal review). Kinsey BR Legal reviews and approves the final version before sending it to traders.",
+"Resumo: a Kinsey BR mantém sigilo, usa os dados só na diligência e repassa os resultados ao cliente contratante. Dados pessoais tratados conforme a LGPD, com direitos do titular garantidos.":"Summary: Kinsey BR keeps information confidential, uses data only for the due diligence and shares the results with the contracting client. Personal data is handled under the LGPD, with data subject rights guaranteed.",
+"Ler o termo completo (8 cláusulas)":"Read the full term (8 clauses)","Aceite eletrônico":"Electronic acceptance","Nome do representante":"Representative name","Cargo":"Role","CPF do representante":"Representative tax ID (CPF)",
+"Li e concordo com a confidencialidade e o repasse das informações ao cliente contratante.":"I have read and agree to confidentiality and to the information being shared with the contracting client.","Estou ciente do tratamento dos dados pessoais descrito acima (LGPD) e dos direitos do titular.":"I am aware of the personal data processing described above (LGPD) and of the data subject rights.","Declaro que as informações e documentos enviados são verdadeiros.":"I declare that the information and documents provided are true.",
+"Registrar aceite":"Register acceptance","Termo aceito":"Term accepted","Signatário":"Signatory","Documento":"Document","Data e hora":"Date and time","Versão":"Version","Validação jurídica":"Legal validation","Aguardando o Jurídico":"Awaiting Legal","minuta v0.1 — para avaliação jurídica":"draft v0.1 — for legal review",
+"1. Partes e objeto":"1. Parties and purpose","2. Confidencialidade":"2. Confidentiality","3. Dados pessoais tratados (LGPD, Lei 13.709/2018)":"3. Personal data processed (LGPD, Law 13,709/2018)","4. Finalidade e base legal":"4. Purpose and legal basis","5. Compartilhamento":"5. Sharing","6. Retenção e segurança":"6. Retention and security","7. Direitos do titular":"7. Data subject rights","8. Declaração de veracidade":"8. Statement of truthfulness",
+"Este termo é celebrado entre a Kinsey Allen Brasil Auditoria e Consultoria Ltda. (\"Kinsey BR\") e o fornecedor identificado abaixo, no âmbito da due diligence da cadeia de cacau contratada pelo cliente contratante da Kinsey BR.":"This term is entered into between Kinsey Allen Brasil Auditoria e Consultoria Ltda. (\"Kinsey BR\") and the supplier identified below, within the cocoa supply chain due diligence engaged by the contracting client of Kinsey BR.",
+"A Kinsey BR manterá sigilo sobre as informações comerciais, fiscais e operacionais recebidas e as usará somente para a diligência. O fornecedor autoriza o repasse dos resultados e das evidências ao cliente contratante, que se obriga ao mesmo sigilo.":"Kinsey BR will keep the commercial, tax and operational information received confidential and use it only for the due diligence. The supplier authorizes sharing the results and evidence with the contracting client, which is bound by the same confidentiality.",
+"Nome, CPF, cargo, contato e assinatura de responsáveis e produtores; endereços e coordenadas dos locais de estoque e de extração; fotografias com data e geolocalização; dados de contratação de empregados em forma agregada. Não coletamos dados pessoais sensíveis, salvo quando indispensáveis à verificação de condições de trabalho, e sempre de forma minimizada.":"Name, tax ID, role, contact and signature of officers and producers; addresses and coordinates of storage and extraction sites; photos with date and geolocation; aggregated employee hiring data. We do not collect sensitive personal data, except when essential to verify working conditions, and always minimized.",
+"Verificar a existência das mercadorias, a realidade das transações e a origem lícita do cacau. Bases legais: cumprimento de obrigação legal ou regulatória (art. 7º, II), exercício regular de direitos em contrato (art. 7º, VI), legítimo interesse (art. 7º, IX) e, quando aplicável, consentimento (art. 7º, I).":"To verify that the goods exist, that transactions are real and that the cocoa has a lawful origin. Legal bases: compliance with legal or regulatory obligations (art. 7, II), regular exercise of contractual rights (art. 7, VI), legitimate interest (art. 7, IX) and, where applicable, consent (art. 7, I).",
+"O cliente contratante (controlador destinatário dos resultados), advogados e auditores da Kinsey BR e provedores de hospedagem do aplicativo, sob contrato de confidencialidade. Consultas a bases públicas (Receita Federal, SEFAZ, SICAR, IBAMA, Cadastro de Empregadores do MTE).":"the contracting client (controller receiving the results), Kinsey BR lawyers and auditors and the app hosting providers, under confidentiality agreements. Checks of public databases (Federal Revenue Service, SEFAZ, SICAR, IBAMA, Labor Ministry Employers Registry).",
+"Os dados ficam guardados pelo prazo da diligência e pelo período exigido pelas normas de auditoria (papéis de trabalho, mínimo de 5 anos), com acesso restrito e registro de quem consultou.":"Data is kept for the duration of the due diligence and for the period required by auditing standards (working papers, at least 5 years), with restricted access and a log of who accessed it.",
+"Confirmação, acesso, correção, anonimização, portabilidade, informação sobre compartilhamento e revogação do consentimento (art. 18), pelo canal do Encarregado (DPO) da Kinsey BR.":"Confirmation, access, correction, anonymization, portability, information about sharing and withdrawal of consent (art. 18), through the Kinsey BR Data Protection Officer (DPO).",
+"O fornecedor declara que as informações, documentos e fotos enviados são verdadeiros e correspondem à realidade da operação, ciente de que divergências serão registradas como achado de risco.":"The supplier declares that the information, documents and photos provided are true and reflect the actual operation, aware that discrepancies will be recorded as a risk finding.",
+"Identificação e societário":"Identification and corporate","Mercadoria e operação":"Goods and operations","Fornecedores N2 e N3":"N2 and N3 suppliers","Trabalho, integridade e LGPD":"Labor, integrity and LGPD","Operação":"Operations","Origem e pagamentos":"Origin and payments","Trabalho e conformidade":"Labor and compliance","Produtor e propriedade":"Producer and farm","Trabalho e moradia":"Labor and housing","Venda":"Sale",
+"A empresa está ativa na Receita Federal e tem inscrição estadual regular em todos os estados onde opera?":"Is the company active at the Federal Revenue Service with a valid state registration in every state where it operates?",
+"Algum sócio ou administrador participa, ou participou nos últimos 5 anos, de outra empresa de cacau hoje baixada ou inapta?":"Does any partner or officer hold, or has held in the last 5 years, a stake in another cocoa company that is now closed or unfit?",
+"Possui certidões negativas válidas (federal, estadual, municipal, FGTS e trabalhista)?":"Does it hold valid clearance certificates (federal, state, municipal, FGTS and labor)?","Houve troca de CNPJ, cisão ou sucessão de empresas do grupo nos últimos 3 anos?":"Has there been a change of tax ID, spin-off or succession of group companies in the last 3 years?",
+"Mantém inventário físico periódico do estoque, com contagem documentada?":"Does it keep a periodic physical inventory with documented counts?","Os armazéns (próprios ou de terceiros) têm capacidade compatível com o volume vendido ao cliente?":"Do the warehouses (own or third-party) have capacity consistent with the volume sold to the client?",
+"Possui balança com certificado de verificação do IPEM/INMETRO vigente?":"Does it have scales with a valid IPEM/INMETRO verification certificate?","Classifica o cacau no recebimento (umidade, impurezas e prova de corte) com ticket e laudo?":"Does it grade cocoa on receipt (moisture, impurities and cut test) with ticket and report?",
+"Segrega e identifica os lotes por fornecedor e origem até a expedição?":"Does it segregate and identify lots by supplier and origin through shipment?","Vende cacau a outros compradores além do cliente contratante?":"Does it sell cocoa to buyers other than the contracting client?",
+"Entregou a lista completa de fornecedores N2/N3 dos últimos 12 meses (nome, CNPJ/CPF, município, volume)?":"Has it delivered the full list of N2/N3 suppliers for the last 12 months (name, tax ID, city, volume)?","Tem contratos escritos com os fornecedores, com cláusulas de origem, trabalho e meio ambiente?":"Does it have written contracts with suppliers, with origin, labor and environmental clauses?",
+"Faz homologação de fornecedores (KYC, CAR, Cadastro de Empregadores do MTE)?":"Does it vet suppliers (KYC, CAR, Labor Ministry Employers Registry)?","Paga fornecedores somente por meio bancário, em nome do emitente da nota fiscal?":"Does it pay suppliers only by bank transfer, to the invoice issuer?","Realiza pagamentos em espécie a fornecedores ou produtores?":"Does it make cash payments to suppliers or producers?",
+"A empresa ou seus sócios constam, ou já constaram, no Cadastro de Empregadores do MTE (trabalho análogo ao de escravo)?":"Is or was the company or its partners on the Labor Ministry Employers Registry (slave-like labor)?","Todos os empregados estão registrados (CLT/eSocial) ou formalmente contratados?":"Are all employees registered (CLT/eSocial) or formally contracted?",
+"Possui código de ética e canal de denúncia em funcionamento?":"Does it have a working code of ethics and whistleblower channel?","Já recebeu denúncia ou autuação por trabalho infantil, análogo ao escravo ou ambiental na cadeia?":"Has it received complaints or fines for child labor, slave-like labor or environmental issues in the chain?","Assinou o NDA e o termo LGPD autorizando o repasse das informações ao cliente contratante?":"Has it signed the NDA and LGPD consent authorizing sharing with the contracting client?",
+"Emite nota fiscal de entrada para todas as compras de produtores?":"Does it issue incoming invoices for all purchases from producers?","As notas de saída para a trader têm notas de entrada correspondentes (balanço de massa fecha)?":"Do outgoing invoices to the trader have matching incoming invoices (mass balance closes)?","A capacidade de armazenagem é compatível com o volume movimentado no período?":"Is storage capacity consistent with the volume handled in the period?",
+"Mantém cadastro de fornecedores e segregação de lotes por origem?":"Does it keep a supplier register and segregate lots by origin?","Possui balança aferida e emite ticket de pesagem por entrega?":"Does it have calibrated scales and issue a weighing ticket per delivery?","Entregou a lista de produtores (N3) com CPF/CNPJ, município, CAR e volume?":"Has it delivered the producer list (N3) with tax ID, city, CAR and volume?",
+"Os produtores fornecedores possuem CAR e inscrição estadual de produtor rural?":"Do supplying producers have a CAR and rural producer state registration?","Tem contratos escritos com os produtores?":"Does it have written contracts with producers?","Paga produtores em espécie?":"Does it pay producers in cash?","O preço pago ao produtor acompanha a cotação de referência do cacau na data?":"Does the price paid to producers follow the cocoa reference quote on the date?",
+"Todos os trabalhadores estão formalmente contratados (CLT, safra ou terceiro regular)?":"Are all workers formally hired (CLT, seasonal or regular contractor)?","Sofreu fiscalização trabalhista ou ambiental com autuação nos últimos 5 anos?":"Has it been fined in a labor or environmental inspection in the last 5 years?","Assinou o NDA e o termo LGPD?":"Has it signed the NDA and LGPD consent?",
+"Possui inscrição estadual de produtor rural ativa?":"Does it hold an active rural producer state registration?","Emite nota fiscal de produtor nas vendas de cacau?":"Does it issue producer invoices for cocoa sales?","A propriedade tem CAR ativo (Cadastro Ambiental Rural)?":"Does the farm have an active CAR (Rural Environmental Registry)?","Existe embargo ambiental (IBAMA ou órgão estadual) sobre a área?":"Is there an environmental embargo (IBAMA or state agency) on the area?","Faz fermentação e secagem do cacau na propriedade?":"Does it ferment and dry cocoa on the farm?",
+"Há menores de 18 anos trabalhando na lavoura, quebra ou secagem?":"Are minors under 18 working in the fields, pod breaking or drying?","Os trabalhadores têm moradia, água potável, sanitários e EPIs adequados?":"Do workers have adequate housing, drinking water, toilets and PPE?","Existe retenção de documentos, dívida com o empregador ou restrição de saída?":"Is there withholding of documents, debt to the employer or restriction on leaving?","Os trabalhadores são registrados ou contratados por parceria/meação formalizada?":"Are workers registered or hired under a formal sharecropping agreement?",
+"Recebe o pagamento por transferência bancária em seu nome?":"Does it receive payment by bank transfer in its own name?","O preço recebido por arroba ficou próximo da cotação do dia da venda?":"Was the price received per arroba close to the quote on the sale date?","Assinou o termo de consentimento LGPD?":"Has it signed the LGPD consent?",
+"Observação ou evidência":"Note or evidence","Checklist documental":"Document checklist","+ Anexar documento":"+ Attach document","Inspeção física in loco":"On-site physical inspection","Procedimentos de campo (NBC TO 3000). Cada item pede foto com data e geolocalização.":"Field procedures (NBC TO 3000). Each item requires a photo with date and geolocation.","+ Foto de campo":"+ Field photo","Constatação":"Finding","Responsável da empresa que acompanhou a inspeção":"Company officer who followed the inspection","Nome e cargo":"Name and role",
+"Contrato social e alterações":"Articles of incorporation and amendments","Cartão CNPJ e inscrição estadual":"Tax ID card and state registration","Certidões negativas (RFB/PGFN, SEFAZ, município, FGTS, CNDT)":"Clearance certificates (RFB/PGFN, SEFAZ, city, FGTS, CNDT)","Licenças (alvará, ambiental, sanitária)":"Licenses (operating, environmental, sanitary)","Contratos com o cliente contratante":"Contracts with the contracting client","Contratos com fornecedores N2/N3":"Contracts with N2/N3 suppliers",
+"Notas fiscais de entrada (amostra)":"Incoming invoices (sample)","Notas fiscais de saída ao cliente":"Outgoing invoices to the client","Pedidos de compra":"Purchase orders","Tickets de pesagem e romaneios":"Weighing tickets and shipping lists","CT-e / MDF-e da expedição":"Shipping CT-e / MDF-e","Comprovantes de pagamento a fornecedores":"Proof of payment to suppliers","Livro de inventário / posição de estoque":"Inventory book / stock position","Certificado IPEM/INMETRO da balança":"IPEM/INMETRO scale certificate","Registro de empregados (eSocial)":"Employee records (eSocial)","Código de ética e canal de denúncia":"Code of ethics and whistleblower channel","NDA e termo LGPD assinados":"Signed NDA and LGPD consent","Declaração de veracidade assinada":"Signed statement of truthfulness",
+"Certidões negativas":"Clearance certificates","Notas fiscais de entrada dos produtores":"Incoming invoices from producers","Notas fiscais de saída à trader":"Outgoing invoices to the trader","Tickets de pesagem":"Weighing tickets","Cadastro de produtores com CAR":"Producer register with CAR","Contratos com produtores":"Contracts with producers","Comprovantes de pagamento":"Proof of payment","Registro de empregados":"Employee records",
+"Documento do produtor (CPF ou CNPJ)":"Producer document (CPF or CNPJ)","Inscrição estadual de produtor rural":"Rural producer state registration","Nota fiscal de produtor":"Producer invoice","Recibo do CAR":"CAR receipt","Comprovante de área / matrícula / posse":"Proof of area / title / possession","Comprovantes de venda e recebimento":"Proof of sale and receipt","Termo de consentimento LGPD":"LGPD consent form",
+"Contagem de estoque conciliada ao estoque declarado e ao livro de inventário":"Stock count reconciled to declared stock and inventory book","Balança com certificado IPEM/INMETRO e pesagem-teste realizada":"Scales with IPEM/INMETRO certificate and test weighing done","Rastreio de lote: venda ao cliente → entrada → fornecedor → propriedade":"Lot traceability: sale to the client → receipt → supplier → farm","Área e capacidade de armazenagem compatíveis com o volume movimentado":"Storage area and capacity consistent with volume handled",
+"Recebimento e classificação com tickets, romaneios e laudos":"Receipt and grading with tickets, shipping lists and reports","Expedição: romaneios, CT-e/MDF-e e notas de saída conferidos":"Shipping: shipping lists, CT-e/MDF-e and outgoing invoices checked","Pagamentos a fornecedores por meio bancário, em nome do emitente":"Supplier payments by bank transfer, to the issuer","Condições de trabalho: registros, EPIs, alojamentos, jornada, sem menores":"Working conditions: records, PPE, lodging, hours, no minors",
+"Efetividade dos controles de recebimento e segregação":"Effectiveness of receipt and segregation controls","Operação compatível com a capacidade instalada":"Operation consistent with installed capacity","Armazenagem e segurança adequadas":"Adequate storage and security","Lotes rastreáveis até o produtor":"Lots traceable to the producer","Condições de trabalho verificadas":"Working conditions verified",
+"Existência da propriedade confirmada no local":"Farm existence confirmed on site","Cultivo de cacau compatível com a área declarada":"Cocoa cultivation consistent with declared area","Estrutura de fermentação e secagem":"Fermentation and drying facilities","Condições de trabalho e moradia adequadas":"Adequate working and housing conditions","Ausência de menores em atividade":"No minors working",
+"Balanço de massa (t)":"Mass balance (t)","Estoque inicial + compras − vendas = estoque final. Diferença acima de 5% das compras gera risco.":"Opening stock + purchases − sales = closing stock. A difference above 5% of purchases creates risk.","Estoque inicial":"Opening stock","Compras":"Purchases","Vendas":"Sales","Estoque final contado":"Counted closing stock","Preencha os quatro campos para calcular.":"Fill in all four fields to calculate.",
+"Produtividade da área":"Area productivity","Preço frente à cotação":"Price vs. quote","Contrato":"Contract","Preço R$/@":"Price BRL/@","Desvio":"Deviation","Nenhum contrato enviado.":"No contracts submitted.",
+"Matriz de risco":"Risk matrix","Classificação do analista":"Analyst rating","Cálculo automático:":"Automatic calculation:","Classificação final":"Final rating","Justificativa":"Justification","Ex.: inspeção confirmou estoque e contratos; dívida parcelada e regular":"E.g.: inspection confirmed stock and contracts; debt in a regular installment plan","Salvar classificação":"Save rating","Confirmar":"Confirm","Cancelar":"Cancel",
+"Questionário":"Questionnaire","Geolocalização":"Geolocation","Existência":"Existence","Coerência operacional":"Operational consistency","Perfil societário":"Corporate profile","Regularidade fiscal":"Tax compliance","Integridade":"Integrity","Condições de trabalho":"Working conditions","Origem e território":"Origin and land","Preços e pagamentos":"Prices and payments","Contratual":"Contractual","Cooperação":"Cooperation","Cooperação / LGPD":"Cooperation / LGPD",
+"NDA e termo LGPD ainda não assinados":"NDA and LGPD consent not yet signed","Propriedade sem número do CAR informado":"Farm without CAR number","Contrato reprovado pelo Jurídico":"Contract rejected by Legal",
+"Investigação das traders":"Trader investigation","Alertas de integridade":"Integrity alerts","CNPJ não ativo":"Inactive tax ID","Dívida ativa":"Tax debt","Sócio PEP / político":"PEP / political partner","Sócio preso ou investigado":"Partner imprisoned or investigated","Abre e fecha CNPJs":"Opens and closes companies","Lista suja MTE":"Labor dirty list",
+"Programa de trabalho":"Work program","Auditoria e inspeções":"Audit and inspections","Andamento por fornecedor: questionário, documentos, inspeção física, fotos mínimas e NDA. Toque numa linha para abrir o dossiê.":"Progress by supplier: questionnaire, documents, physical inspection, minimum photos and NDA. Tap a row to open the dossier.","Quest.":"Quest.","Docs":"Docs","Fotos":"Photos","NDA":"NDA",
+"Kit de diligência":"Due diligence kit","Lista de questionamentos iniciais":"Initial question list","Perguntas enviadas a cada nível pelo aplicativo. As marcadas com ● geram indicador de risco conforme a resposta.":"Questions sent to each level by the app. Those marked ● create a risk indicator depending on the answer.","perguntas":"questions",
+"Checklist documental por nível":"Document checklist by level","Procedimentos de inspeção física":"Physical inspection procedures","Critérios da matriz de risco":"Risk matrix criteria","Critério":"Criterion","Indicador no app":"Indicator in the app",
+"MTE, menores, retenção de documentos (resposta de risco)":"Labor Ministry, minors, withheld documents (risk answer)","Balanço de massa com diferença acima de 5%":"Mass balance difference above 5%","N3 sem CAR; volume acima de 1,5× a capacidade da área":"N3 without CAR; volume above 1.5× area capacity","CNPJ com menos de 2 anos":"Tax ID less than 2 years old","Preço mais de 20% abaixo da cotação; pagamento em espécie":"Price more than 20% below the quote; cash payment","Foto tirada a mais de 5 km do local declarado":"Photo taken more than 5 km from the declared site","Demais respostas de risco":"Other risk answers","Cada resposta marcada ● no questionário":"Each answer marked ● in the questionnaire","NDA não assinado; questionário abaixo de 50%; menos de 3 fotos":"NDA not signed; questionnaire below 50%; fewer than 3 photos",
+"Alto risco a partir de 6 pontos, médio de 3 a 5, baixo abaixo de 3. Pesos iniciais a validar com o cliente na etapa preparatória.":"High risk from 6 points, medium 3 to 5, low below 3. Initial weights to be validated with the client in the preparatory stage.",
+"Advogados de diligência":"Due diligence lawyers","Aprovação remota de contratos":"Remote contract approval","Contratos entre traders e fornecedores enviados pelo campo. O Jurídico revisa as cláusulas e emite o parecer daqui mesmo.":"Contracts between traders and suppliers sent from the field. Legal reviews the clauses and issues the opinion right here.","Enviar contrato":"Submit contract","Todos":"All",
+"NDA e termos LGPD":"NDA and LGPD consents","Validar termo":"Validate term","Cotação de referência do cacau":"Cocoa reference quote","Usada para comparar o preço dos contratos e apontar preços impraticáveis (mais de 20% abaixo).":"Used to compare contract prices and flag unfair prices (more than 20% below).","R$ por arroba (15 kg)":"BRL per arroba (15 kg)","Data / fonte":"Date / source","Salvar cotação":"Save quote",
+"Vigência":"Term","Volume":"Volume","Preço":"Price","Enviado":"Submitted","Observações":"Notes","Nenhum arquivo anexado.":"No file attached.","Revisão de cláusulas":"Clause review","Parecer jurídico":"Legal opinion","Fundamentação, ressalvas e plano de ação":"Grounds, reservations and action plan","Aprovar":"Approve","Aprovar com ressalvas":"Approve with reservations","Reprovar":"Reject","Excluir envio":"Delete submission","Último parecer:":"Last opinion:","aprovado":"approved",
+"Origem e rastreabilidade do cacau até a propriedade (município/UF, CAR)":"Cocoa origin and traceability to the farm (city/state, CAR)","Proibição de trabalho análogo ao escravo e de trabalho infantil (CLT, NR-31, ECA, Decreto 6.481/2008)":"Prohibition of slave-like and child labor (CLT, NR-31, ECA, Decree 6,481/2008)","Conformidade ambiental: CAR ativo e ausência de embargos":"Environmental compliance: active CAR and no embargoes","Direito de auditoria e inspeção pelo cliente contratante ou terceiro independente":"Audit and inspection rights for the contracting client or an independent third party","Confidencialidade e tratamento de dados pessoais conforme a LGPD":"Confidentiality and personal data processing under the LGPD","Anticorrupção (Lei 12.846/2013) e veracidade das informações":"Anti-corruption (Law 12,846/2013) and truthfulness of information","Rescisão e suspensão por não conformidade grave":"Termination and suspension for serious non-compliance","Preço, pesagem e classificação definidos de forma objetiva":"Price, weighing and grading objectively defined",
+"Para o Jurídico":"For Legal","Enviar contrato comercial":"Submit commercial contract","Fornecedor que apresenta o contrato":"Supplier presenting the contract","Tipo":"Type","Número / referência":"Number / reference","Contraparte":"Counterparty","Quem compra ou vende do outro lado":"Who buys or sells on the other side","Início da vigência":"Start date","Fim da vigência":"End date","Volume (t)":"Volume (t)","Preço (R$ por arroba)":"Price (BRL per arroba)","Arquivo do contrato (PDF ou foto)":"Contract file (PDF or photo)","Observações para o Jurídico":"Notes for Legal","Enviar para aprovação":"Submit for approval",
+"Compra e venda de cacau":"Cocoa purchase and sale","Fornecimento contínuo":"Continuous supply","Armazenagem":"Storage","Parceria / meação":"Partnership / sharecropping","Prestação de serviço":"Service agreement","Outro":"Other",
+"Repositório de evidências":"Evidence repository","Fotos, notas e documentos":"Photos, invoices and documents","No celular, a câmera abre direto. O app lê a data e o GPS da foto e compara com o local declarado do fornecedor.":"On the phone, the camera opens directly. The app reads the photo date and GPS and compares them with the supplier's declared site.","Nova evidência":"New evidence","Com GPS":"With GPS","Fora do local (>5 km)":"Off-site (>5 km)","Com 3 fotos mínimas":"With 3 minimum photos","Nenhuma evidência ainda.":"No evidence yet.","Fotografe mercadorias, galpões e balanças, ou anexe notas fiscais, pedidos e contratos.":"Photograph goods, warehouses and scales, or attach invoices, orders and contracts.",
+"Captura de campo":"Field capture","Tipo de evidência":"Evidence type","Foto ou arquivo":"Photo or file","No celular, escolha \"Câmera\" ou \"Tirar foto\" para manter data e GPS originais.":"On the phone, choose \"Camera\" or \"Take photo\" to keep the original date and GPS.","Descrição":"Description","O que a foto ou o documento comprova":"What the photo or document proves","LGPD: evite rostos e documentos pessoais de trabalhadores, a menos que sejam necessários à verificação.":"LGPD: avoid workers' faces and personal documents unless needed for verification.","Salvar evidência":"Save evidence","Ler o documento com IA (extrai número, data, CNPJ, produto, quantidade e valor)":"Read the document with AI (extracts number, date, tax ID, product, quantity and value)",
+"Foto da mercadoria":"Photo of goods","Foto do galpão / armazém":"Photo of warehouse","Foto da balança":"Photo of scales","Foto da propriedade":"Photo of farm","Nota fiscal":"Invoice","Pedido de compra":"Purchase order","Ticket de pesagem":"Weighing ticket","Romaneio / CT-e":"Shipping list / CT-e","Certidão":"Certificate","Comprovante de pagamento":"Proof of payment","NDA / termo LGPD":"NDA / LGPD consent",
+"Anexo · consulta de preços":"Annex · price lookup","Cotações do cacau":"Cocoa quotes","Preços do mercado físico em":"Physical market prices in","Brasil · em evidência":"Brazil · highlighted","Bolsas internacionais":"International exchanges","Mercado":"Market","ICE Nova York":"ICE New York","ICE Londres":"ICE London","ICCO preço diário":"ICCO daily price","Atualizar cotação":"Update quote","Data da cotação":"Quote date","Fonte":"Source","Histórico (últimas 30 atualizações)":"History (last 30 updates)","Quando":"When","Londres":"London","Fontes para consulta":"Reference sources","Preço do Cacau (BR) ↗":"Preço do Cacau (BR) ↗","ICE Nova York ↗":"ICE New York ↗","ICE Londres ↗":"ICE London ↗",
+"Pará (média)":"Pará (average)","Bahia (média)":"Bahia (average)","Espírito Santo":"Espírito Santo","Rondônia":"Rondônia","ICE Nova York (US$/t)":"ICE New York (US$/t)","ICE Londres (£/t)":"ICE London (£/t)","ICCO preço diário (US$/t)":"ICCO daily price (US$/t)",
+"Base de traders do cliente":"Client trader base","Importar traders (N1)":"Import traders (N1)","Cole as linhas da planilha ou escolha um arquivo CSV. Colunas:":"Paste spreadsheet rows or choose a CSV file. Columns:","CNPJ; Razão social; Município; UF; Volume (t)":"Tax ID; Company name; City; State; Volume (t)",". CNPJs já cadastrados são ignorados.":". Tax IDs already registered are skipped.","Arquivo CSV":"CSV file","Ou cole aqui":"Or paste here","Nenhuma linha lida ainda.":"No rows read yet.","Importar":"Import",
+"Portal do Fornecedor":"Supplier Portal","Escolha o arquivo":"Choose the file","que o fornecedor gerou no portal e enviou por e-mail ou WhatsApp. Os dados entram marcados como":"that the supplier generated in the portal and sent by email or WhatsApp. The data comes in marked as","\"enviado pelo fornecedor — conferir\"":"\"sent by supplier — to verify\"","Arquivo da ficha":"Form file","Nenhuma ficha lida.":"No form read.","Link do Portal do Fornecedor para enviar aos fornecedores:":"Supplier Portal link to send to suppliers:",
+"Novo fornecedor":"New supplier","Cadastro de fornecedor":"Supplier registration","Nível na cadeia":"Level in the chain","N1 trader · N2 fornecedor da trader · N3 produtor":"N1 trader · N2 supplier to the trader · N3 producer","Vende para (elo acima na cadeia)":"Sells to (link above in the chain)","Selecione…":"Select…","Razão social ou nome do produtor *":"Company or producer name *","CNPJ ou CPF *":"Tax ID (CNPJ or CPF) *","Data de abertura do CNPJ":"Tax ID opening date","Volume anual (t de cacau)":"Annual volume (t of cocoa)","Município":"City","Municípios produtores preenchem as coordenadas":"Producing cities fill in the coordinates",
+"Endereço do local de estocagem":"Storage site address","Endereço do local de extração (propriedade de origem)":"Extraction site address (farm of origin)","Nº do CAR":"CAR number","Área plantada com cacau (ha)":"Cocoa planted area (ha)","Contato (telefone ou e-mail)":"Contact (phone or email)","Forma de contratação dos empregados":"How employees are hired","Cadastrar":"Register","Salvar alterações":"Save changes","Excluir":"Delete",
+"LGPD: cadastre só os dados necessários à diligência. CPF e contato de produtores pessoa física são dados pessoais e ficam visíveis apenas para a equipe com acesso ao app.":"LGPD: register only the data the due diligence needs. Individual producers' tax ID and contact are personal data, visible only to the team with app access.",
+"Trader":"Trader","Comprador regional":"Regional buyer","Cooperativa":"Cooperative","Intermediário":"Intermediary","Produtor pessoa física":"Individual producer","Produtor pessoa jurídica":"Producer company","Pequeno fornecedor":"Small supplier","Safra":"Seasonal","Diaristas":"Day laborers","Terceirizados":"Outsourced","Mão de obra familiar":"Family labor","Misto":"Mixed","CLT":"CLT (formal)",
+"Assistente virtual KinseyTec":"KinseyTec virtual assistant","Como acessar e instalar (48 s)":"How to access and install (48 s)","Acesso e administração":"Access and administration","Administrador geral (Kinsey BR):":"General administrator (Kinsey BR):","Link do":"Link for","Cliente":"Client","(cliente e Kinsey BR):":"(client and Kinsey BR):","(Portal do Fornecedor):":"(Supplier Portal):",
+"Em 4 minutos, a Kim explica como usar o KinseyTec – Cacau, sistema de matriz de risco de fornecedores de cacau: órbita, cadeia N1/N2/N3, auditoria e risco, evidências com GPS e aprovação jurídica com NDA e LGPD.":"In 4 minutes, Kim explains how to use KinseyTec – Cacau, the cocoa supplier risk matrix system: orbit, N1/N2/N3 chain, audit and risk, GPS evidence and legal approval with NDA and LGPD.",
+": toque num fornecedor para aproximar até o local.":": tap a supplier to zoom to the site.",": cadastre traders (N1), fornecedores (N2) e produtores (N3).":": register traders (N1), suppliers (N2) and producers (N3).",": questionário, documentos, inspeção e testes atualizam o risco.":": questionnaire, documents, inspection and tests update the risk.",": fotos com data e GPS e alerta quando a foto está longe do local declarado.":": photos with date and GPS, with an alert when a photo is far from the declared site.",": revisão de cláusulas, parecer remoto, NDA e LGPD.":": clause review, remote opinion, NDA and LGPD.",
+"Fechar":"Close","×":"×","Latitude":"Latitude","Longitude":"Longitude","Exemplo de parecer: cláusulas completas.":"Sample opinion: complete clauses.","Exemplo: preço bem abaixo da cotação de referência do Pará.":"Example: price well below the Pará reference quote.","Fornecedor removido":"Supplier removed",
+"Por que ALTO risco · classificação do analista":"Why HIGH risk · analyst rating","● RISCO":"● RISK","fornece ao cliente":"supplies the client","sem coordenadas":"no coordinates","Volume vendido acima de 1,5× a capacidade da área":"Volume sold above 1.5× area capacity","Sócios abrem e fecham empresas rapidamente":"Partners open and close companies quickly","Por que MÉDIO risco · classificação do analista":"Why MEDIUM risk · analyst rating","Por que BAIXO risco · classificação do analista":"Why LOW risk · analyst rating"
+};
+const EN_PAT = [ [/^parecer: (.+)$/, "opinion: $1"],[/^Validado em (.+) por (.+)$/, "Validated on $1 by $2"],[/^Termo aceito por (.+) em (.+)\. Registre o advogado que validou\.$/, "Term accepted by $1 on $2. Record the attorney who validated it."],[/^Excluir (\d+) fornecedor\(es\)$/, "Delete $1 supplier(s)"],[/^Excluir (\d+)$/, "Delete $1"],[/^Excluir (\d+) fornecedor\(es\)\?$/, "Delete $1 supplier(s)?"],[/^Cliente – (.+)$/, "Client – $1"], [/^Importar (\d+) fornecedor\(es\)$/, "Import $1 supplier(s)"],[/^(\d+) fornecedor\(es\) importado\(s\)$/, "$1 supplier(s) imported"],[/^Importando (.+)…$/, "Importing $1…"], [/^Cliente: (.+)$/, "Client: $1"],[/^Local encontrado: (.+) \(coordenadas preenchidas\)\.$/, "Place found: $1 (coordinates filled in)."], [/^Próxim[ao] até (.+)$/, "Next by $1"],[/^(\d+) de 6 blocos preenchidos\. (.+)$/, m => m[1] + " of 6 sections completed. " + trT(m[2])],[/^Total mapeado: (.+)$/, "Total mapped: $1"],[/^Automático: (.+)$/, "Automatic: $1"],[/^(\d+)\/6$/, "$1/6"],[/^Divergem (.+)$/, "Differ $1"],[/^Reavaliar desde (.+)$/, "Re-evaluate since $1"],[/^Reavaliar \(sem avaliação\)$/, "Re-evaluate (no evaluation)"],[/^Próxima: (.+)$/, "Next: $1"],
+ [/^● RISCO \+(\d+)$/, "● RISK +$1"],[/^fornece a (.+)$/, "supplies $1"],
+ [/^Questionário (\d+)\/(\d+)$/, "Questionnaire $1/$2"],[/^Questionário com (\d+)\/(\d+) respostas$/, "Questionnaire with $1/$2 answers"],[/^Questionário (\d+)\/(\d+) sem respostas de risco relevantes$/, "Questionnaire $1/$2 with no relevant risk answers"],
+ [/^Pontuação (\d+) · alto a partir de 6, médio de 3 a 5\. Revisada a cada resposta, foto ou parecer\.$/, "Score $1 · high from 6, medium 3 to 5. Updated with every answer, photo or opinion."],[/^pontuação (\d+)$/, "score $1"],
+ [/^\(pontuação (\d+)\)\. O analista Kinsey BR pode confirmar ou reclassificar, com justificativa\.(.*)$/, "(score $1). The Kinsey BR analyst can confirm or re-rate it, with a justification.$2"],[/^\+ (\d+) outro\(s\) fator\(es\) na aba Risco$/, "+ $1 more factor(s) in the Risk tab"],
+ [/^Pendentes · (\d+)$/, "Pending · $1"],[/^Com ressalvas · (\d+)$/, "With reservations · $1"],[/^Aprovados · (\d+)$/, "Approved · $1"],[/^Reprovados · (\d+)$/, "Rejected · $1"],
+ [/^Fornecedores vinculados \((\d+)\)$/, "Linked suppliers ($1)"],[/^Sem aceite \((\d+)\)$/, "No acceptance ($1)"],[/^enviado (.+)$/, "sent $1"],[/^atualizado (.+)$/, "updated $1"],[/^Cadastrado em (.+) ·$/, "Registered on $1 ·"],
+ [/^CNPJ aberto há ([\d,]+) ano\(s\)$/, "Tax ID opened $1 year(s) ago"],[/^Apenas (\d+) de 3 fotos mínimas de mercadoria\/galpão$/, "Only $1 of 3 minimum photos of goods/warehouse"],
+ [/^Contrato (\S*) ?com preço (-?\d+)% abaixo da cotação de referência$/, "Contract $1 priced $2% below the reference quote"],[/^Balanço de massa não fecha: diferença de (.+) \((.+) das compras\)$/, "Mass balance does not close: difference of $1 ($2 of purchases)"],[/^Balanço de massa não fecha: diferença de (.+)$/, "Mass balance does not close: difference of $1"],
+ [/^Estoque esperado (.+) · contado (.+) · diferença$/, "Expected stock $1 · counted $2 · difference"],[/^Capacidade estimada (.+) · vendido (.+) ·$/, "Estimated capacity $1 · sold $2 ·"],[/^Volume vendido \((.+)\) acima de 1,5× a capacidade da área \((.+) a (.+)\)$/, "Volume sold ($1) above 1.5× area capacity ($2 at $3)"],
+ [/^Questionamentos iniciais · (N\d)$/, "Initial questions · $1"],[/^Automática \((.+)\)$/, m => "Automatic (" + trT(m[1]) + ")"],[/^Classificar como (.+)$/, m => "Rate as " + trT(m[1])],
+ [/^Sócios abrem e fecham empresas rapidamente: (\d+) empresa$/, "Partners open and close companies quickly: $1 companies"],[/^CNPJ com situação (\w+) na Receita Federal$/, m => "Tax ID status " + trT(m[1]) + " at the Federal Revenue Service"],
+ [/^(\d+) traders na base · (\d+) no Pará · (\d+) fornecedor\(es\) com alerta\.$/, "$1 traders in the base · $2 in Pará · $3 supplier(s) with alerts."],[/^(\d+) de (\d+) respondidas\. Respostas em vermelho viram indicador de risco\.$/, "$1 of $2 answered. Red answers become risk indicators."],
+ [/^(\d+) de (\d+) documentos conferidos\. Anexe o arquivo em Evidências\.$/, "$1 of $2 documents checked. Attach the file in Evidence."],[/^(\d+) de (\d+) fornecedores com aceite registrado\. (\d+) aguardando validação jurídica\.$/, "$1 of $2 suppliers with acceptance recorded. $3 awaiting legal validation."],
+ [/^Brasil · (.+)$/, "Brazil · $1"],[/^\((-?[\d,]+)% vs\. cotação\)$/, "($1% vs. quote)"],[/^\(([+-]?[\d,]+)% vs\. cotação\)$/, "($1% vs. quote)"],[/^Justificativa: (.+)$/, "Justification: $1"],
+ [/^Próximo: (.+) →$/, m => "Next: " + trT(m[1]) + " →"],[/^← (.+)$/, m => "← " + trT(m[1])],[/^(\d+) perguntas$/, "$1 questions"],[/^(\d+) alerta\(s\)$/, "$1 alert(s)"],
+ [/^Volume vendido comparado com área de cacau \(CAR\) × produtividade de referência em (\w*): (.+) \(valor inicial, a calibrar com o cliente\)\.$/, "Volume sold vs. cocoa area (CAR) × reference productivity in $1: $2 (initial value, to be calibrated with the client)."],
+ [/^Pontos de atenção menores: (.+)$/, m => "Minor points of attention: " + trT(m[1])],[/^Em (\d+) minutos, (.+)$/, m => trT(m[0])]
+];
+/* EN auditoria */
+Object.assign(EN, {"Fornecedores já cadastrados (mesmo CNPJ/CPF)": "Suppliers already registered (same tax ID)", "Ignorar (manter os dados atuais)": "Ignore (keep current data)", "Substituir os dados pelos da nova lista": "Replace data with the new list", "Substituir atualiza nome, cidade, volume, comprador e contatos; questionário, documentos e fotos são mantidos.": "Replace updates name, city, volume, buyer and contacts; questionnaire, documents and photos are kept.", "Excluir os fornecedores do mesmo nível que não estão na nova lista": "Delete suppliers of the same level that are not in the new list", "Substituir dados": "Replace data", "Já cadastrado · ignorado": "Already registered · ignored", "Confirmar importação": "Confirm import", "Importar e excluir": "Import and delete", "A exclusão não pode ser desfeita. As evidências e contratos desses fornecedores continuam guardados.": "Deletion cannot be undone. These suppliers' evidence and contracts are kept.", "Excluir fornecedores": "Delete suppliers", "Escolha um ou vários fornecedores. Antes de excluir, o sistema pede confirmação. Fornecedores vinculados aos excluídos ficam sem comprador, para conferir.": "Choose one or more suppliers. The system asks for confirmation before deleting. Suppliers linked to deleted ones are left without a buyer, for review.", "Buscar": "Search", "Nível": "Level", "Todos": "All", "Origem": "Origin", "Todas": "All", "Importados": "Imported", "Selecionar todos os da lista abaixo": "Select all in the list below", "Excluir também as evidências e os contratos desses fornecedores": "Also delete these suppliers' evidence and contracts", "Excluir": "Delete", "Nenhum fornecedor com esses filtros.": "No suppliers match these filters.", "Cliente atual": "Current client", "Trocar ou cadastrar clientes": "Switch or add clients", "Clientes": "Clients", "Novo cliente": "New client", "Cadastrar e entrar no cliente": "Add and open client", "Entrar": "Open", "Cliente": "Client", "Registros sem cliente": "Records without a client", "Acesso sem cliente vinculado": "Access not linked to a client", "Cadastrar primeiro cliente": "Add first client", "Cada cliente contratante tem sua própria base de fornecedores, contratos, evidências e relatórios, e seus próprios usuários. O cliente só vê os próprios dados.": "Each contracting client has its own base of suppliers, contracts, evidence and reports, and its own users. Clients see only their own data.", "Nenhum cliente cadastrado ainda. Cadastre o primeiro abaixo.": "No clients yet. Add the first one below.", "— Kinsey BR (administrador de todos os clientes) —": "— Kinsey BR (administrator of all clients) —", "Kinsey BR (todos)": "Kinsey BR (all)"});
+Object.assign(EN, {"Importações de fornecedores": "Supplier imports", "Desfaça uma importação inteira ou apague os registros importados com texto ilegível (arquivo lido no formato errado).": "Undo a whole import or delete imported records with unreadable text (file read in the wrong format).", "Nenhum registro importado com texto ilegível.": "No imported records with unreadable text.", "Desfazer": "Undo", "Fornecedores": "Suppliers", "Arquivo": "File", "Apagar registros com erro": "Delete records with errors", "Desfazer importação": "Undo import"});
+Object.assign(EN, {"Importar fornecedores": "Import suppliers", "Base de fornecedores": "Supplier database", "Importar fornecedores (N1, N2, N3)": "Import suppliers (N1, N2, N3)", "Nível padrão (quando o arquivo não informa)": "Default level (when the file does not say)", "Vende para (comprador padrão, para N2 e N3)": "Sells to (default buyer, for N2 and N3)", "— identificar pela coluna Comprador —": "— identify by the Buyer column —", "Arquivo": "File", "Ou cole aqui (copie as linhas do Excel, do Word ou de um e-mail)": "Or paste here (copy rows from Excel, Word or an email)", "Baixar planilha modelo (.csv)": "Download template spreadsheet (.csv)", "Importar": "Import", "Razão social": "Legal name", "CNPJ/CPF": "Tax ID", "Município/UF": "City/State", "Volume": "Volume", "Vende para": "Sells to", "Situação": "Status", "Já cadastrado": "Already registered", "CNPJ/CPF inválido": "Invalid tax ID", "Novo": "New", "não identificado": "not identified", "Nenhum fornecedor encontrado. Confira se o arquivo tem razão social e CNPJ (ou use a planilha modelo).": "No suppliers found. Check that the file has legal name and tax ID (or use the template).", "Formato antigo (.xls ou .doc). Salve como .xlsx ou .docx (Arquivo → Salvar como) e tente de novo.": "Old format (.xls or .doc). Save as .xlsx or .docx (File → Save as) and try again.", "Não foi possível ler o arquivo. Se for PDF digitalizado (imagem), use o Excel ou cole o texto.": "Could not read the file. If it is a scanned PDF (image), use Excel or paste the text."});
+Object.assign(EN, {"Empresa contratante (cliente)": "Contracting company (client)", "A empresa que contratou o sistema. O nome aparece no topo do sistema, na lista do cliente e nos relatórios; a cidade é o ponto de partida do mapa.": "The company that contracted the system. Its name appears at the top of the system, in the client list and in reports; the city is the map's starting point.", "Nome da empresa contratante": "Contracting company name", "Cidade da unidade (fábrica, sede ou porto)": "Site city (plant, head office or port)", "Ajustar coordenadas do mapa (opcional)": "Adjust map coordinates (optional)", "Salvar empresa contratante": "Save contracting company", "Definir empresa contratante": "Set contracting company", "Cliente não definido": "Client not set", "Empresa contratante salva para toda a equipe": "Contracting company saved for the whole team", "Informe o nome da empresa contratante.": "Enter the contracting company name.", "Informe a cidade no formato Cidade/UF ou ajuste as coordenadas.": "Enter the city as City/State or adjust the coordinates.", "Informe a cidade no formato Cidade/UF (ex.: Guarulhos/SP).": "Enter the city as City/State (e.g., Guarulhos/SP).", "No Google Maps, clique com o botão direito no local e copie os dois números.": "In Google Maps, right-click the place and copy the two numbers."});
+Object.assign(EN, {"Apagar dados de exemplo":"Delete sample data","Apagar exemplos":"Delete samples","Apagando…":"Deleting…","Exemplos apagados":"Samples deleted","Antes de usar com o cliente, apague os exemplos: somem os fornecedores, contratos, pareceres e evidências marcados EXEMPLO.":"Before using with the client, delete the samples: suppliers, contracts, opinions and evidence marked EXEMPLO are removed.","Apagar todos os fornecedores, contratos, pareceres e evidências marcados EXEMPLO? Os dados reais não são afetados.":"Delete all suppliers, contracts, opinions and evidence marked EXEMPLO? Real data is not affected."});
+Object.assign(EN, {"Relatório para o cliente contratante": "Report for the contracting client", "Relatório": "Report", "Principais pontos": "Main findings", "Fornecedores em risco alto": "High-risk suppliers", "Relatório de pontos": "Findings report", "Principais riscos, fornecedores envolvidos, recomendações, normas e legislação, com a matriz de risco, os contratos e os testes de asseguração.": "Main risks, suppliers involved, recommendations, standards and legislation, with the risk matrix, contracts and assurance tests.", "Baixar relatório (PDF)": "Download report (PDF)", "Gerar apresentação (PowerPoint)": "Generate presentation (PowerPoint)", "O relatório em PDF é liberado pelo administrador da Kinsey BR.": "The PDF report is released by the Kinsey BR administrator.", "Controle do administrador": "Administrator control", "Liberar o relatório em PDF para o cliente e a equipe (PowerPoint fica só com o administrador)": "Release the PDF report to the client and team (PowerPoint stays with the administrator)", "Responsável técnico (aparece na capa e na assinatura)": "Responsible professional (shown on the cover and signature)", "Escopo do trabalho (opcional)": "Scope of work (optional)", "Salvar controle": "Save settings", "Histórico de relatórios gerados": "History of generated reports", "Nenhum relatório gerado ainda.": "No reports generated yet.", "Usuário": "User", "Formato": "Format", "Gerando…": "Generating…", "Relatório PDF gerado": "PDF report generated", "Apresentação PowerPoint gerada": "PowerPoint presentation generated", "Controle do relatório salvo": "Report settings saved", "Não foi possível gerar o relatório.": "Could not generate the report.", "PowerPoint disponível só para o administrador.": "PowerPoint is available to the administrator only.", "Relatório não liberado pelo administrador.": "Report not released by the administrator.", "Download não concluído.": "Download not completed.", "Em branco, o relatório usa o texto padrão de escopo e metodologia": "If blank, the report uses the default scope and methodology text"});
+Object.assign(EN, {"Asseguração · testes baseados em alertas do setor": "Assurance · tests based on sector alerts", "Asseguração": "Assurance", "testes baseados em alertas do setor": "tests based on sector alerts", "Programa de testes substantivos": "Substantive testing program", "Cada alerta público vira um procedimento de auditoria com evidência exigida. A cobertura mostra quantos fornecedores do nível já têm todas as evidências no repositório.": "Each public alert becomes an audit procedure with required evidence. Coverage shows how many suppliers at that level already have all the evidence in the repository.", "Padrão de risco": "Risk pattern", "Níveis": "Levels", "Procedimento de auditoria": "Audit procedure", "Evidência exigida": "Required evidence", "Cobertura": "Coverage", "Matriz jurídica das cláusulas": "Legal matrix of clauses", "Base legal de referência e o que verificar em cada cláusula. Cláusula essencial ausente leva à recomendação de reprovação ou de plano de ação. Referências para apoio; a conclusão é do advogado responsável.": "Reference legal basis and what to check in each clause. A missing essential clause leads to a recommendation to reject or to require an action plan. References for support; the conclusion belongs to the responsible lawyer.", "Cláusula": "Clause", "Base legal": "Legal basis", "O que verificar": "What to check", "Essencial": "Essential", "Verificar": "Check", "Gerar minuta do parecer": "Generate draft opinion", "Requisito mínimo": "Minimum requirement", "Foto original da câmera, com data e GPS ativos; uma visão geral e uma de detalhe; evite rostos de trabalhadores.": "Original camera photo with date and GPS on; one overview and one close-up; avoid workers' faces.", "Conferir a chave de 44 dígitos no portal da NF-e; emitente, produto, quantidade, data e valor compatíveis com o contrato e o estoque.": "Check the 44-digit key on the NF-e portal; issuer, product, quantity, date and amount consistent with the contract and inventory.", "Versão assinada por todas as partes, com cláusulas de origem, trabalho, auditoria e rescisão; conferir os poderes de quem assina.": "Version signed by all parties, with origin, labor, audit and termination clauses; check the signatories' powers.", "Número sequencial, placa, peso bruto, tara e líquido; conferir com a nota fiscal e o romaneio.": "Sequential number, plate, gross, tare and net weight; match against the invoice and the shipping list.", "Placa, motorista, origem e destino; conferir a chave do CT-e e o trajeto com o local declarado.": "Plate, driver, origin and destination; check the CT-e key and the route against the declared location.", "Conferir número, origem, destino, quantidade e finalidade na defesa agropecuária; cruzar com o CAR da fazenda de origem.": "Check number, origin, destination, quantity and purpose with the animal health agency; cross-check with the CAR of the origin farm.", "Recibo do CAR ativo e polígono (KML ou shapefile) comparado com PRODES/DETER, embargos e áreas protegidas.": "Active CAR receipt and polygon (KML or shapefile) compared with PRODES/DETER, embargoes and protected areas.", "Relatório com data, fonte das imagens e sobreposição do polígono com alertas de desmatamento; arquivar o PDF.": "Dated report with image source and overlap of the polygon with deforestation alerts; keep the PDF.", "Print do Cadastro de Empregadores do MTE com data da consulta, para o CNPJ e os CPFs dos sócios.": "Dated screenshot of the MTE Employers Register (dirty list) for the company and its partners.", "Consulta com data aos embargos do IBAMA e do órgão estadual, por CPF/CNPJ e por polígono.": "Dated check of IBAMA and state embargoes, by taxpayer ID and by polygon.", "Comprovante emitido pela defesa agropecuária, compatível com o rebanho declarado e as GTAs.": "Certificate issued by the animal health agency, consistent with the declared herd and the GTAs.", "Documento válido, emitido por laboratório ou entidade identificada; conferir a autenticidade no site do emissor.": "Valid document issued by an identified laboratory or body; verify authenticity on the issuer's website.", "Transferência bancária identificada (pagador, recebedor e valor); pagamento em espécie é ponto de atenção.": "Identified bank transfer (payer, payee and amount); cash payment is a red flag.", "eSocial ou ficha de registro com admissão anterior ao início do trabalho; conferir com quem estava no local na inspeção.": "eSocial or employee record with hiring date before work began; match against who was on site at the inspection.", "Registro da entrevista (data, local, função, forma de contratação, jornada, descontos), sem identificar o trabalhador sem consentimento.": "Interview record (date, place, role, hiring method, working hours, deductions), without identifying the worker without consent.", "Licença ambiental e alvará vigentes, no nome e endereço do fornecedor e compatíveis com a atividade; conferir no órgão emissor.": "Valid environmental license and operating permit, in the supplier's name and address and consistent with the activity; check with the issuing body.", "Documento com foto, CPF/CNPJ, endereço e origem declarada do material; conferir na Receita Federal.": "Photo ID, taxpayer ID, address and declared origin of the material; check with the Federal Revenue.", "Manifesto emitido no SINIR, com gerador, transportador e destinador identificados.": "Manifest issued in SINIR, identifying generator, carrier and receiver.", "Edital e termo de arremate em nome do fornecedor, com descrição e quantidade do material.": "Auction notice and award in the supplier's name, describing the material and quantity.", "Pedido numerado, com data, quantidade e preço, conciliado com a nota fiscal.": "Numbered order with date, quantity and price, reconciled with the invoice.", "Aceite com nome, cargo, documento, data e versão do termo.": "Acceptance with name, role, ID, date and version of the terms.", "Descreva o que o documento comprova e onde foi conferido.": "Describe what the document proves and where it was checked."});
+function trT(t){
+  if (!t) return t; if (EN[t] != null) return EN[t];
+  for (const [re, rep] of EN_PAT){ const m = t.match(re); if (m) return typeof rep === "function" ? rep(m) : t.replace(re, rep); }
+  let m = t.match(/^(.*) — (SIM|NÃO)$/); if (m){ const b = trT(m[1]); if (b !== m[1]) return b + " — " + (m[2] === "SIM" ? "YES" : "NO"); }
+  m = t.match(/^([^:]{3,40}): (.+)$/); if (m){ const a = trT(m[1]), b = trT(m[2]); if (a !== m[1] || b !== m[2]) return a + ": " + b; }
+  m = t.match(/^(.+) nº (.+)$/); if (m){ const a = trT(m[1]); if (a !== m[1]) return a + " no. " + m[2]; }
+  if (t.length >= 25){ const k = Object.keys(EN).find(x => x.startsWith(t)); if (k) return EN[k]; }
+  if (t.includes(" · ")){ const parts = t.split(" · "), out = parts.map(trT); if (out.some((x, i) => x !== parts[i])) return out.join(" · "); }
+  return t;
+}
+let LANG = "pt"; try{ LANG = localStorage.getItem("kinseytec-lang") || "pt"; }catch(e){}
+const ORIG = new WeakMap(), ORIGA = new WeakMap();
+function trNode(root){
+  if (LANG !== "en" || !root) return;
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n;
+  while ((n = w.nextNode())){
+    const p = n.parentElement; if (!p || /SCRIPT|STYLE/.test(p.tagName)) continue;
+    const raw = n.nodeValue, t = raw.trim(); if (!t || !/[A-Za-zÀ-ú]/.test(t)) continue;
+    const tr = trT(t); if (tr !== t){ if (!ORIG.has(n)) ORIG.set(n, raw); n.nodeValue = raw.replace(t, tr); }
+  }
+  const els = root.querySelectorAll ? root.querySelectorAll("[placeholder],[aria-label],[title]") : [];
+  els.forEach(e => ["placeholder","aria-label","title"].forEach(a => { const v = e.getAttribute(a); if (!v) return; const tr = trT(v.trim()); if (tr !== v.trim()){ const o = ORIGA.get(e) || {}; if (!(a in o)) o[a] = v; ORIGA.set(e, o); e.setAttribute(a, tr); } }));
+}
+let OBS = null;
+function applyLang(){
+  document.documentElement.lang = LANG === "en" ? "en" : "pt-BR";
+  $$(".langbtn button").forEach(b => b.setAttribute("aria-pressed", b.dataset.lang === LANG));
+  if (OBS){ OBS.disconnect(); OBS = null; }
+  if (LANG === "en"){
+    trNode(document.body);
+    OBS = new MutationObserver(ms => { OBS.disconnect(); ms.forEach(m => { m.addedNodes.forEach(nd => { if (nd.nodeType === 1) trNode(nd); else if (nd.nodeType === 3 && nd.parentElement) trNode(nd.parentElement); }); if (m.type === "characterData" && m.target.parentElement) trNode(m.target.parentElement); }); OBS.observe(document.body, {childList:true, subtree:true, characterData:true}); });
+    OBS.observe(document.body, {childList:true, subtree:true, characterData:true});
+  }
+}
+function setLang(l){
+  if (l === LANG) return; LANG = l; try{ localStorage.setItem("kinseytec-lang", l); }catch(e){}
+  if (l === "pt"){ const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) if (ORIG.has(n)) n.nodeValue = ORIG.get(n); $$("[placeholder],[aria-label],[title]").forEach(e => { const o = ORIGA.get(e); if (o) Object.entries(o).forEach(([a, v]) => e.setAttribute(a, v)); }); }
+  applyLang(); renderAll(); if (S.openSup && $("#sup-body")) renderSupBody();
+}
+
+
+/* operações comerciais e itens adicionais */
+Object.assign(EN, {
+"Operações":"Transactions",
+"Operações comerciais":"Commercial transactions",
+"Notas fiscais · pedidos · pagamentos":"Invoices · purchase orders · payments",
+"Importar notas fiscais":"Import invoices",
+"Importar pedidos":"Import purchase orders",
+"Importar pagamentos":"Import payments",
+"Importar notas":"Import invoices",
+"Nota":"Invoice",
+"Emissão":"Issued",
+"Produto":"Product",
+"Qtd.":"Qty.",
+"SEFAZ":"Tax authority",
+"Pedido":"PO",
+"Pagto.":"Paid",
+"Alertas":"Alerts",
+"Todos os níveis":"All levels",
+"Não cadastrados":"Not registered",
+"Todas as notas":"All invoices",
+"Com alerta alto ou médio":"High or medium alert",
+"Alerta alto":"High alert",
+"Alerta médio":"Medium alert",
+"Sem alertas":"No alerts",
+"Buscar nota, fornecedor, CNPJ, produto":"Search invoice, supplier, tax ID, product",
+"O que o sistema confere":"What the system checks",
+"Desfazer":"Undo",
+"Excluir todas as operações deste cliente":"Delete all transactions of this client",
+"Comece importando as notas fiscais":"Start by importing the invoices",
+"Escolher arquivos":"Choose files",
+"+ Lançar manualmente":"+ Enter manually",
+"Importar":"Import",
+"Remover":"Remove",
+"Conferências":"Checks",
+"Copiar chave":"Copy access key",
+"Consultar na SEFAZ ↗":"Check with tax authority ↗",
+"Resultado da consulta:":"Result of the check:",
+"Autorizada":"Authorized",
+"Cancelada":"Cancelled",
+"Denegada":"Denied",
+"A verificar":"To be checked",
+"Observação":"Note",
+"OK":"OK",
+"Excluir nota":"Delete invoice",
+"Emitente":"Issuer",
+"Destinatário":"Recipient",
+"Natureza":"Operation",
+"Valor total":"Total amount",
+"Chave de acesso":"Access key",
+"Situação na SEFAZ":"Tax authority status",
+"Pagamentos":"Payments",
+"Informações adicionais":"Additional information",
+"Favorecido":"Payee",
+"Forma":"Method",
+"Banco":"Bank",
+"Referência":"Reference",
+"Nota vinculada":"Linked invoice",
+"Notas vinculadas":"Linked invoices",
+"Pagamento":"Payment",
+"Pedido de compra":"Purchase order",
+"Data":"Date",
+"Unit.":"Unit",
+"Total":"Total",
+"Qtd":"Qty",
+"Chave de acesso ":"Access key ",
+"Emitente e cadastro":"Issuer and registration",
+"Comprador da cadeia":"Buyer in the chain",
+"Produto (NCM) e CFOP":"Product (NCM) and CFOP",
+"Sequência e datas":"Numbering and dates",
+"Valores e volume":"Amounts and volume",
+"(sem dados)":"(no data)",
+"Operações comerciais ":"Commercial transactions ",
+"Questionamentos adicionais":"Additional questions",
+"Documentos adicionais":"Additional documents",
+"Questionamentos":"Questions",
+"Incluir ou editar questionamentos":"Add or edit questions",
+"Incluir ou editar documentos":"Add or edit documents",
+"Novo questionamento":"New question",
+"Novo documento":"New document",
+"Pergunta":"Question",
+"Níveis":"Levels",
+"Tema":"Topic",
+"É risco quando a resposta for":"It is a risk when the answer is",
+"Peso na matriz de risco":"Weight in the risk matrix",
+"Incluir":"Add",
+"Cancelar edição":"Cancel editing",
+"Salvar alteração":"Save change",
+"Editar item":"Edit item",
+"Desativar":"Deactivate",
+"Reativar":"Reactivate",
+"Alto (6 pontos)":"High (6 points)",
+"Médio (3 pontos)":"Medium (3 points)",
+"Baixo (1 ponto)":"Low (1 point)",
+"Questionamentos e documentos adicionais":"Additional questions and documents",
+"Risco":"Risk",
+"Compliance e integridade":"Compliance and integrity",
+"Trabalhista":"Labor",
+"Socioambiental":"Social and environmental",
+"Fiscal e tributário":"Tax",
+"Societário":"Corporate",
+"Operacional":"Operational",
+"Outros":"Other",
+"Nenhum item adicional ainda.":"No additional items yet.",
+"Item incluído":"Item added",
+"Item alterado":"Item changed",
+"Item excluído":"Item deleted",
+"Item desativado":"Item deactivated",
+"Item reativado":"Item reactivated",
+"Situação registrada":"Status recorded",
+"Chave copiada":"Key copied",
+"Nota excluída":"Invoice deleted",
+"Registro excluído":"Record deleted",
+"Nenhuma divergência encontrada nas conferências.":"No discrepancies found in the checks.",
+"Nenhuma nota importada para este fornecedor.":"No invoices imported for this supplier.",
+"Nenhum alerta nas notas e pagamentos deste fornecedor.":"No alerts in this supplier's invoices and payments.",
+"Não cadastrado na cadeia":"Not registered in the chain",
+"Itens não informados.":"Items not provided.",
+"Nenhuma nota com estes filtros.":"No invoices match these filters."
+});
+EN_PAT.unshift([/^Pagamentos com alerta \((\d+)\)$/, "Payments with alerts ($1)"], [/^Pedidos sem nota fiscal \((\d+)\)$/, "Purchase orders without invoice ($1)"], [/^Importações realizadas \((\d+)\)$/, "Imports ($1)"], [/^Alertas \((\d+)\)$/, "Alerts ($1)"], [/^Questionamentos adicionais do cliente · (N\d)$/, "Client's additional questions · $1"], [/^Documentos adicionais do cliente · (N\d)$/, "Client's additional documents · $1"], [/^(\d+) questionamento\(s\) adicional\(is\)$/, "$1 additional question(s)"], [/^(\d+) documento\(s\) adicional\(is\)$/, "$1 additional document(s)"], [/^Documento pendente: (.+)$/, "Pending document: $1"]);
+
+/* pré-análise de documentos, órgãos públicos e mapeamento */
+Object.assign(EN, {
+"Pré-análise de documentos":"Document pre-review",
+"Aguardando parecer":"Awaiting opinion",
+"Analisar e emitir parecer":"Review and issue opinion",
+"Ler documento":"Read document",
+"não analisado":"not reviewed",
+"Pré-análise":"Pre-review",
+"Principal ponto":"Main issue",
+"Parecer":"Opinion",
+"Documento":"Document",
+"Pontos a investigar":"Issues to investigate",
+"Parecer do advogado":"Attorney's opinion",
+"Gerar minuta a partir da pré-análise":"Draft from the pre-review",
+"Análise e conclusão":"Analysis and conclusion",
+"Tipo identificado":"Identified type",
+"CNPJ citados":"Tax IDs cited",
+"Sócios / pessoas":"Partners / persons",
+"Capital social":"Share capital",
+"Validade":"Valid until",
+"Objeto social":"Corporate purpose",
+"Dossiê do fornecedor":"Supplier file",
+"Pré-análise documental":"Document pre-review",
+"Ver parecer":"See opinion",
+"Consulta automática a órgãos públicos":"Automatic public records check",
+"Consultar agora":"Check now",
+"Atividade principal":"Main activity",
+"Natureza · porte":"Legal form · size",
+"Sócios e administradores":"Partners and managers",
+"Fonte":"Source",
+"Órgãos públicos e listas restritivas":"Public records and restricted lists",
+"Consultar todos os fornecedores":"Check all suppliers",
+"Lista oficial":"Official list",
+"Registros":"Records",
+"Atualizada":"Updated",
+"Carregar":"Load",
+"Atualizar":"Update",
+"não carregada":"not loaded",
+"Mapeamento automático da cadeia":"Automatic chain mapping",
+"Vende para":"Sells to",
+"Revisar e incluir":"Review and add",
+"Matriz de risco, testes e órgãos públicos":"Risk matrix, tests and public records",
+"Operações comerciais · notas, pedidos e pagamentos":"Commercial transactions · invoices, POs and payments",
+"Contrato social / alteração":"Articles of association / amendment",
+"Cartão CNPJ":"CNPJ registration card",
+"Licença ambiental":"Environmental license",
+"Procuração":"Power of attorney",
+"Documento ainda não lido.":"Document not read yet.",
+"Nenhuma inconsistência na leitura automática.":"No inconsistencies in the automatic reading.",
+"Contratos sociais, certidões, licenças e contratos · N1, N2 e N3":"Articles, certificates, licenses and contracts · N1, N2 and N3",
+"N1, N2 e N3 · fornecedores, sócios e favorecidos":"N1, N2 and N3 · suppliers, partners and payees"
+});
+EN_PAT.unshift([/^Aguardando parecer \((\d+)\)$/, "Awaiting opinion ($1)"], [/^Todos \((\d+)\)$/, "All ($1)"], [/^Pontos a investigar \((\d+)\)$/, "Issues to investigate ($1)"], [/^Incluir todos \((\d+)\)$/, "Add all ($1)"], [/^(\d+) fornecedor\(es\) identificado\(s\) nas notas e ainda fora da cadeia$/, "$1 supplier(s) found in invoices and not yet in the chain"], [/^Investigar: (.+)$/, "Investigate: $1"]);
+
+/* importação, sugestões e duplicados */
+Object.assign(EN, {
+"Incluir vários de uma vez":"Add several at once",
+"Importar Excel, Word ou texto":"Import Excel, Word or text",
+"Sugestões automáticas":"Automatic suggestions",
+"Baixar planilha modelo":"Download template",
+"Incluir selecionados":"Add selected",
+"Já existe um item parecido":"A similar item already exists",
+"Incluir mesmo assim":"Add anyway",
+"Excluir este":"Delete this one",
+"Novo":"New",
+"Duplicado":"Duplicate",
+"Risco se":"Risk if",
+"Banco de boas práticas":"Best-practice library"
+});
+EN_PAT.unshift([/^Possíveis duplicados \((\d+)\)$/, "Possible duplicates ($1)"]);
+
+/* painéis e envio de questionários */
+Object.assign(EN, {
+"Enviar questionários":"Send questionnaires",
+"Enviar ou reenviar":"Send or resend",
+"Questionários aos fornecedores":"Supplier questionnaires",
+"Análise técnica completa":"Full technical analysis",
+"Todos os níveis":"All levels",
+"Listas completas":"Full lists",
+"Contratos":"Contracts",
+"NDA e termo LGPD":"NDA and LGPD term",
+"Abrir NDA / LGPD":"Open NDA / LGPD",
+"+ Enviar contrato":"+ Send contract",
+"Abrir dossiê completo":"Open full file",
+"Enviar questionário":"Send questionnaire",
+"Como funciona":"How it works",
+"Copiar link do Portal":"Copy Portal link",
+"Mensagem (pode editar)":"Message (editable)",
+"Sem resposta":"No answer",
+"Selecionar todos":"Select all",
+"Registrar convites dos selecionados":"Register invitations for selected",
+"Situação":"Status",
+"Enviar":"Send",
+"Copiar":"Copy",
+"Alto risco":"High risk",
+"Médio risco":"Medium risk",
+"Baixo risco":"Low risk",
+"Em avaliação":"Under review",
+"Todos":"All"
+});
+EN_PAT.unshift([/^(\d+) fornecedor\(es\) avaliado\(s\)$/, "$1 supplier(s) assessed"], [/^Prioridade 1 · Alto risco$/, "Priority 1 · High risk"], [/^Prioridade 2 · Médio risco$/, "Priority 2 · Medium risk"], [/^Prioridade 3 · Baixo risco$/, "Priority 3 · Low risk"]);

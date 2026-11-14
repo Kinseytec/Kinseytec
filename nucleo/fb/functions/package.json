@@ -1,0 +1,11 @@
+{
+  "name": "kinseytec-funcoes",
+  "private": true,
+  "description": "Funções agendadas do KinseyTec: cotações e listas restritivas oficiais",
+  "main": "index.js",
+  "engines": {"node": "20"},
+  "dependencies": {
+    "firebase-admin": "^12.6.0",
+    "firebase-functions": "^6.1.0"
+  }
+}

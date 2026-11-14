@@ -1,0 +1,358 @@
+{
+ "name": "Kinsey Capital – M&A",
+ "file": "MA",
+ "projeto": "kinsey-capital-ma",
+ "forbid": "cacau",
+ "pt": [
+  [
+   "Investigação das traders",
+   "Investigação dos fornecedores"
+  ],
+  [
+   ")} traders na base",
+   ")} fornecedores N1 na base"
+  ],
+  [
+   "traders na base",
+   "fornecedores N1 na base"
+  ],
+  [
+   "Endereço do local de extração (propriedade de origem)",
+   "Endereço de origem do material (onde a sucata foi gerada)"
+  ],
+  [
+   "Traders que vendem ao cliente contratante (N1), seus fornecedores (N2) e os produtores na origem (N3).",
+   "Recicladoras, distribuidoras e fundições que vendem ao cliente contratante (N1), ferros-velhos e depósitos (N2) e as origens do material (N3)."
+  ],
+  [
+   "Trader (vende ao cliente contratante)",
+   "Recicladora ou distribuidora (vende ao cliente)"
+  ],
+  [
+   "Fornecedor de trader",
+   "Ferro-velho, depósito ou sucateiro"
+  ],
+  [
+   "\"Produtor rural\"]",
+   "\"Origem: indústria, obra, leilão ou catador\"]"
+  ],
+  [
+   "(trader, fornecedor ou produtor)",
+   "(recicladora, ferro-velho ou origem)"
+  ],
+  [
+   "N1 trader · N2 fornecedor da trader · N3 produtor",
+   "N1 recicladora · N2 ferro-velho · N3 origem"
+  ],
+  [
+   "l===\"N1\"?\"Traders\":l===\"N2\"?\"Fornecedores\":\"Produtores\"",
+   "l===\"N1\"?\"Investidores\":l===\"N2\"?\"Intermediadores\":\"Targets\""
+  ],
+  [
+   "N1 · Traders",
+   "N1 · Investidores"
+  ],
+  [
+   "N2 · Fornecedores",
+   "N2 · Intermediadores"
+  ],
+  [
+   "N3 · Produtores",
+   "N3 · Targets"
+  ],
+  [
+   "Ex.: Trader Xingu Ltda",
+   "Ex.: Metais Paulista Ltda"
+  ],
+  [
+   "s.uf===\"PA\")} no Pará",
+   "s.uf===\"SP\")} em São Paulo"
+  ],
+  [
+   " no Pará ·",
+   " em São Paulo ·"
+  ],
+  [
+   "\">Nº do CAR</label>",
+   "\">Nº da licença ambiental ou alvará</label>"
+  ],
+  [
+   "`<dt>CAR</dt>",
+   "`<dt>Licença / alvará</dt>"
+  ],
+  [
+   "Propriedade sem número do CAR informado",
+   "Origem sem licença ambiental ou alvará informado"
+  ],
+  [
+   "Área plantada com cacau (ha)",
+   "Área do pátio ou da unidade (ha)"
+  ],
+  [
+   "Área de cacau",
+   "Área do pátio"
+  ],
+  [
+   "Volume vendido comparado com área de cacau (CAR) × produtividade de referência em ${esc(s.uf||\"—\")}: ${ref} kg/ha (valor inicial, a calibrar com o cliente).",
+   "Volume movimentado comparado com a área do pátio × capacidade de referência em ${esc(s.uf||\"—\")} (valor inicial, a calibrar com o cliente)."
+  ],
+  [
+   "Volume anual (t de cacau)",
+   "Volume anual (t de metal)"
+  ],
+  [
+   "Endereço de extração",
+   "Endereço de origem do material"
+  ],
+  [
+   "extração (propriedade de origem)",
+   "origem do material"
+  ],
+  [
+   "KinseyTec – Cacau",
+   "Kinsey Capital – M&A"
+  ],
+  [
+   "KINSEYTEC – CACAU",
+   "KINSEYTEC – COBRE E METAL"
+  ],
+  [
+   "KinseyTec_Cacau",
+   "KinseyCapital_MA"
+  ],
+  [
+   "kinseytec-cacau",
+   "kinseytec-metal"
+  ],
+  [
+   "KinseyTec Cacau",
+   "Kinsey Capital M&A"
+  ],
+  [
+   "– Cacau",
+   "– M&A"
+  ],
+  [
+   "R$ por arroba (15 kg)",
+   "R$ por kg"
+  ],
+  [
+   "por arroba",
+   "por kg"
+  ],
+  [
+   "arroba",
+   "kg"
+  ],
+  [
+   "R$/@",
+   "R$/kg"
+  ],
+  [
+   "/@",
+   "/kg"
+  ],
+  [
+   "Cotações do cacau",
+   "Cotações do cobre e metais"
+  ],
+  [
+   "Cotação de referência do cacau",
+   "Cotação de referência do cobre"
+  ],
+  [
+   "Cacau<span",
+   "Cobre<span"
+  ],
+  [
+   "Cacau Brasil",
+   "Cobre Brasil"
+  ],
+  [
+   "cadeia de cacau",
+   "cadeia do cobre e metais"
+  ],
+  [
+   "da cadeia do cacau",
+   "da cadeia do cobre e metais"
+  ],
+  [
+   "do cacau",
+   "do metal"
+  ],
+  [
+   "de cacau",
+   "de metal"
+  ],
+  [
+   "o cacau",
+   "o metal"
+  ],
+  [
+   "cacau",
+   "metal"
+  ],
+  [
+   "Cacau",
+   "M&A"
+  ],
+  [
+   "Cocoa",
+   "M&A"
+  ],
+  [
+   "cocoa",
+   "metal"
+  ],
+  [
+   "Importar traders (N1)",
+   "Importar fornecedores (N1)"
+  ],
+  [
+   "Importar traders",
+   "Importar fornecedores"
+  ],
+  [
+   "Base de traders do cliente",
+   "Base de fornecedores do cliente"
+  ],
+  [
+   "Comece pelas traders N1 da base do cliente",
+   "Comece pelos fornecedores N1 da base do cliente"
+  ],
+  [
+   "Contratos entre traders e fornecedores",
+   "Contratos com fornecedores e subfornecedores"
+  ],
+  [
+   "cadastre traders (N1), fornecedores (N2) e produtores (N3)",
+   "cadastre fornecedores (N1), subfornecedores, intermediários e ferros-velhos (N2) e as origens do material (N3)"
+  ],
+  [
+   "${s.nivel===\"N1\" ? \"da trader\" : \"do fornecedor\"}",
+   "do fornecedor"
+  ],
+  [
+   "enviá-la às traders",
+   "enviá-la aos fornecedores"
+  ],
+  [
+   "Trader Exemplo Ltda;Medicilândia;PA;1200",
+   "Recicladora Exemplo Ltda;Guarulhos;SP;1200"
+  ],
+  [
+   "${n} trader(s) importada(s)",
+   "${n} fornecedor(es) importado(s)"
+  ],
+  [
+   "tipo:\"Trader\", parentId:\"\"",
+   "tipo:\"Recicladora / distribuidora de sucata\", parentId:\"\""
+  ],
+  [
+   "primeira trader de alto risco",
+   "primeiro fornecedor de alto risco"
+  ]
+ ],
+ "en": [
+  [
+   "Trader investigation",
+   "Supplier investigation"
+  ],
+  [
+   "traders in the base",
+   "N1 suppliers in the base"
+  ],
+  [
+   "Traders selling to the contracting client (N1), their suppliers (N2) and the producers at origin (N3).",
+   "Recyclers, distributors and foundries selling to the contracting client (N1), scrapyards and depots (N2) and material origins (N3)."
+  ],
+  [
+   "N1 trader · N2 supplier to the trader · N3 producer",
+   "N1 recycler · N2 scrapyard · N3 origin"
+  ],
+  [
+   "N1 · Traders",
+   "N1 · Recyclers"
+  ],
+  [
+   "N2 · Suppliers",
+   "N2 · Scrapyards"
+  ],
+  [
+   "N3 · Producers",
+   "N3 · Origins"
+  ],
+  [
+   "in Pará",
+   "in São Paulo"
+  ],
+  [
+   "KinseyTec – Cacau",
+   "Kinsey Capital – M&A"
+  ],
+  [
+   "KINSEYTEC – CACAU",
+   "KINSEYTEC – COBRE E METAL"
+  ],
+  [
+   "per arroba (15 kg)",
+   "per kg"
+  ],
+  [
+   "arroba (15 kg)",
+   "kg"
+  ],
+  [
+   "/@",
+   "/kg"
+  ],
+  [
+   "arroba",
+   "kg"
+  ],
+  [
+   "Cocoa quotes",
+   "Market indicators"
+  ],
+  [
+   "Cocoa",
+   "M&A"
+  ],
+  [
+   "cocoa",
+   "metal"
+  ],
+  [
+   "Cacau",
+   "M&A"
+  ],
+  [
+   "cacau",
+   "metal"
+  ],
+  [
+   "Import traders (N1)",
+   "Import suppliers (N1)"
+  ],
+  [
+   "Import traders",
+   "Import suppliers"
+  ],
+  [
+   "Client trader base",
+   "Client supplier base"
+  ],
+  [
+   "Contracts between traders and suppliers",
+   "Contracts with suppliers and sub-suppliers"
+  ],
+  [
+   "register traders (N1), suppliers (N2) and producers (N3)",
+   "register suppliers (N1), sub-suppliers, intermediaries and scrapyards (N2) and material origins (N3)"
+  ],
+  [
+   "sending it to traders",
+   "sending it to suppliers"
+  ]
+ ]
+}

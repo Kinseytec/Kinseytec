@@ -1,0 +1,29 @@
+rules_version = '2';
+// KinseyTec – Cacau · regras de acesso dos arquivos (fotos, notas, contratos)
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() { return request.auth != null; }
+    function superAdmin() { return signedIn() && request.auth.token.email_verified == true && request.auth.token.email.lower() in ['ia@kinsey.com.br']; }
+    function userDoc() { return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)); }
+    function hasUser() { return signedIn() && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid)); }
+    function isStaff() { return superAdmin() || (hasUser() && userDoc().data.role in ['admin', 'editor', 'colaborador']); }
+    function okFile() { return request.resource.size < 25 * 1024 * 1024; }
+
+    // arquivos por cliente: evidences/{clienteId}/arquivo
+    match /evidences/{cid}/{file} {
+      allow read, delete: if superAdmin() || (hasUser() && (userDoc().data.role == 'admin' || (userDoc().data.role in ['editor', 'colaborador'] && userDoc().data.get('clienteId', '') == cid)));
+      allow create, update: if okFile() && (superAdmin() || (hasUser() && (userDoc().data.role == 'admin' || (userDoc().data.role in ['editor', 'colaborador'] && userDoc().data.get('clienteId', '') == cid))));
+    }
+    // arquivos antigos (antes da separação por cliente)
+    match /evidences/{file} {
+      allow read: if isStaff();
+      allow create, update: if isStaff() && okFile();
+      allow delete: if isStaff();
+    }
+    match /fichas/{uid}/{file} {
+      allow read: if isStaff() || (signedIn() && request.auth.uid == uid);
+      allow create, update: if signedIn() && request.auth.uid == uid && okFile();
+      allow delete: if isStaff();
+    }
+  }
+}

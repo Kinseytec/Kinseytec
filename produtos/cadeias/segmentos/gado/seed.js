@@ -1,0 +1,50 @@
+/* Registros de demonstração — KinseyTec – Gado. Todos marcados EXEMPLO (dados fictícios). Volumes em cabeças. */
+window.SEED = (() => {
+  const t = "2026-11-03T12:00:00.000Z";
+  const A = (ids, v) => Object.fromEntries(ids.map(i => [i, {v}]));
+  const NDA = (nome, cargo, doc, em) => ({aceito:true, nome, cargo, doc, em, versao:"minuta v0.1 — para avaliação jurídica"});
+  const INVN = (o) => ({situacao:"Ativa", divida:{v:"nao"}, protestos:{v:"nao"}, proc_trab:{v:"nao"}, proc_crim:{v:"nao"}, pep:{v:"nao"}, prisao:{v:"nao"}, midia:{v:"nao"}, mte:{v:"nao"}, ibama:{v:"nao"}, desmat:{v:"nao"}, ti_uc:{v:"nao"}, gta:{v:"nao"}, sanit:{v:"nao"}, rotat:{v:"0"}, ...o});
+  return [
+  /* ---------- N1 · fornecedores diretos ---------- */
+  ["suppliers","ex-n1-go",{nivel:"N1",tipo:"Confinamento",parentId:"",nome:"EXEMPLO Confinamento Vale do Araguaia Ltda.",doc:"00.000.701/0001-00",ie:"10.000.701-0",abertura:"2008-02-10",volume:"24000",uf:"GO",municipio:"São Miguel do Araguaia",lat:-13.275,lng:-50.163,endEstoque:"Rod. GO-164, km 40 — confinamento",endExtracao:"Fazendas de recria em GO e MT",contratacao:"CLT",areaHa:"18000",car:"GO-0000000-EXEMPLO",
+    answers:{...A(["n1_01","n1_03","n1_05","n1_08","n1_09","n1_11","n1_12","n1_15","n1_17","n1_18","n1_19","n1_20"],"sim"),...A(["n1_02","n1_04","n1_06","n1_07","n1_13","n1_14","n1_16"],"nao"),n1_10:{v:"sim"}},
+    docs:{d0:"ok",d1:"ok",d2:"ok",d3:"ok",d4:"ok",d5:"ok",d7:"ok"},insp:{i_reb:{v:"ok",n:"6.120 cabeças conferidas"},i_bal:{v:"ok"},i_lote:{v:"ok"},i_area:{v:"ok"}},balanco:{ei:"5800",compras:"24000",vendas:"23400",ef:"6150"},
+    invest:INVN({}),nda:NDA("Responsável Exemplo","Diretor técnico","000.000.000-00","2026-11-02T14:10:00.000Z"),criadoEm:t}],
+  ["suppliers","ex-n1-pa",{nivel:"N1",tipo:"Fornecedor direto · engorda",parentId:"",nome:"EXEMPLO Agropecuária Xingu Grande S.A.",doc:"00.000.702/0001-00",ie:"15.000.702-0",abertura:"2024-03-18",volume:"9500",uf:"PA",municipio:"São Félix do Xingu",lat:-6.644,lng:-51.995,endEstoque:"Fazenda Grande Xingu",contratacao:"Terceirizada",areaHa:"6000",car:"PA-0000000-EXEMPLO",
+    answers:{...A(["n1_01","n1_03"],"sim"),...A(["n1_05","n1_08","n1_11","n1_12","n1_17"],"nao"),n1_13:{v:"sim",n:"Bezerros de fazendas com embargo"},n1_14:{v:"sim",n:"GTAs emitidas por fazenda sem rebanho compatível"},n1_06:{v:"sim",n:"Abertura de 900 ha em 2023"},n1_02:{v:"sim",n:"Sócio de fazenda embargada"}},
+    docs:{d0:"ok",d1:"ok"},insp:{i_reb:{v:"nao",n:"Rebanho 25% maior que o cadastrado"}},balanco:{ei:"3000",compras:"9500",vendas:"10200",ef:"3600"},
+    invest:INVN({ibama:{v:"sim",n:"EXEMPLO: embargo em fazenda do grupo"},gta:{v:"sim",n:"EXEMPLO: GTAs de fazendas embargadas"},rotat:{v:"2",n:"2 CNPJs baixados dos mesmos sócios"}}),criadoEm:t}],
+  ["suppliers","ex-n1-mt",{nivel:"N1",tipo:"Fornecedor direto · engorda",parentId:"",nome:"EXEMPLO Fazenda Rio das Mortes",doc:"00.000.703/0001-00",abertura:"2001-06-01",volume:"7800",uf:"MT",municipio:"Água Boa",lat:-14.051,lng:-52.159,contratacao:"CLT",areaHa:"9000",car:"MT-0000000-EXEMPLO",
+    answers:{...A(["n1_01","n1_03","n1_05","n1_09","n1_11","n1_15","n1_18","n1_20"],"sim"),...A(["n1_02","n1_04","n1_06","n1_07","n1_13","n1_14","n1_16"],"nao"),n1_12:{v:"nao",n:"Não verifica as fazendas de cria"},n1_10:{v:"sim"}},
+    docs:{d0:"ok",d1:"ok",d3:"ok",d4:"ok"},insp:{i_reb:{v:"ok"},i_lote:{v:"ress",n:"Cria sem verificação"}},balanco:{},invest:INVN({}),
+    nda:NDA("Responsável Exemplo","Proprietário","000.000.000-00","2026-11-02T16:00:00.000Z"),criadoEm:t}],
+  ["suppliers","ex-n1-ms",{nivel:"N1",tipo:"Pecuarista integrado",parentId:"",nome:"EXEMPLO Pecuária Pantanal Sul Ltda.",doc:"00.000.704/0001-00",abertura:"2015-09-14",volume:"6000",uf:"MS",municipio:"Ribas do Rio Pardo",lat:-20.444,lng:-53.759,answers:{},docs:{},insp:{},balanco:{},criadoEm:t}],
+  ["suppliers","ex-n1-to",{nivel:"N1",tipo:"Fornecedor direto · engorda",parentId:"",nome:"EXEMPLO Araguaína Bovinos Eireli",doc:"00.000.705/0001-00",abertura:"2024-12-02",volume:"2500",uf:"TO",municipio:"Araguaína",lat:-7.191,lng:-48.207,answers:{},docs:{},insp:{},balanco:{},invest:INVN({situacao:"Inapta"}),criadoEm:t}],
+  /* ---------- N2 · indiretos de recria ---------- */
+  ["suppliers","ex-n2-mt",{nivel:"N2",tipo:"Indireto · recria",parentId:"ex-n1-go",nome:"EXEMPLO Fazenda Santa Luzia do Araguaia",doc:"000.000.701-00",abertura:"1998-04-10",volume:"6000",uf:"MT",municipio:"Barra do Garças",lat:-15.890,lng:-52.257,contratacao:"CLT",areaHa:"8500",car:"MT-0000001-EXEMPLO",
+    answers:{...A(["n2_01","n2_02","n2_03","n2_05","n2_06","n2_07","n2_11","n2_13"],"sim"),...A(["n2_04","n2_08","n2_09","n2_10","n2_12"],"nao")},docs:{d0:"ok",d1:"ok",d2:"ok",d3:"ok"},insp:{i_reb:{v:"ok"},i_cap:{v:"ok"},i_lote:{v:"ok"}},balanco:{ei:"4000",compras:"6000",vendas:"5900",ef:"4050"},
+    invest:INVN({}),nda:NDA("Responsável Exemplo","Proprietário","000.000.000-00","2026-11-03T09:00:00.000Z"),criadoEm:t}],
+  ["suppliers","ex-n2-pa",{nivel:"N2",tipo:"Leilão / intermediário",parentId:"ex-n1-pa",nome:"EXEMPLO Leilões e Comércio de Gado Marabá",doc:"00.000.706/0001-00",abertura:"2022-05-15",volume:"5200",uf:"PA",municipio:"Marabá",lat:-5.381,lng:-49.132,contratacao:"Informal",
+    answers:{n2_01:{v:"nao"},n2_02:{v:"nao",n:"Vendas sem entradas correspondentes"},n2_04:{v:"sim",n:"Lotes sem fazenda de origem"},n2_09:{v:"sim"},n2_10:{v:"sim"}},docs:{},insp:{},balanco:{ei:"0",compras:"5200",vendas:"6100",ef:"0"},
+    invest:INVN({gta:{v:"sim",n:"EXEMPLO: origem em fazendas embargadas"}}),criadoEm:t}],
+  ["suppliers","ex-n2-go",{nivel:"N2",tipo:"Indireto · recria",parentId:"ex-n1-go",nome:"EXEMPLO Fazenda Boa Esperança do Crixás",doc:"000.000.702-00",abertura:"2010-04-12",volume:"3800",uf:"GO",municipio:"Mozarlândia",lat:-14.745,lng:-50.571,answers:{...A(["n2_01","n2_02","n2_05"],"sim")},docs:{},insp:{},balanco:{},criadoEm:t}],
+  /* ---------- N3 · indiretos de cria ---------- */
+  ["suppliers","ex-n3-mt1",{nivel:"N3",tipo:"Indireto · cria (bezerros)",parentId:"ex-n2-mt",nome:"EXEMPLO Fazenda Serra Dourada",doc:"000.000.801-00",uf:"MT",municipio:"Juara",lat:-11.255,lng:-57.519,car:"MT-0000002-EXEMPLO",areaHa:"5200",volume:"2600",contratacao:"CLT",
+    answers:{...A(["n3_01","n3_02","n3_06","n3_07","n3_10","n3_12"],"sim"),...A(["n3_03","n3_04","n3_05","n3_08","n3_09","n3_11"],"nao")},docs:{d0:"ok",d1:"ok",d2:"ok",d4:"ok"},insp:{i_prop:{v:"ok"},i_mat:{v:"ok"},i_rl:{v:"ok"},i_trab:{v:"ok"}},
+    invest:INVN({}),nda:NDA("Produtor Exemplo","Proprietário","000.000.000-00","2026-11-03T10:30:00.000Z"),criadoEm:t}],
+  ["suppliers","ex-n3-pa1",{nivel:"N3",tipo:"Pequeno produtor",parentId:"ex-n2-pa",nome:"EXEMPLO Fazenda Terra Nova do Xingu",doc:"000.000.802-00",uf:"PA",municipio:"São Félix do Xingu",lat:-6.30,lng:-52.40,car:"",areaHa:"800",volume:"900",contratacao:"Diaristas",
+    answers:{n3_01:{v:"sim"},n3_04:{v:"sim",n:"Abertura de pasto em 2022"},n3_05:{v:"sim",n:"Sobreposição com Terra Indígena"},n3_08:{v:"sim"},n3_09:{v:"sim",n:"Alojamento de lona, sem água potável"}},docs:{},insp:{i_rl:{v:"nao",n:"Queimada e abertura recentes"}},
+    invest:INVN({desmat:{v:"sim",n:"EXEMPLO: alerta MapBiomas 2022"},ti_uc:{v:"sim",n:"EXEMPLO: sobreposição com TI"},mte:{v:"sim",n:"EXEMPLO: empregador na lista suja"}}),criadoEm:t}],
+  ["suppliers","ex-n3-go",{nivel:"N3",tipo:"Indireto · cria (bezerros)",parentId:"ex-n2-go",nome:"EXEMPLO Sítio Bom Retiro",doc:"000.000.803-00",uf:"GO",municipio:"Nova Crixás",lat:-14.096,lng:-50.333,car:"GO-0000001-EXEMPLO",areaHa:"600",volume:"260",contratacao:"Mão de obra familiar",
+    answers:{...A(["n3_01","n3_02","n3_07"],"sim"),...A(["n3_03","n3_04"],"nao"),n3_06:{v:"nao",n:"Vacinação atrasada"}},docs:{d0:"ok",d2:"ok"},insp:{},criadoEm:t}],
+  ["suppliers","ex-n3-ro",{nivel:"N3",tipo:"Assentamento",parentId:"ex-n1-mt",nome:"EXEMPLO Produtores do Assentamento Jamari",doc:"000.000.804-00",uf:"RO",municipio:"Ariquemes",lat:-9.913,lng:-63.041,car:"RO-0000000-EXEMPLO",areaHa:"400",volume:"180",answers:{n3_01:{v:"sim"},n3_02:{v:"sim"}},docs:{},insp:{},criadoEm:t}],
+  /* ---------- contratos, parecer e cotações ---------- */
+  ["contracts","ex-ct1",{supplierId:"ex-n1-go",tipo:"Compra e venda de gado",numero:"EX-2026/301",contraparte:"EXEMPLO Fazenda Santa Luzia do Araguaia",inicio:"2026-09-01",fim:"2027-08-31",volume:"6000",preco:"312,00",obs:"Contrato de exemplo para demonstrar o fluxo de aprovação.",file:null,criadoEm:"2026-11-01T10:00:00.000Z"}],
+  ["contracts","ex-ct2",{supplierId:"ex-n1-pa",tipo:"Fornecimento contínuo",numero:"EX-2026/331",contraparte:"EXEMPLO Leilões e Comércio de Gado Marabá",inicio:"2026-08-01",fim:"2027-07-31",volume:"4000",preco:"205,00",obs:"Exemplo: preço muito abaixo da cotação de referência.",file:null,criadoEm:"2026-11-02T11:20:00.000Z"}],
+  ["contracts","ex-ct3",{supplierId:"ex-n2-mt",tipo:"Compra e venda de gado",numero:"EX-2026/307",contraparte:"EXEMPLO Fazenda Serra Dourada",inicio:"2026-09-01",fim:"2027-08-31",volume:"2600",preco:"298,00",obs:"",file:null,criadoEm:"2026-11-02T16:00:00.000Z"}],
+  ["pareceres","ex-ct3",{status:"aprovado",clausulas:{c_origem:true,c_desmat:true,c_indir:true,c_trab:true,c_terr:true,c_san:true,c_aud:true,c_lgpd:true},parecer:"Exemplo de parecer: cláusulas completas.",em:"2026-11-03T08:40:00.000Z",por:""}],
+  ["config","precos",{br:{SP:{valor:"322,40",data:"03/11/2026",fonte:"EXEMPLO"},GO:{valor:"308,00",data:"03/11/2026",fonte:"EXEMPLO"},MT:{valor:"302,50",data:"03/11/2026",fonte:"EXEMPLO"},MS:{valor:"310,00",data:"03/11/2026",fonte:"EXEMPLO"},PA:{valor:"294,00",data:"03/11/2026",fonte:"EXEMPLO"},TO:{valor:"296,00",data:"03/11/2026",fonte:"EXEMPLO"},RO:{valor:"290,00",data:"03/11/2026",fonte:"EXEMPLO"}},
+    intl:{B3:{valor:"325,10",data:"03/11/2026",fonte:"EXEMPLO"},CME:{valor:"212,40",data:"03/11/2026",fonte:"EXEMPLO"}},hist:[{em:t,SP:"322,40",GO:"308,00",MT:"302,50",PA:"294,00",B3:"325,10"}],fonte:"EXEMPLO — substituir pela cotação do dia",atualizadoEm:t}],
+  ["config","geral",{cotacao:"305",data:"EXEMPLO — substituir pela cotação do dia e a fonte",em:t}]
+  ];
+})();

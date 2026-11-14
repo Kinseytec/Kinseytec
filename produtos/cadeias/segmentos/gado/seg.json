@@ -1,0 +1,330 @@
+{
+ "name": "KinseyTec – Gado",
+ "file": "Gado",
+ "projeto": "kinseytec-gado",
+ "forbid": "cacau",
+ "pt": [
+  [
+   "Investigação das traders",
+   "Investigação dos fornecedores"
+  ],
+  [
+   ")} traders na base",
+   ")} fornecedores N1 na base"
+  ],
+  [
+   "traders na base",
+   "fornecedores N1 na base"
+  ],
+  [
+   "N2 · Fornecedores",
+   "N2 · Recria"
+  ],
+  [
+   "N3 · Produtores",
+   "N3 · Cria"
+  ],
+  [
+   "`Volume vendido (${fmt(kg)} kg) acima de 1,5× a capacidade da área (${fmt(max)} kg a ${ref} kg/ha)`",
+   "`Animais vendidos (${fmt(vol)} cabeças) acima de 1,5× a capacidade da área (${fmt(max/1000)} cabeças a ${fmt(ref/1000,2)} cab./ha/ano)`"
+  ],
+  [
+   "diferença de ${fmt(dif,1)} t (",
+   "diferença de ${fmt(dif,1)} cabeças ("
+  ],
+  [
+   "Balanço de massa (t)",
+   "Balanço do rebanho (cabeças)"
+  ],
+  [
+   "Estoque inicial + compras − vendas = estoque final. Diferença acima de 5% das compras gera risco.",
+   "Rebanho inicial + compras (e nascimentos) − vendas (e mortes) = rebanho final. Diferença acima de 5% gera risco."
+  ],
+  [
+   "[[\"ei\",\"Estoque inicial\"],[\"compras\",\"Compras\"],[\"vendas\",\"Vendas\"],[\"ef\",\"Estoque final contado\"]]",
+   "[[\"ei\",\"Rebanho inicial\"],[\"compras\",\"Compras e nascimentos\"],[\"vendas\",\"Vendas e mortes\"],[\"ef\",\"Rebanho final contado\"]]"
+  ],
+  [
+   "Estoque esperado ${fmt(calc,1)} t · contado ${fmt(ef,1)} t",
+   "Rebanho esperado ${fmt(calc,1)} · contado ${fmt(ef,1)} cabeças"
+  ],
+  [
+   "${fmt(dif,1)} t (${fmt(dif/Math.max",
+   "${fmt(dif,1)} cab. (${fmt(dif/Math.max"
+  ],
+  [
+   "Volume vendido comparado com área de cacau (CAR) × produtividade de referência em ${esc(s.uf||\"—\")}: ${ref} kg/ha (valor inicial, a calibrar com o cliente).",
+   "Animais vendidos comparados com a área de pastagem (CAR) × lotação de referência em ${esc(s.uf||\"—\")}: ${fmt(ref/1000,2)} cabeça/ha/ano (valor inicial, a calibrar com o cliente)."
+  ],
+  [
+   "Capacidade estimada ${fmt(area*ref)} kg · vendido ${fmt(vol*1000)} kg",
+   "Capacidade estimada ${fmt(area*ref/1000)} cabeças · vendidas ${fmt(vol)} cabeças"
+  ],
+  [
+   "Informe área (ha) e volume anual (t) no cadastro.",
+   "Informe a área de pastagem (ha) e os animais vendidos por ano no cadastro."
+  ],
+  [
+   "Volume anual (t de cacau)",
+   "Animais vendidos por ano (cabeças)"
+  ],
+  [
+   "Área plantada com cacau (ha)",
+   "Área de pastagem (ha)"
+  ],
+  [
+   "Área de cacau",
+   "Área de pastagem"
+  ],
+  [
+   "Volume (t)",
+   "Volume (cabeças)"
+  ],
+  [
+   "+\" t\" : \"\"}",
+   "+\" cab.\" : \"\"}"
+  ],
+  [
+   "Traders que vendem ao cliente contratante (N1), seus fornecedores (N2) e os produtores na origem (N3).",
+   "Fornecedores diretos que vendem ao cliente contratante (N1), indiretos de recria (N2) e indiretos de cria (N3)."
+  ],
+  [
+   "Trader (vende ao cliente contratante)",
+   "Fornecedor direto (vende ao cliente)"
+  ],
+  [
+   "Fornecedor de trader",
+   "Indireto · recria ou intermediário"
+  ],
+  [
+   "\"Produtor rural\"]",
+   "\"Indireto · cria (bezerros)\"]"
+  ],
+  [
+   "(trader, fornecedor ou produtor)",
+   "(direto, recria ou cria)"
+  ],
+  [
+   "N1 trader · N2 fornecedor da trader · N3 produtor",
+   "N1 direto (engorda) · N2 indireto (recria) · N3 indireto (cria)"
+  ],
+  [
+   "l===\"N1\"?\"Traders\":l===\"N2\"?\"Fornecedores\":\"Produtores\"",
+   "l===\"N1\"?\"Diretos\":l===\"N2\"?\"Recria\":\"Cria\""
+  ],
+  [
+   "N1 · Traders",
+   "N1 · Diretos"
+  ],
+  [
+   "Ex.: Trader Xingu Ltda",
+   "Ex.: Fazenda Santa Rita"
+  ],
+  [
+   "KinseyTec – Cacau",
+   "KinseyTec – Gado"
+  ],
+  [
+   "KINSEYTEC – CACAU",
+   "KINSEYTEC – GADO"
+  ],
+  [
+   "KinseyTec_Cacau",
+   "KinseyTec_Gado"
+  ],
+  [
+   "kinseytec-cacau",
+   "kinseytec-gado"
+  ],
+  [
+   "KinseyTec Cacau",
+   "KinseyTec Gado"
+  ],
+  [
+   "– Cacau",
+   "– Gado"
+  ],
+  [
+   "Cotações do cacau",
+   "Cotações da arroba do boi"
+  ],
+  [
+   "Cotação de referência do cacau",
+   "Cotação de referência da arroba do boi"
+  ],
+  [
+   "Cacau<span",
+   "Boi gordo<span"
+  ],
+  [
+   "Cacau Brasil",
+   "Boi gordo Brasil"
+  ],
+  [
+   "cadeia de cacau",
+   "cadeia da carne bovina"
+  ],
+  [
+   "da cadeia do cacau",
+   "da cadeia da carne bovina"
+  ],
+  [
+   "do cacau",
+   "do gado"
+  ],
+  [
+   "de cacau",
+   "de gado"
+  ],
+  [
+   "o cacau",
+   "o gado"
+  ],
+  [
+   "cacau",
+   "gado"
+  ],
+  [
+   "Cacau",
+   "Gado"
+  ],
+  [
+   "Cocoa",
+   "Cattle"
+  ],
+  [
+   "cocoa",
+   "cattle"
+  ],
+  [
+   "Importar traders (N1)",
+   "Importar fornecedores (N1)"
+  ],
+  [
+   "Importar traders",
+   "Importar fornecedores"
+  ],
+  [
+   "Base de traders do cliente",
+   "Base de fornecedores do cliente"
+  ],
+  [
+   "Comece pelas traders N1 da base do cliente",
+   "Comece pelos fornecedores N1 da base do cliente"
+  ],
+  [
+   "Contratos entre traders e fornecedores",
+   "Contratos com fornecedores diretos e indiretos"
+  ],
+  [
+   "cadastre traders (N1), fornecedores (N2) e produtores (N3)",
+   "cadastre fornecedores diretos (N1), indiretos de recria e intermediários (N2) e indiretos de cria (N3)"
+  ],
+  [
+   "${s.nivel===\"N1\" ? \"da trader\" : \"do fornecedor\"}",
+   "do fornecedor"
+  ],
+  [
+   "enviá-la às traders",
+   "enviá-la aos fornecedores"
+  ],
+  [
+   "Trader Exemplo Ltda;Medicilândia;PA;1200",
+   "Fazenda Exemplo Ltda;Marabá;PA;1200"
+  ],
+  [
+   "${n} trader(s) importada(s)",
+   "${n} fornecedor(es) importado(s)"
+  ],
+  [
+   "tipo:\"Trader\", parentId:\"\"",
+   "tipo:\"Fornecedor direto · engorda\", parentId:\"\""
+  ],
+  [
+   "primeira trader de alto risco",
+   "primeiro fornecedor de alto risco"
+  ]
+ ],
+ "en": [
+  [
+   "Trader investigation",
+   "Supplier investigation"
+  ],
+  [
+   "traders in the base",
+   "N1 suppliers in the base"
+  ],
+  [
+   "N2 · Suppliers",
+   "N2 · Rearing"
+  ],
+  [
+   "N3 · Producers",
+   "N3 · Breeding"
+  ],
+  [
+   "Traders selling to the contracting client (N1), their suppliers (N2) and the producers at origin (N3).",
+   "Direct suppliers selling to the contracting client (N1), indirect rearing farms (N2) and indirect breeding farms (N3)."
+  ],
+  [
+   "N1 trader · N2 supplier to the trader · N3 producer",
+   "N1 direct (fattening) · N2 indirect (rearing) · N3 indirect (breeding)"
+  ],
+  [
+   "N1 · Traders",
+   "N1 · Direct"
+  ],
+  [
+   "KinseyTec – Cacau",
+   "KinseyTec – Gado"
+  ],
+  [
+   "KINSEYTEC – CACAU",
+   "KINSEYTEC – GADO"
+  ],
+  [
+   "Cocoa quotes",
+   "Fed cattle quotes"
+  ],
+  [
+   "Cocoa",
+   "Cattle"
+  ],
+  [
+   "cocoa",
+   "cattle"
+  ],
+  [
+   "Cacau",
+   "Gado"
+  ],
+  [
+   "cacau",
+   "gado"
+  ],
+  [
+   "Import traders (N1)",
+   "Import suppliers (N1)"
+  ],
+  [
+   "Import traders",
+   "Import suppliers"
+  ],
+  [
+   "Client trader base",
+   "Client supplier base"
+  ],
+  [
+   "Contracts between traders and suppliers",
+   "Contracts with direct and indirect suppliers"
+  ],
+  [
+   "register traders (N1), suppliers (N2) and producers (N3)",
+   "register direct suppliers (N1), indirect rearing suppliers and intermediaries (N2) and indirect breeding suppliers (N3)"
+  ],
+  [
+   "sending it to traders",
+   "sending it to suppliers"
+  ]
+ ]
+}

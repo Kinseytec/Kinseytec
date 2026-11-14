@@ -1,0 +1,278 @@
+{
+ "name": "KinseyTec – Café",
+ "file": "Cafe",
+ "projeto": "kinseytec-cafe",
+ "forbid": "cacau",
+ "pt": [
+  [
+   "Investigação das traders",
+   "Investigação dos fornecedores"
+  ],
+  [
+   ")} traders na base",
+   ")} fornecedores N1 na base"
+  ],
+  [
+   "traders na base",
+   "fornecedores N1 na base"
+  ],
+  [
+   "Traders que vendem ao cliente contratante (N1), seus fornecedores (N2) e os produtores na origem (N3).",
+   "Exportadoras e torrefadoras que vendem ao cliente contratante (N1), cooperativas, armazéns e corretores (N2) e produtores na origem (N3)."
+  ],
+  [
+   "Trader (vende ao cliente contratante)",
+   "Exportadora ou torrefadora (vende ao cliente)"
+  ],
+  [
+   "Fornecedor de trader",
+   "Cooperativa, armazém ou corretor"
+  ],
+  [
+   "(trader, fornecedor ou produtor)",
+   "(exportadora, cooperativa ou produtor)"
+  ],
+  [
+   "N1 trader · N2 fornecedor da trader · N3 produtor",
+   "N1 exportadora · N2 cooperativa/armazém · N3 produtor"
+  ],
+  [
+   "l===\"N1\"?\"Traders\":l===\"N2\"?\"Fornecedores\":\"Produtores\"",
+   "l===\"N1\"?\"Exportadoras\":l===\"N2\"?\"Cooperativas\":\"Produtores\""
+  ],
+  [
+   "N1 · Traders",
+   "N1 · Exportadoras"
+  ],
+  [
+   "N2 · Fornecedores",
+   "N2 · Cooperativas e armazéns"
+  ],
+  [
+   "Ex.: Trader Xingu Ltda",
+   "Ex.: Café do Sul de Minas Ltda"
+  ],
+  [
+   "s.uf===\"PA\")} no Pará",
+   "s.uf===\"MG\")} em Minas Gerais"
+  ],
+  [
+   " no Pará ·",
+   " em Minas Gerais ·"
+  ],
+  [
+   "KinseyTec – Cacau",
+   "KinseyTec – Café"
+  ],
+  [
+   "KINSEYTEC – CACAU",
+   "KINSEYTEC – CAFÉ"
+  ],
+  [
+   "KinseyTec_Cacau",
+   "KinseyTec_Cafe"
+  ],
+  [
+   "kinseytec-cacau",
+   "kinseytec-cafe"
+  ],
+  [
+   "KinseyTec Cacau",
+   "KinseyTec Café"
+  ],
+  [
+   "– Cacau",
+   "– Café"
+  ],
+  [
+   "R$ por arroba (15 kg)",
+   "R$ por saca (60 kg)"
+  ],
+  [
+   "por arroba",
+   "por saca"
+  ],
+  [
+   "arroba",
+   "saca"
+  ],
+  [
+   "R$/@",
+   "R$/sc"
+  ],
+  [
+   "/@",
+   "/sc"
+  ],
+  [
+   "Cacau<span",
+   "Café<span"
+  ],
+  [
+   "Cacau Brasil",
+   "Café Brasil"
+  ],
+  [
+   "cadeia de cacau",
+   "cadeia do café"
+  ],
+  [
+   "cacau",
+   "café"
+  ],
+  [
+   "Cacau",
+   "Café"
+  ],
+  [
+   "Cocoa",
+   "Coffee"
+  ],
+  [
+   "cocoa",
+   "coffee"
+  ],
+  [
+   "Importar traders (N1)",
+   "Importar fornecedores (N1)"
+  ],
+  [
+   "Importar traders",
+   "Importar fornecedores"
+  ],
+  [
+   "Base de traders do cliente",
+   "Base de fornecedores do cliente"
+  ],
+  [
+   "Comece pelas traders N1 da base do cliente",
+   "Comece pelos fornecedores N1 da base do cliente"
+  ],
+  [
+   "Contratos entre traders e fornecedores",
+   "Contratos com fornecedores diretos e indiretos"
+  ],
+  [
+   "cadastre traders (N1), fornecedores (N2) e produtores (N3)",
+   "cadastre exportadoras e torrefadoras (N1), cooperativas, armazéns e corretores (N2) e produtores (N3)"
+  ],
+  [
+   "${s.nivel===\"N1\" ? \"da trader\" : \"do fornecedor\"}",
+   "do fornecedor"
+  ],
+  [
+   "enviá-la às traders",
+   "enviá-la aos fornecedores"
+  ],
+  [
+   "Trader Exemplo Ltda;Medicilândia;PA;1200",
+   "Exportadora Exemplo Ltda;Varginha;MG;1200"
+  ],
+  [
+   "${n} trader(s) importada(s)",
+   "${n} fornecedor(es) importado(s)"
+  ],
+  [
+   "tipo:\"Trader\", parentId:\"\"",
+   "tipo:\"Exportadora\", parentId:\"\""
+  ],
+  [
+   "primeira trader de alto risco",
+   "primeiro fornecedor de alto risco"
+  ]
+ ],
+ "en": [
+  [
+   "Trader investigation",
+   "Supplier investigation"
+  ],
+  [
+   "traders in the base",
+   "N1 suppliers in the base"
+  ],
+  [
+   "Traders selling to the contracting client (N1), their suppliers (N2) and the producers at origin (N3).",
+   "Exporters and roasters selling to the contracting client (N1), cooperatives, warehouses and brokers (N2) and producers at origin (N3)."
+  ],
+  [
+   "N1 trader · N2 supplier to the trader · N3 producer",
+   "N1 exporter · N2 cooperative/warehouse · N3 producer"
+  ],
+  [
+   "N1 · Traders",
+   "N1 · Exporters"
+  ],
+  [
+   "N2 · Suppliers",
+   "N2 · Cooperatives and warehouses"
+  ],
+  [
+   "in Pará",
+   "in Minas Gerais"
+  ],
+  [
+   "KinseyTec – Cacau",
+   "KinseyTec – Café"
+  ],
+  [
+   "KINSEYTEC – CACAU",
+   "KINSEYTEC – CAFÉ"
+  ],
+  [
+   "per arroba (15 kg)",
+   "per 60 kg bag"
+  ],
+  [
+   "arroba (15 kg)",
+   "60 kg bag"
+  ],
+  [
+   "/@",
+   "/bag"
+  ],
+  [
+   "arroba",
+   "bag"
+  ],
+  [
+   "Cocoa",
+   "Coffee"
+  ],
+  [
+   "cocoa",
+   "coffee"
+  ],
+  [
+   "Cacau",
+   "Café"
+  ],
+  [
+   "cacau",
+   "café"
+  ],
+  [
+   "Import traders (N1)",
+   "Import suppliers (N1)"
+  ],
+  [
+   "Import traders",
+   "Import suppliers"
+  ],
+  [
+   "Client trader base",
+   "Client supplier base"
+  ],
+  [
+   "Contracts between traders and suppliers",
+   "Contracts with direct and indirect suppliers"
+  ],
+  [
+   "register traders (N1), suppliers (N2) and producers (N3)",
+   "register exporters and roasters (N1), cooperatives, warehouses and brokers (N2) and producers (N3)"
+  ],
+  [
+   "sending it to traders",
+   "sending it to suppliers"
+  ]
+ ]
+}

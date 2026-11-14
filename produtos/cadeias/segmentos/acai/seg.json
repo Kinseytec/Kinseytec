@@ -1,0 +1,278 @@
+{
+ "name": "KinseyTec – Açaí",
+ "file": "Acai",
+ "projeto": "kinseytec-acai",
+ "forbid": "cacau",
+ "pt": [
+  [
+   "Investigação das traders",
+   "Investigação dos fornecedores"
+  ],
+  [
+   ")} traders na base",
+   ")} fornecedores N1 na base"
+  ],
+  [
+   "traders na base",
+   "fornecedores N1 na base"
+  ],
+  [
+   "N2 · Fornecedores",
+   "N2 · Batedores"
+  ],
+  [
+   "N3 · Produtores",
+   "N3 · Extrativistas"
+  ],
+  [
+   "Traders que vendem ao cliente contratante (N1), seus fornecedores (N2) e os produtores na origem (N3).",
+   "Indústrias e exportadoras que vendem ao cliente contratante (N1), batedores e cooperativas (N2) e extrativistas na origem (N3)."
+  ],
+  [
+   "Trader (vende ao cliente contratante)",
+   "Indústria ou exportadora (vende ao cliente)"
+  ],
+  [
+   "Fornecedor de trader",
+   "Batedor, cooperativa ou intermediário"
+  ],
+  [
+   "\"Produtor rural\"]",
+   "\"Extrativista ou comunidade\"]"
+  ],
+  [
+   "(trader, fornecedor ou produtor)",
+   "(indústria, batedor ou extrativista)"
+  ],
+  [
+   "N1 trader · N2 fornecedor da trader · N3 produtor",
+   "N1 indústria · N2 batedor/cooperativa · N3 extrativista"
+  ],
+  [
+   "l===\"N1\"?\"Traders\":l===\"N2\"?\"Fornecedores\":\"Produtores\"",
+   "l===\"N1\"?\"Indústrias\":l===\"N2\"?\"Batedores\":\"Extrativistas\""
+  ],
+  [
+   "N1 · Traders",
+   "N1 · Indústrias"
+  ],
+  [
+   "Ex.: Trader Xingu Ltda",
+   "Ex.: Açaí do Pará Ltda"
+  ],
+  [
+   "KinseyTec – Cacau",
+   "KinseyTec – Açaí"
+  ],
+  [
+   "KINSEYTEC – CACAU",
+   "KINSEYTEC – AÇAÍ"
+  ],
+  [
+   "KinseyTec_Cacau",
+   "KinseyTec_Acai"
+  ],
+  [
+   "kinseytec-cacau",
+   "kinseytec-acai"
+  ],
+  [
+   "KinseyTec Cacau",
+   "KinseyTec Açaí"
+  ],
+  [
+   "– Cacau",
+   "– Açaí"
+  ],
+  [
+   "R$ por arroba (15 kg)",
+   "R$ por lata (14 kg)"
+  ],
+  [
+   "por arroba",
+   "por lata"
+  ],
+  [
+   "arroba",
+   "lata"
+  ],
+  [
+   "R$/@",
+   "R$/lata"
+  ],
+  [
+   "/@",
+   "/lata"
+  ],
+  [
+   "Cacau<span",
+   "Açaí<span"
+  ],
+  [
+   "Cacau Brasil",
+   "Açaí Brasil"
+  ],
+  [
+   "cadeia de cacau",
+   "cadeia do açaí"
+  ],
+  [
+   "cacau",
+   "açaí"
+  ],
+  [
+   "Cacau",
+   "Açaí"
+  ],
+  [
+   "Cocoa",
+   "Açaí"
+  ],
+  [
+   "cocoa",
+   "açaí"
+  ],
+  [
+   "Importar traders (N1)",
+   "Importar fornecedores (N1)"
+  ],
+  [
+   "Importar traders",
+   "Importar fornecedores"
+  ],
+  [
+   "Base de traders do cliente",
+   "Base de fornecedores do cliente"
+  ],
+  [
+   "Comece pelas traders N1 da base do cliente",
+   "Comece pelos fornecedores N1 da base do cliente"
+  ],
+  [
+   "Contratos entre traders e fornecedores",
+   "Contratos com fornecedores diretos e indiretos"
+  ],
+  [
+   "cadastre traders (N1), fornecedores (N2) e produtores (N3)",
+   "cadastre indústrias e exportadoras (N1), batedores, cooperativas e intermediários (N2) e extrativistas (N3)"
+  ],
+  [
+   "${s.nivel===\"N1\" ? \"da trader\" : \"do fornecedor\"}",
+   "do fornecedor"
+  ],
+  [
+   "enviá-la às traders",
+   "enviá-la aos fornecedores"
+  ],
+  [
+   "Trader Exemplo Ltda;Medicilândia;PA;1200",
+   "Indústria Exemplo Ltda;Belém;PA;1200"
+  ],
+  [
+   "${n} trader(s) importada(s)",
+   "${n} fornecedor(es) importado(s)"
+  ],
+  [
+   "tipo:\"Trader\", parentId:\"\"",
+   "tipo:\"Indústria de polpa\", parentId:\"\""
+  ],
+  [
+   "primeira trader de alto risco",
+   "primeiro fornecedor de alto risco"
+  ]
+ ],
+ "en": [
+  [
+   "Trader investigation",
+   "Supplier investigation"
+  ],
+  [
+   "traders in the base",
+   "N1 suppliers in the base"
+  ],
+  [
+   "N2 · Suppliers",
+   "N2 · Pulpers"
+  ],
+  [
+   "N3 · Producers",
+   "N3 · Harvesters"
+  ],
+  [
+   "Traders selling to the contracting client (N1), their suppliers (N2) and the producers at origin (N3).",
+   "Processors and exporters selling to the contracting client (N1), pulpers and cooperatives (N2) and harvesters at origin (N3)."
+  ],
+  [
+   "N1 trader · N2 supplier to the trader · N3 producer",
+   "N1 processor · N2 pulper/cooperative · N3 harvester"
+  ],
+  [
+   "N1 · Traders",
+   "N1 · Processors"
+  ],
+  [
+   "KinseyTec – Cacau",
+   "KinseyTec – Açaí"
+  ],
+  [
+   "KINSEYTEC – CACAU",
+   "KINSEYTEC – AÇAÍ"
+  ],
+  [
+   "per arroba (15 kg)",
+   "per 14 kg can"
+  ],
+  [
+   "arroba (15 kg)",
+   "14 kg can"
+  ],
+  [
+   "/@",
+   "/can"
+  ],
+  [
+   "arroba",
+   "can"
+  ],
+  [
+   "Cocoa",
+   "Açaí"
+  ],
+  [
+   "cocoa",
+   "açaí"
+  ],
+  [
+   "Cacau",
+   "Açaí"
+  ],
+  [
+   "cacau",
+   "açaí"
+  ],
+  [
+   "Import traders (N1)",
+   "Import suppliers (N1)"
+  ],
+  [
+   "Import traders",
+   "Import suppliers"
+  ],
+  [
+   "Client trader base",
+   "Client supplier base"
+  ],
+  [
+   "Contracts between traders and suppliers",
+   "Contracts with direct and indirect suppliers"
+  ],
+  [
+   "register traders (N1), suppliers (N2) and producers (N3)",
+   "register processors and exporters (N1), pulpers, cooperatives and intermediaries (N2) and harvesters (N3)"
+  ],
+  [
+   "sending it to traders",
+   "sending it to suppliers"
+  ]
+ ]
+}

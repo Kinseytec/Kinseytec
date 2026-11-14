@@ -1,0 +1,110 @@
+rules_version = '2';
+// KinseyTec – Cacau · regras de acesso do banco
+// Perfis: admin (Kinsey BR, todos os clientes), editor (cliente / Jurídico), colaborador (equipe), fornecedor (Portal)
+// Vários clientes no mesmo sistema: cada registro leva clienteId e cada usuário só acessa o próprio cliente.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function myEmail() { return request.auth.token.email.lower(); }
+    function verified() { return signedIn() && request.auth.token.email_verified == true; }
+    function superAdmin() { return verified() && myEmail() in ['ia@kinsey.com.br']; }
+    function userDoc() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function hasUser() { return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)); }
+    function myRole() { return userDoc().role; }
+    function myCli() { return userDoc().get('clienteId', ''); }
+    function isAdmin() { return superAdmin() || (hasUser() && myRole() == 'admin'); }
+    function isEditor() { return isAdmin() || (hasUser() && myRole() == 'editor'); }
+    function isStaff() { return isEditor() || (hasUser() && myRole() == 'colaborador'); }
+    function inviteFor(em) { return get(/databases/$(database)/documents/invites/$(em)).data; }
+    // acesso ao cliente: administrador vê todos; a equipe e o cliente só o próprio
+    function doCliente(cid) { return isAdmin() || (isStaff() && cid != '' && myCli() == cid); }
+    function editaCliente(cid) { return isAdmin() || (isEditor() && cid != '' && myCli() == cid); }
+    function cliDe(d) { return d.get('clienteId', ''); }
+
+    // convites: só o administrador cria; cada pessoa pode ler o próprio convite
+    match /invites/{em} {
+      allow read: if isAdmin() || (verified() && em == myEmail()) || (isStaff() && myCli() != '' && cliDe(resource.data) == myCli());
+      // a equipe do cliente convida só fornecedores do próprio cliente (perfil fornecedor); demais perfis só o administrador
+      allow create: if isAdmin() || (isStaff() && myCli() != '' && request.resource.data.role == 'fornecedor' && cliDe(request.resource.data) == myCli());
+      allow update: if isAdmin() || (isStaff() && myCli() != '' && resource.data.role == 'fornecedor' && cliDe(resource.data) == myCli() && request.resource.data.role == 'fornecedor' && cliDe(request.resource.data) == myCli());
+      allow delete: if isAdmin() || (isStaff() && myCli() != '' && resource.data.role == 'fornecedor' && cliDe(resource.data) == myCli());
+    }
+    // usuários: criados no primeiro acesso, conforme o convite (perfil e cliente); só o administrador altera
+    match /users/{uid} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow create: if signedIn() && request.auth.uid == uid && (
+        (superAdmin() && request.resource.data.role == 'admin') ||
+        (verified() && exists(/databases/$(database)/documents/invites/$(myEmail()))
+          && request.resource.data.role == inviteFor(myEmail()).role
+          && request.resource.data.email == myEmail()
+          && cliDe(request.resource.data) == inviteFor(myEmail()).get('clienteId', '')));
+      allow update, delete: if isAdmin();
+    }
+    // clientes contratantes: o administrador cadastra; cada usuário lê só o próprio
+    match /clientes/{cid} {
+      allow read: if isAdmin() || (hasUser() && myCli() == cid);
+      allow write: if isAdmin();
+    }
+    // base da diligência: cada cliente só a própria; o cliente nunca muda de dono
+    match /suppliers/{id} {
+      allow read, delete: if doCliente(cliDe(resource.data));
+      allow create: if doCliente(cliDe(request.resource.data));
+      allow update: if doCliente(cliDe(resource.data)) && (isAdmin() || cliDe(request.resource.data) == cliDe(resource.data));
+    }
+    match /evidences/{id} {
+      allow read, delete: if doCliente(cliDe(resource.data));
+      allow create: if doCliente(cliDe(request.resource.data));
+      allow update: if doCliente(cliDe(resource.data)) && (isAdmin() || cliDe(request.resource.data) == cliDe(resource.data));
+    }
+    match /contracts/{id} {
+      allow read, delete: if doCliente(cliDe(resource.data));
+      allow create: if doCliente(cliDe(request.resource.data));
+      allow update: if doCliente(cliDe(resource.data)) && (isAdmin() || cliDe(request.resource.data) == cliDe(resource.data));
+    }
+    // listas restritivas oficiais (MTE, CGU, IBAMA): a equipe consulta; só o administrador carrega
+    match /listas/{id} {
+      allow read: if isStaff();
+      allow write: if isAdmin();
+    }
+    // cotações públicas do dia (gravadas só pela função agendada)
+    match /cotacoes/{id} {
+      allow read: if isStaff();
+      allow write: if false;
+    }
+    match /cotacoes_hist/{id} {
+      allow read: if isStaff();
+      allow write: if false;
+    }
+    // operações comerciais (notas fiscais, pedidos e pagamentos) de cada cliente
+    match /operacoes/{id} {
+      allow read: if doCliente(cliDe(resource.data));
+      allow create: if doCliente(cliDe(request.resource.data));
+      allow update: if doCliente(cliDe(resource.data)) && (isAdmin() || cliDe(request.resource.data) == cliDe(resource.data));
+      allow delete: if editaCliente(cliDe(resource.data));
+    }
+    match /pareceres/{id} {
+      allow read: if doCliente(cliDe(resource.data));
+      allow create: if editaCliente(cliDe(request.resource.data));
+      allow update: if editaCliente(cliDe(resource.data)) && (isAdmin() || cliDe(request.resource.data) == cliDe(resource.data));
+      allow delete: if editaCliente(cliDe(resource.data));
+    }
+    // configurações por cliente: documentos "nome__idDoCliente" (cotações, relatório); só o administrador libera o relatório
+    match /config/{id} {
+      allow read: if isAdmin() || (isStaff() && myCli() != '' && id.matches('.*__' + myCli()))
+        || (hasUser() && myRole() == 'fornecedor' && myCli() != '' && id == 'portal__' + myCli());  // fornecedor: só os itens do Portal do próprio cliente
+      allow write: if isAdmin() || (isStaff() && myCli() != '' && id.matches('.*__' + myCli()) && !id.matches('relatorio__.*'));
+    }
+    // arquivos do Portal no plano gratuito (fotos e documentos comprimidos)
+    match /fichaFiles/{id} {
+      allow read: if doCliente(cliDe(resource.data)) || (signedIn() && resource.data.uid == request.auth.uid);
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid && request.resource.data.data is string && request.resource.data.data.size() < 1000000;
+      allow delete: if isAdmin();
+    }
+    // fichas do Portal: cada fornecedor só a própria; a equipe do mesmo cliente lê as do cliente
+    match /fichas/{uid} {
+      allow read: if (signedIn() && request.auth.uid == uid) || doCliente(cliDe(resource.data));
+      allow create, update: if doCliente(cliDe(request.resource.data)) || (signedIn() && request.auth.uid == uid && hasUser() && myRole() == 'fornecedor' && cliDe(request.resource.data) == myCli());
+      allow delete: if isAdmin();
+    }
+  }
+}
