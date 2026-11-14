@@ -1,4 +1,4 @@
-/* ================= Kinsey Capital – M&A · CONTEÚDO DO SEGMENTO ================= */
+/* ================= KinseyTec – M&A · CONTEÚDO DO SEGMENTO ================= */
 /* N1 Investidores · N2 Intermediadores e parceiros · N3 Targets (empresas-alvo, potenciais clientes de venda) */
 
 /* Centro da rede: a Kinsey Capital (ponto de partida das rotas na órbita) */
@@ -14,7 +14,7 @@ window.ORB_SEM_CLIENTE = true;
 /* Indicadores de mercado (barra do topo, registro manual) */
 const PRACAS_BR = [["SELIC","Selic (% a.a.)"],["IPCA","IPCA 12 meses (%)"],["CDI","CDI (% a.a.)"],["DOLAR","Dólar PTAX (R$)"],["EURO","Euro (R$)"],["IBOV","Ibovespa (pontos)"]];
 const INTL = [["SP500","S&P 500","pontos"],["UST10","Treasury 10 anos","% a.a."],["FED","Fed funds","% a.a."]];
-const PRECO = {bar:["SELIC","IPCA","DOLAR"], barLabel:{SELIC:"Selic",IPCA:"IPCA 12m",DOLAR:"Dólar"}, fonteEx:"Banco Central, B3 ou terminal de mercado",
+const PRECO = {bar:["SELIC","IPCA","DOLAR","IBOV"], barLabel:{SELIC:"Selic",IPCA:"IPCA 12m",DOLAR:"Dólar",IBOV:"Ibovespa"}, fonteEx:"Banco Central, B3 ou terminal de mercado",
   hist:[["SELIC","Selic"],["DOLAR","Dólar"],["IBOV","Ibovespa"]],
   links:[["Banco Central · Selic","https://www.bcb.gov.br/controleinflacao/historicotaxasjuros"],["Banco Central · câmbio PTAX","https://www.bcb.gov.br/estabilidadefinanceira/historicocotacoes"],["IBGE · IPCA","https://www.ibge.gov.br/explica/inflacao.php"],["B3 · Ibovespa","https://www.b3.com.br"]]};
 

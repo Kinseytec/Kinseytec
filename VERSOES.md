@@ -1,5 +1,14 @@
 # Registro de versões
 
+## v2.8 — 2026-11-14 · KinseyTec – M&A: Base inicial, consultas automáticas e dossiês do N1 e do N3
+- Nome do sistema: KinseyTec – M&A, um sistema da KinseyTec, empresa do grupo KinseyBR (a Kinsey Capital segue como intermediador N2 e emissora dos relatórios)
+- Base inicial como primeiro item do menu: cadastro geral de investidores e compradores (N1), intermediadores e parceiros (N2) e targets vendedores (N3); sem a análise prévia solta na Órbita, toda empresa entra pelo cadastro
+- Com o CNPJ, consultas automáticas: Receita Federal (cadastro, atividade, capital e sócios, que preenchem o cadastro), listas oficiais (CEIS, CNEP, Cadastro de Empregadores e IBAMA), CVM (companhia aberta), B3 (código, cotação e valor de mercado), demonstrações da CVM, notícias e mercado (Ibovespa, Selic, IPCA e dólar); certidões que exigem verificação de segurança ficam como atalhos para o site de cada órgão
+- Nova função na versão publicada (consultarEmpresa): roda sozinha ao gravar o CNPJ ou o nome de um N1 ou N3 e pelo botão "Atualizar agora"; comparáveis da CVM passam a guardar CNPJ, caixa e dívida; mercado passa a trazer o Ibovespa (também na barra de indicadores)
+- Dossiê do investidor (N1): consultas, tese, condições de compra (ticket e capacidade financeira: capital disponível, ou até 3,0x o EBITDA menos a dívida líquida) com cada target ligado ou aderente marcado como "Tem condições", "No limite" ou "Acima da capacidade", e últimas aquisições e notícias
+- Dossiê do target (N3), mais completo: consultas e certidões, números e valor estimado (valuation ou EBITDA × múltiplo do segmento), risco, situação da diligência, compradores ligados com as condições de compra de cada um e notícias
+- Dossiês em PDF (uso interno); item Evidências e o botão "+ Evidência" retirados
+
 ## v2.7 — 2026-11-14 · M&A no celular: Órbita livre e dossiê compacto
 - Órbita no celular: o globo aparece inteiro, sem empresa aberta por cima; busca no topo, filtros por nível em uma linha, sem textos técnicos sobre o globo; o menu fica em uma linha com rolagem lateral
 - Faixa de empresas com os targets (N3) primeiro; ao tocar, cartão curto (local, nível, risco, etapa, mandato) com "Abrir dossiê" sempre visível

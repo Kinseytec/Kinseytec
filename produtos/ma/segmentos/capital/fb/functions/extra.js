@@ -1,10 +1,15 @@
-/* Kinsey Capital – M&A · funções próprias do produto (carregadas pelo index.js do núcleo)
+/* KinseyTec – M&A · funções próprias do produto (carregadas pelo index.js do núcleo)
    mercado      : todo dia às 7h40, Banco Central (Selic, CDI, IPCA, PTAX), Focus (Selic e IPCA esperados),
                   US Treasury 10 anos e notícias de juros, inflação, câmbio e dos segmentos dos targets → cotacoes/mercado
    comparaveis  : todo dia 5, companhias abertas da CVM (cadastro, FCA e DFP: receita, EBITDA, dívida, lucro, ações)
                   com preço de fechamento público → múltiplos por segmento em cotacoes/comparaveis
-   Fontes públicas; nenhum dado de cliente sai do Firebase (dos targets só se lê o nome do segmento). */
+   consultarEmpresa: ao cadastrar ou mudar o CNPJ de um investidor (N1) ou target (N3), e sob pedido do usuário:
+                  CVM (companhia aberta e setor), B3 e DFP (pela base de comparáveis), cotação pública e notícias
+                  (do N1, também as de aquisições) → suppliers/{id}.ext
+   Fontes públicas; o único dado enviado para fora é o nome da empresa na busca de notícias. */
 "use strict";
+const {onDocumentWritten} = require("firebase-functions/v2/firestore");
+const {onCall, HttpsError} = require("firebase-functions/v2/https");
 module.exports = ({db, logger, onSchedule, F}) => {
   const SGS = (s, q = "ultimos/1") => `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${s}/dados/${q}?formato=json`;
   const num = v => { const n = parseFloat(String(v).replace(",", ".")); return isFinite(n) ? n : null; };
@@ -31,6 +36,7 @@ module.exports = ({db, logger, onSchedule, F}) => {
     const erros = [], tenta = async (k, f) => { try{ return await f(); }catch(e){ erros.push(k + ": " + e.message); return null; } };
     const [selic, cdi, ipca12, ptax] = await Promise.all([432, 4389, 13522, 1].map(s => tenta("sgs" + s, () => serie(s))));
     const atual = {em:new Date().toISOString(), fonte:"Banco Central do Brasil (SGS e Focus)", selic:selic?.v, cdi:cdi?.v, ipca12:ipca12?.v, ipca12ref:ipca12?.data?.slice(3), ptax:ptax?.v, ust10:await tenta("treasury", treasury10)};
+    atual.ibov = await tenta("ibovespa", async () => Math.round((await json("https://query1.finance.yahoo.com/v8/finance/chart/%5EBVSP?range=5d&interval=1d")).chart.result[0].meta.regularMarketPrice));
     const segs = new Set(); (await db.collection("suppliers").where("nivel", "==", "N3").get()).forEach(d => { const s = d.data().perfil?.segmento || d.data().segmento; if (s) segs.add(s); });
     const noticias = (await tenta("noticias", async () => [...await rss("Copom Selic juros"), ...await rss("IPCA inflação expectativas"), ...await rss("dólar câmbio Banco Central", 4)])) || [];
     const noticias_seg = {}; for (const s of segs) noticias_seg[s] = (await tenta("noticias " + s, () => rss(`setor ${s} Brasil crescimento OR investimento OR expansão`, 10))) || [];
@@ -64,14 +70,50 @@ module.exports = ({db, logger, onSchedule, F}) => {
       if (!v || !t || !seg || !(v.rec > 0) || !v.acoes) continue;
       try{ const j = await (await F.pega(`https://query1.finance.yahoo.com/v8/finance/chart/${t}.SA?range=5d&interval=1d`, {}, 1)).json(), p = j.chart?.result?.[0]?.meta?.regularMarketPrice; if (!(p > 0)) continue;
         const mcap = p * v.acoes, ev = mcap + (v.div || 0) - (v.caixa || 0), ebitda = (v.ebit || 0) + (v.da || 0);
-        lista.push({id:t, nome:c.DENOM_COMERC || c.DENOM_SOCIAL, ticker:t, seg, setorCVM:c.SETOR_ATIV, ev, mcap, rec:v.rec, ebitda, ll:v.ll || 0, pl:v.pl || 0, data:`DFP ${ano} · preço ${new Date().toISOString().slice(0, 10)}`, fonte:"CVM (DFP) e cotação pública"}); }
+        lista.push({id:t, cnpj:String(c.CNPJ_CIA || "").replace(/\D/g, ""), nome:c.DENOM_COMERC || c.DENOM_SOCIAL, ticker:t, seg, setorCVM:c.SETOR_ATIV, ev, mcap, preco:p, ano, rec:v.rec, ebitda, ll:v.ll || 0, pl:v.pl || 0, caixa:v.caixa || 0, div:v.div || 0, data:`DFP ${ano} · preço ${new Date().toISOString().slice(0, 10)}`, fonte:"CVM (DFP) e cotação pública"}); }
       catch(e){ erros.push(t + ": " + e.message); }
       await new Promise(r => setTimeout(r, 250)); if (lista.length >= 300) break; }
     await db.doc("cotacoes/comparaveis").set({em:new Date().toISOString(), ano, fonte:"CVM · dados abertos (cadastro, FCA e DFP) e cotação pública", lista, erros:erros.slice(0, 30)});
     logger.info("comparáveis", {n:lista.length, erros:erros.length}); return {companhias:lista.length, ano, erros:erros.length};
   }
+  /* ---------------- consulta de empresa (N1 e N3) ---------------- */
+  let CAD = null, cadEm = 0;
+  async function cadastroCVM(){
+    if (CAD && Date.now() - cadEm < 864e5) return CAD;
+    const L = tab(F.csvLinhas(new TextDecoder("latin1").decode(await (await F.pega("https://dados.cvm.gov.br/dados/CIA_ABERTA/CAD/DADOS/cad_cia_aberta.csv")).arrayBuffer()), ";")), m = new Map();
+    L.forEach(c => { const k = String(c.CNPJ_CIA || "").replace(/\D/g, ""); if (k && (!m.has(k) || c.SIT === "ATIVO")) m.set(k, c); });
+    CAD = m; cadEm = Date.now(); return m;
+  }
+  const limpaNome = n => String(n || "").replace(/^EXEMPLO\s+/i, "").replace(/["]/g, "").replace(/\b(ltda|s\.?\s?a\.?|eireli|epp)\b\.?/gi, "").replace(/\s+/g, " ").trim();
+  async function consultarEmpresa(id){
+    const ref = db.doc("suppliers/" + id), snap = await ref.get(); if (!snap.exists) return {ok:false, motivo:"não encontrado"};
+    const s = snap.data(), cnpj = String(s.doc || "").replace(/\D/g, ""); if (!["N1","N3"].includes(s.nivel)) return {ok:false, motivo:"só N1 e N3"};
+    const ext = {em:new Date().toISOString(), doc:cnpj, nome:s.nome || "", erros:[]}, tenta = async (k, f) => { try{ return await f(); }catch(e){ ext.erros.push(k + ": " + e.message); return null; } };
+    if (cnpj.length === 14){
+      const cad = await tenta("cvm", cadastroCVM), c = cad && cad.get(cnpj);
+      if (cad) ext.cvm = c ? {aberta:c.SIT === "ATIVO", situacao:c.SIT || "", nome:c.DENOM_COMERC || c.DENOM_SOCIAL || "", setor:c.SETOR_ATIV || "", categoria:c.CATEG_REG || "", codigo:c.CD_CVM || ""} : {aberta:false};
+      const comp = (await tenta("comparaveis", async () => (await db.doc("cotacoes/comparaveis").get()).data()))?.lista || [], k = comp.find(x => x.cnpj === cnpj);
+      if (k){ ext.fin = {ano:k.ano || null, rec:k.rec, ebitda:k.ebitda, ll:k.ll, pl:k.pl, caixa:k.caixa ?? null, div:k.div ?? null, fonte:k.data || "CVM (DFP)"}; ext.b3 = {ticker:k.ticker, mcap:k.mcap, ev:k.ev, preco:k.preco || null}; }
+      const tk = ext.b3?.ticker || (s.capac?.ticker || "").toUpperCase();
+      if (/^[A-Z]{4}\d{1,2}$/.test(tk)){ const q = await tenta("cotacao", async () => (await json(`https://query1.finance.yahoo.com/v8/finance/chart/${tk}.SA?range=5d&interval=1d`)).chart.result[0].meta.regularMarketPrice);
+        if (q > 0) ext.b3 = {...(ext.b3 || {ticker:tk}), preco:q, em:ext.em}; }
+    }
+    const nome = limpaNome(s.nome);
+    if (nome.length >= 3 && !/^EXEMPLO/i.test(s.nome || "")){
+      ext.noticias = (await tenta("noticias", () => rss(`"${nome}"`, 8))) || [];
+      if (s.nivel === "N1") ext.aquisicoes = (await tenta("aquisicoes", () => rss(`"${nome}" (aquisição OR adquire OR adquiriu OR compra OR incorporação)`, 10))) || [];
+    }
+    if (!ext.erros.length) delete ext.erros;
+    await ref.set({ext}, {merge:true}); logger.info("consultarEmpresa", {id, erros:ext.erros || []}); return {ok:true, erros:ext.erros || []};
+  }
+  const precisa = s => s && ["N1","N3"].includes(s.nivel) && (!s.ext || s.ext.doc !== String(s.doc || "").replace(/\D/g, "") || s.ext.nome !== (s.nome || "") || Date.now() - new Date(s.ext.em).getTime() > 30 * 864e5);
   return {
     exports:{
+      consultaEmpresaAuto:onDocumentWritten({document:"suppliers/{id}", memory:"1GiB", timeoutSeconds:120}, async ev => { const s = ev.data?.after?.exists ? ev.data.after.data() : null; if (precisa(s)) await consultarEmpresa(ev.params.id); }),
+      consultarEmpresa:onCall({memory:"1GiB", timeoutSeconds:120}, async req => {
+        if (!req.auth || !req.auth.token.email_verified) throw new HttpsError("unauthenticated", "Entre no sistema.");
+        const u = await db.doc("users/" + req.auth.uid).get(); if (!u.exists || u.data().role === "fornecedor") throw new HttpsError("permission-denied", "Sem acesso a esta consulta.");
+        return consultarEmpresa(String(req.data?.id || "")); }),
       mercado:onSchedule({schedule:"40 7 * * *", timeZone:"America/Sao_Paulo", memory:"512MiB", timeoutSeconds:300}, () => gravarMercado()),
       comparaveis:onSchedule({schedule:"20 6 5 * *", timeZone:"America/Sao_Paulo", memory:"2GiB", timeoutSeconds:540}, () => gravarComparaveis())
     },

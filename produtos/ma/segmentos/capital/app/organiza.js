@@ -39,8 +39,8 @@ if (window.KT_DD && window.KT_JDD) (() => {
 
 /* ================= KINSEY CAPITAL · BASE SIMPLIFICADA =================
    - Análise de risco e dossiê completo só para o N3 (target vendedor); N1 e N2 têm cadastro simples (Dados e M&A).
-   - Menu enxuto: Órbita, Base M&A, Due Diligence, Análises financeiras, Valuation, Apresentação, Jurídico, Pós-aquisição.
-   - Base M&A: targets vendedores, investidores e compradores, parceiros e pipeline, com temperatura do mapa da Kinsey. */
+   - Menu enxuto: Órbita, Base inicial, Due Diligence, Análises financeiras, Valuation, Apresentação, Jurídico, Pós-aquisição.
+   - Base inicial: targets vendedores, investidores e compradores, parceiros e pipeline, com temperatura do mapa da Kinsey. */
 if (window.KT_DD) (() => {
   const D = KT_DD, {mi} = D;
   const nrm = t => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
@@ -59,7 +59,7 @@ if (window.KT_DD) (() => {
   const enxuga = () => { ["evidencias","relatorio"].forEach(v => { const b = $(`nav.tabs [data-go="${v}"]`); if (b) b.hidden = true; }); ["#kim-tour","#rpt-top"].forEach(q => { const b = $(q); if (b){ b.hidden = true; b.style.display = "none"; } });
     const nav = $("nav.tabs"), pos = $('[data-go="pos"]', nav), jur = $('[data-go="juridico"]', nav); if (nav && pos && jur) jur.after(pos); };
   enxuga(); setTimeout(enxuga, 0);
-  /* ---------- Base M&A ---------- */
+  /* ---------- Base inicial ---------- */
   const TEMPS = ["Quente","Morno","Frio","Declinada"], tp = t => t ? `<span class="tp tp-${nrm(t).split(" ")[0]}">${esc(t)}</span>` : "";
   const etapaNome = k => (MA_FUNIL.find(f => f[0] === k) || [k, k || "—"])[1];
   const ult = s => { const I = Object.values(s.interacoes || {}).filter(Boolean); const u = I.filter(i => i.data).sort((a, b) => String(b.data).localeCompare(a.data))[0], p = I.find(i => i.proximo && !i.feito); return {u, p}; };
@@ -83,7 +83,7 @@ if (window.KT_DD) (() => {
           <td>${esc([s.municipio, s.uf || s.pais].filter(Boolean).join("/"))}</td><td>${tp(temp(s))}</td><td style="font-size:12px;max-width:220px">${T.length ? esc(T.map(t => t.mandato?.codinome || t.nome).slice(0, 3).join(", ")) + (T.length > 3 ? ` +${T.length - 3}` : "") : `<span class="sub">—</span>`}</td><td style="font-size:11.5px;max-width:200px;overflow-wrap:anywhere">${esc((s.mapa?.contato || s.contato || "").slice(0, 70))}</td></tr>`; }).join("")}</tbody></table></div>`; }
     else if (S.mbTab === "N2") corpo = `<div class="tbl"><table><thead><tr><th>Intermediador ou parceiro</th><th>Tipo</th><th>Acordo</th><th>Targets trazidos</th></tr></thead><tbody>${filtra(N2).map(s => { const T = N3.filter(t => t.parentId === s.id);
         return `<tr class="mb-row" data-mb="${s.id}"><td><b>${esc(s.nome)}</b></td><td>${esc(s.tipo || "")}</td><td style="font-size:12px">${esc(s.acordo?.status || "—")}${s.acordo?.fee ? " · " + esc(s.acordo.fee) : ""}</td><td style="font-size:12px">${T.length} · ${esc(T.filter(t => t.etapa !== "descartada").map(t => t.nome).slice(0, 4).join(", "))}</td></tr>`; }).join("")}</tbody></table></div>`;
-    host.innerHTML = `<div class="head"><div><div class="eyebrow">Kinsey Capital · M&A</div><h2>Base M&A</h2><p class="sub">Targets vendedores (N3), investidores e compradores (N1) e a Kinsey com os parceiros (N2). A análise de risco, a due diligence e o valuation são sempre do target vendedor.</p></div>
+    host.innerHTML = `<div class="head"><div><div class="eyebrow">KinseyTec – M&A · empresas cadastradas</div><h2>Empresas da base</h2><p class="sub">Targets vendedores (N3), investidores e compradores (N1) e a Kinsey com os parceiros (N2). A análise de risco, a due diligence e o valuation são sempre do target vendedor.</p></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn primary" id="mb-imp">Importar mapa M&A</button><button type="button" class="btn" id="mb-nova">Nova empresa</button></div></div>
       <div class="dd-kpis" style="margin-bottom:14px">${k("Targets ativos", ativos.length, `${N3.length - ativos.length} declinados`)}${TEMPS.slice(0, 3).map(t => k(t, ativos.filter(s => temp(s) === t).length, "targets")).join("")}${k("Mandatos assinados", N3.filter(s => s.mandato?.status === "assinado").length)}${k("Investidores e compradores", N1.length)}${k("Kinsey e parceiros", N2.length)}</div>
       <div class="dd-tabs" style="margin-bottom:10px">${[["N3",`Targets vendedores · ${N3.length}`],["N1",`Investidores e compradores · ${N1.length}`],["N2",`Kinsey e parceiros · ${N2.length}`],["pipe","Pipeline"]].map(([v, l]) => `<button type="button" class="fbtn" data-mbt="${v}" aria-pressed="${S.mbTab === v}">${l}</button>`).join("")}</div>

@@ -35,7 +35,7 @@ if (window.KT_DD) (() => {
 
   function importar(){
     let lido = null;
-    const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Kinsey Capital · Base M&A</div><h2>Importar mapa de M&A</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
+    const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Kinsey Capital · Base inicial</div><h2>Importar mapa de M&A</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
       <form class="sheet-b" id="fmp" style="display:flex;flex-direction:column;gap:12px" novalidate>
         <p class="sub" style="margin:0">Planilha com investidores (N1), intermediadores e parceiros (N2) e targets vendedores (N3). Colunas reconhecidas pelo nome: Nível, Nome, CNPJ, Tipo, Segmento, Linhas de negócio, Cidade, UF, País, Contato, Faturamento, EBITDA, Ticket mínimo e máximo, Intermediador, Investidores de interesse, Observações.</p>
         <div class="form"><div class="fld full"><label for="mp-f">Arquivo (Excel, LibreOffice ou CSV)</label><input id="mp-f" type="file" accept=".xlsx,.xlsm,.ods,.csv,.txt"></div><div class="fld full"><label for="mp-p">Ou cole as linhas da planilha (com o cabeçalho)</label><textarea id="mp-p" rows="4"></textarea></div>
@@ -98,5 +98,5 @@ if (window.KT_DD) (() => {
     const csv = "﻿" + [H, ...R].map(r => r.map(c => /[;"\n]/.test(c) ? `"${c.replace(/"/g, '""')}"` : c).join(";")).join("\r\n");
     rptSave(new TextEncoder().encode(csv), "Kinsey_modelo_mapa_MA.csv", "text/csv");
   }
-  window.KT_MAPA = {importar, consultar, modelo, ler};
+  window.KT_MAPA = {importar, consultar, modelo, ler, coords};
 })();

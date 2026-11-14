@@ -3,7 +3,7 @@
      frente ao valor, região, participação e restrições (eliminatórias).
    - Lado da Kinsey em cada target: vendedor (sell-side) ou comprador (buy-side, com o investidor cliente).
    - Registro de interações (reuniões, ligações, e-mails) com próximo passo e prazo.
-   - Pipeline do funil na Base M&A, com próximos passos e importação do mapa. */
+   - Pipeline do funil na Base inicial, com próximos passos e importação do mapa. */
 if (window.KT_DD) (() => {
   const D = KT_DD, {mi} = D;
   const REG = {Norte:["AC","AM","AP","PA","RO","RR","TO"], Nordeste:["AL","BA","CE","MA","PB","PE","PI","RN","SE"], "Centro-Oeste":["DF","GO","MT","MS"], Sudeste:["ES","MG","RJ","SP"], Sul:["PR","RS","SC"]};

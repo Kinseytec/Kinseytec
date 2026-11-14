@@ -76,7 +76,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
   /* ---------------- INDICADORES DE MERCADO (barra do topo) ---------------- */
   renderPriceBar = function(){
     const p = S.config.precos || {}, br = {...(p.br || {})}, el = $("#pricebar"); if (!el) return;
-    const M = S.mercado?.atual, auto = M ? {SELIC:M.selic, IPCA:M.ipca12, DOLAR:M.ptax} : {}; Object.entries(auto).forEach(([k, v]) => { if (v != null) br[k] = {valor:fmt(v, k === "DOLAR" ? 2 : 2), data:M.em}; });
+    const M = S.mercado?.atual, auto = M ? {SELIC:M.selic, IPCA:M.ipca12, DOLAR:M.ptax, IBOV:M.ibov} : {}; Object.entries(auto).forEach(([k, v]) => { if (v != null) br[k] = {valor:fmt(v, k === "IBOV" ? 0 : 2), data:M.em}; });
     const shown = PRECO.bar.filter(k => br[k]?.valor), fm = (k, v) => k === "DOLAR" || k === "EURO" ? "R$ " + v : k === "IBOV" ? v : v + "%";
     el.innerHTML = shown.length ? `<span class="lab"><i></i>Mercado</span>${shown.map((k, i) => `<span class="px ${i > 1 ? "hide-sm" : ""}"><span>${esc(PRECO.barLabel[k] || k)}</span><b>${esc(fm(k, br[k].valor))}</b></span>`).join("")}<span class="px hide-sm" style="color:var(--muted)">${br[shown[0]]?.data ? "em " + esc(br[shown[0]].data) : ""}</span><span class="more">Indicadores ›</span>`
       : `<span class="lab"><i class="old"></i>Mercado</span><span class="px" style="color:var(--muted)">Indicadores ainda não registrados</span><span class="more">Registrar ›</span>`;

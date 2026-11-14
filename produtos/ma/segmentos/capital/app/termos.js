@@ -12,14 +12,14 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     [/\b([Ff])ornecedores N1\b/g, (m, f) => cap(f, "investidores") + " (N1)"], [/\b([Ff])ornecedor N1\b/g, (m, f) => cap(f, "investidor") + " (N1)"],
     [/\b([Ff])ornecedores N2\b/g, (m, f) => cap(f, "intermediadores e parceiros") + " (N2)"], [/\b([Ff])ornecedor N2\b/g, (m, f) => cap(f, "intermediador ou parceiro") + " (N2)"],
     [/\b([Ff])ornecedores N3\b/g, (m, f) => cap(f, "targets") + " (N3)"], [/\b([Ff])ornecedor N3\b/g, (m, f) => cap(f, "target") + " (N3)"],
-    [/\b[Bb]ase de fornecedores\b/g, "Base M&A"], [/\b([Ii])mportar fornecedores\b/g, (m, i) => cap(i, "importar empresas")],
+    [/\b[Bb]ase de fornecedores\b/g, "Base inicial"], [/\b([Ii])mportar fornecedores\b/g, (m, i) => cap(i, "importar empresas")],
     [/\b(todos os|Todos os|vários|Vários|quantos|Quantos|dos|Dos|os|Os|aos|Aos|pelos|Pelos|destes|Destes|estes|Estes|desses|Desses|esses|Esses|nos|Nos|seus|Seus|outros|Outros|novos|Novos|alguns|Alguns)\s+fornecedores\b/g, (m, a) => cap(a, FEM[a.toLowerCase()] || a) + " empresas"],
     [/\b(do|Do|o|O|ao|Ao|pelo|Pelo|deste|Deste|este|Este|desse|Desse|esse|Esse|um|Um|nenhum|Nenhum|novo|Novo|mesmo|Mesmo|outro|Outro|seu|Seu|num|Num|no|No)\s+fornecedor\b/g, (m, a) => cap(a, FEM[a.toLowerCase()] || a) + " empresa"],
     [/\b([Ff])ornecedor(es)?\s+(cadastrad|avaliad|mapead|vinculad|removid|envolvid|encontrad|selecionad|importad|aprovad|reprovad|listad|consultad|analisad|indicad|pré-cadastrad|novo|ativ)o(s)?\b/g, (m, f, pl, adj, pl2) => cap(f, pl ? "empresas" : "empresa") + " " + adj + "a" + (pl2 || "")],
     [/\bFornecedores\b/g, "Empresas"], [/\bfornecedores\b/g, "empresas"], [/\bFornecedor\b/g, "Empresa"], [/\bfornecedor\b/g, "empresa"],
     [/\b([Ee]mpresas?)\b([^.;:!?\n]{0,40}?)\b(encontrad|cadastrad|avaliad|mapead|vinculad|removid|selecionad|importad|aprovad|reprovad|consultad|analisad|indicad|pré-cadastrad)o(s?)\b/g, (m, e, meio, adj, pl) => e + meio + adj + "a" + pl],
     [/\b(o|O|ao|Ao|do|Do|pelo|Pelo|no|No)\s+cliente contratante\b/g, (m, a) => cap(a, {o:"a", ao:"à", do:"da", pelo:"pela", no:"na"}[a.toLowerCase()]) + " Kinsey Capital"], [/\b[Cc]liente contratante\b/g, "Kinsey Capital"],
-    [/\bCadeia N1 → N2 → N3\b/g, "Base M&A N1 → N2 → N3"], [/\bCadeia\b/g, "Base M&A"], [/\bcadeia\b/g, "base M&A"],
+    [/\bCadeia N1 → N2 → N3\b/g, "Base inicial N1 → N2 → N3"], [/\bCadeia\b/g, "Base inicial"], [/\bcadeia\b/g, "base inicial"],
     [/\bInspeção física in loco\b/g, "Visitas e reuniões"], [/\bInspeção\b/g, "Visitas"]
   ];
   const troca = t => { if (!t || !/ornecedor|contratante|adeia|nspeção/.test(t)) return t; let o = t; R.forEach(([re, sub]) => { o = o.replace(re, sub); }); return o; };
