@@ -554,5 +554,8 @@ if (typeof MA_MODELOS !== "undefined") (() => {
       ${L.map((l, i) => { const y = 6 + i * 30; return `<text x="${x0 - 8}" y="${y + 16}" text-anchor="end" class="lb">${esc(l[0])}</text><rect x="${sx(l[1])}" y="${y + 3}" width="${Math.max(3, sx(l[2]) - sx(l[1]))}" height="18" rx="4" fill="${l[3]}" fill-opacity="${i === L.length - 1 ? .9 : .75}"/><text x="${sx(l[2]) + 8}" y="${y + 16}">${mi(l[1], 0)} a ${mi(l[2], 0)}</text>`; }).join("")}
     </svg></div>`;
   }
+  /* teste local já aberto em versão anterior: completa os exemplos com os balancetes de demonstração */
+  setTimeout(() => { if (Store.db || !Array.isArray(window.SEED)) return;
+    window.SEED.filter(([c, id, o]) => c === "suppliers" && o.dd).forEach(([, id, o]) => { const x = Store.local?.suppliers?.[id]; if (x && !x.dd) Store.update("suppliers", id, {dd:o.dd}); }); }, 1500);
   window.KT_DD = {calc, indic, ajustes, classifica, lerTabela, csv};
 })();
