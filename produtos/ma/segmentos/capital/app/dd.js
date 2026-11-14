@@ -145,7 +145,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     if (/\.xlsx$|\.xlsm$/.test(n)) return lerTabela(await IMP.lerXLSX(buf));
     if (/\.ods$/.test(n)) return lerTabela(await IMP.lerODS(buf));
     if (/\.xls$/.test(n)) throw new Error("Arquivo .xls antigo: salve como .xlsx ou CSV e importe de novo.");
-    let t = new TextDecoder("utf-8").decode(buf); if (t.includes("�")) t = new TextDecoder("latin1").decode(buf);
+    let t = new TextDecoder("utf-8").decode(buf); if (t.includes("\uFFFD")) t = new TextDecoder("latin1").decode(buf);
     return lerTabela(csv(t));
   }
   function csv(t){
