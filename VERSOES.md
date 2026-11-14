@@ -1,5 +1,13 @@
 # Registro de versões
 
+## v2.1 — 2026-11-14 · M&A: Due Diligence, Análises financeiras e Valuation
+- Due Diligence no lugar de Auditoria (a base de auditoria anterior continua numa aba): importação de balancete (Excel, LibreOffice, CSV ou colado), com leitura das colunas de conta, descrição e saldo (D/C ou sinal), só contas analíticas, classificação automática de cada conta (revisável na prévia) e anualização de balancetes parciais
+- Procedimentos automáticos por área — contábil (fechamento, contas transitórias, saldos invertidos, depreciação CPC 27, perdas com clientes CPC 48, estoques CPC 16, arrendamentos CPC 06), financeira (não recorrentes, pró-labore, mútuos com sócios, liquidez, endividamento, capital de giro), trabalhista (férias e 13º CPC 33, INSS e FGTS em atraso, processos, pejotização) e tributária (parcelamentos, tributos em atraso, contingências, carga sobre a receita, regime) — e procedimentos mínimos de cada consultor especialista, com conclusão registrada; consultor responsável por área
+- Ajustes propostos pelos procedimentos e ajustes do consultor vão para as Análises financeiras aguardando OK; o consultor pode revisar o valor, aprova ou recusa com fundamento, e só então os indicadores mudam
+- Análises financeiras com mini globo dos targets: EBITDA reportado, ajustado e informado; ponte do EBITDA; resultado e balanço reportado × ajustes × ajustado; dívida líquida; capital de giro e prazos; liquidez, endividamento, margens e retorno
+- Valuation com mini globo: ajustes com OK nas análises aguardam um segundo OK no valuation, com o impacto estimado no enterprise value e no equity antes da aprovação; múltiplos de EBITDA e de receita por segmento, fluxo de caixa descontado (5 anos e perpetuidade, com sensibilidade), faixas de valor por método, ponte do equity e premissas editáveis
+- Exemplos: balancetes do Projeto Ipê e do Projeto Aroeira, consultores por área e ajustes em várias etapas de aprovação
+
 ## v2.0 — 2026-11-14 · Kinsey Capital – M&A (primeira versão do produto)
 - Órbita mundial do M&A: investidores (N1, inclusive no exterior), intermediadores e parceiros (N2, com a Kinsey Capital) e targets (N3, empresas com potencial de venda); cores por nível (alternável para risco), targets descartados em cinza; ligações target → intermediador → Kinsey e target → investidores indicados (em destaque ao selecionar); país no cartão e na lista; visão inicial com Américas e Europa
 - Cartão da órbita com o resumo M&A: etapa do funil, segmento, receita e EBITDA, mandato e investidores indicados (target); tese, ticket e oportunidades (investidor); acordo e targets originados (parceiro)

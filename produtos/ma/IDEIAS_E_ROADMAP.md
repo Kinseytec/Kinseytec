@@ -121,7 +121,8 @@ Matriz provável/possível/remota com valores → impacto no preço (ajuste, esc
 | v2.1 | Tese do investidor, financeiros do target, importação por planilha |
 | v2.2 | Funil do target e mandatos com teaser anônimo e NDA por mandato |
 | v2.3 | Matching com pontuação explicada |
-| v2.4 | Valuation e estruturação societária no dossiê |
+| v2.1 ✔ | Due Diligence (contábil, financeira, trabalhista, tributária), Análises financeiras e Valuation com mini globos e dupla aprovação dos ajustes pelo consultor |
+| v2.4 | Estruturação societária no dossiê (organograma antes/depois) |
 | v2.5 | Relatórios (teaser, dossiê, diligência, pipeline, oportunidades) |
 | v2.6 | Portal (data room, NDA) e regras do Firebase para sigilo entre investidores |
 | v2.7 | Publicação no projeto `kinsey-capital-ma` |
