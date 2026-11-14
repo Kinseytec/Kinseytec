@@ -126,7 +126,7 @@ if (window.KT_DD) (() => {
     const C = contratos(s), Cp = C.filter(c => noPeriodo(s, c)), cg = contingencias(s), evs = S.evidences.filter(e => e.supplierId === s.id), evOpt = sel => `<option value="">—</option>${evs.map(e => `<option value="${e.id}" ${e.id === sel ? "selected" : ""}>${esc(e.tipo)} · ${esc((e.nome || dt(e.criadoEm)).slice(0, 30))}</option>`).join("")}`;
     let corpo = "";
     if (S.jddTab === "quest") corpo = `<p class="sub" style="margin:0">Pedido de informações e questionamentos iniciais. Cada resposta pode ter a evidência que a comprova; respostas de risco entram na matriz de risco do target.</p>
-      ${JQ.map(g => `<div class="qgroup"><div class="eyebrow">${esc(g.g)}</div>${g.items.map(([id, t, rk, , doc]) => { const c = q[id] || {}; return `<div class="q"><div class="qt">${esc(t)} ${rk && c.v === rk ? `<span class="flag">● RISCO</span>` : ""}<div class="sub" style="margin:2px 0 0;font-size:11.5px">Documento esperado: ${esc(doc)}</div></div>
+      ${JQ.map(g => `<div class="qgroup"><div class="eyebrow">${esc(g.g)}</div>${g.items.map(([id, t, rk, , doc]) => { const c = q[id] || {}; return `<div class="q"><span class="qn">${String(QS.findIndex(x => x.id === id) + 1).padStart(2, "0")}</span><div class="qt">${esc(t)} ${rk && c.v === rk ? `<span class="flag">● RISCO</span>` : ""}<div class="sub" style="margin:2px 0 0;font-size:11.5px">Documento esperado: ${esc(doc)}</div></div>
         <div class="qa"><div class="seg">${[["sim","Sim"],["nao","Não"],["na","N/A"]].map(([v, l]) => `<button type="button" data-jq="${id}" data-v="${v}" class="v-${v} ${rk === v ? "risk" : ""}" aria-pressed="${c.v === v}" ${ed}>${l}</button>`).join("")}</div>
         <input type="text" data-jqn="${id}" value="${esc(c.n || "")}" placeholder="Observação" aria-label="Observação" ${ed}><select data-jqe="${id}" aria-label="Evidência" style="max-width:180px" ${ed}>${evOpt(c.evid)}</select></div></div>`; }).join("")}</div>`).join("")}`;
     else if (S.jddTab === "contratos") corpo = `<div class="head" style="margin:0"><div><p class="sub" style="margin:0">Contratos assinados nos últimos <select id="j-per" aria-label="Período" ${ed}>${[3, 5].map(a => `<option ${a === anos(s) ? "selected" : ""}>${a}</option>`).join("")}</select> anos e os ainda vigentes: ${Cp.length} de ${C.length} no período. Cláusulas críticas lidas automaticamente do arquivo; o advogado confirma.</p></div>
@@ -146,7 +146,7 @@ if (window.KT_DD) (() => {
       <div class="tbl"><table><thead><tr><th>Documento</th><th>Situação</th><th></th></tr></thead><tbody>${tipos.map(d => `<tr><td>${esc(d)}</td><td>${tem(d) ? `<span class="pill r-baixo">Recebido</span>` : `<span class="pill r-pend">Pendente</span>`}</td><td style="text-align:right">${D.ed() ? `<button type="button" class="btn sm" data-jev="${esc(d)}">Anexar</button>` : ""}</td></tr>`).join("")}</tbody></table></div>
       ${evs.length ? `<div><div class="eyebrow" style="margin-bottom:6px">Arquivos do target (${evs.length})</div><div class="grid-ev">${evs.map(evCard).join("")}</div></div>` : ""}`; }
     else { const R = recomendacoes(s);
-      corpo = `<p class="sub" style="margin:0">Visão da Kinsey como <b>${s.lado === "compra" ? "assessora do comprador (buy-side)" : "assessora do vendedor (sell-side)"}</b>. Altere o lado na aba M&A do dossiê.</p>
+      corpo = `<p class="sub" style="margin:0">Visão da Kinsey como <b>${s.lado === "compra" ? "assessora do comprador (buy-side)" : "assessora do vendedor (sell-side)"}</b>. Altere o lado na aba M&A do dossiê do target.</p>
       <div class="form"><div class="fld"><label for="j-adv">Advogado responsável (nome e OAB)</label><input id="j-adv" value="${esc(j.adv || "")}" ${ed}></div></div>
       <h3 style="font-size:14px">Recomendações para o contrato</h3>${R.length ? `<ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px">${R.map(x => `<li style="font-size:13.5px">${esc(x)}</li>`).join("")}</ol>` : `<p class="sub" style="margin:0">Sem recomendações ainda: responda o questionário e registre contratos e processos.</p>`}
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn primary" id="j-pdf">Relatório de diligência jurídica (PDF)</button></div>`; }
@@ -230,12 +230,12 @@ if (window.KT_DD) (() => {
   /* ---------------- JURÍDICO: painel dos targets ---------------- */
   const _jr = renderJuridico;
   renderJuridico = function(){ _jr.apply(this, arguments); const host = $("#juridico"); if (!host) return;
-    const L = S.suppliers.filter(s => s.nivel === "N3"), el = document.createElement("div"); el.className = "card"; el.style.cssText = "display:flex;flex-direction:column;gap:10px";
+    const L = S.suppliers.filter(s => s.nivel === "N3"), el = document.createElement("div"); el.className = "card"; el.id = "jdd-painel"; el.style.cssText = "display:flex;flex-direction:column;gap:10px";
     el.innerHTML = `<div class="head" style="margin:0"><div><div class="eyebrow">Jurídico · Kinsey Capital</div><h3>Diligência jurídica dos targets</h3><p class="sub" style="margin:2px 0 0">Questionário inicial, contratos dos últimos 3 a 5 anos, processos e contingências, evidências e relatório.</p></div></div>
       <div class="tbl"><table><thead><tr><th>Target</th><th>Lado</th><th>Respostas</th><th>Contratos</th><th class="dd-num">Provável</th><th></th></tr></thead><tbody>${L.map(s => { const q = s.jdd?.q || {}, cg = contingencias(s);
         return `<tr><td><b>${esc(s.nome)}</b></td><td>${s.lado === "compra" ? "Comprador" : "Vendedor"}</td><td>${QS.filter(x => q[x.id]?.v).length} / ${QS.length}</td><td>${contratos(s).length}</td><td class="dd-num">${mi(cg.provavel)}</td><td style="text-align:right"><button type="button" class="btn sm" data-jab="${s.id}">Abrir</button></td></tr>`; }).join("")}</tbody></table></div>`;
     const ref = $("#ma-jur", host); if (ref) ref.after(el); else host.prepend(el);
-    $$("[data-jab]", el).forEach(b => b.onclick = () => { S.ddSel = b.dataset.jab; S.ddTab = "juridica"; S.jddTab = "quest"; go("auditoria"); }); };
+    $$("[data-jab]", el).forEach(b => b.onclick = () => { S.jurAlvo = b.dataset.jab; S.jurTab = "dd"; S.jddTab = "quest"; renderJuridico(); }); };
 
   window.KT_JDD = {html, bind, contingencias, contratos, QS, JQ, lerContrato, recomendacoes, relatorio, noPeriodo};
 })();

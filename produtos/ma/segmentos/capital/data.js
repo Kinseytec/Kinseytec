@@ -8,6 +8,8 @@ const CLIENTE_PADRAO = {nome:"Kinsey Capital", local:"Sede · São Paulo/SP", la
 window.ORB_HOME = [-38, 8, .82];
 /* sem os exemplos de notas fiscais e pagamentos das cadeias */
 window.OPS_SEM_DEMO = true;
+/* órbita: sem o ponto do "cliente contratante"; a rede é N1 investidor → N2 intermediador/Kinsey → N3 target */
+window.ORB_SEM_CLIENTE = true;
 
 /* Indicadores de mercado (barra do topo, registro manual) */
 const PRACAS_BR = [["SELIC","Selic (% a.a.)"],["IPCA","IPCA 12 meses (%)"],["CDI","CDI (% a.a.)"],["DOLAR","Dólar PTAX (R$)"],["EURO","Euro (R$)"],["IBOV","Ibovespa (pontos)"]];

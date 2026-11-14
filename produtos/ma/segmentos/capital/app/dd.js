@@ -5,8 +5,9 @@
    → OK do consultor no Valuation. Nenhum ajuste muda indicador ou valuation sem o OK correspondente.
    Dados no próprio target: s.dd = {bal:{periodo:{...}}, aj:{id:{...}}, proc:{id:{...}}, cons:{area:nome}, val:{...}} */
 if (typeof MA_MODELOS !== "undefined") (() => {
-  const AREAS = [["contabil","Contábil"],["financeira","Financeira"],["trabalhista","Trabalhista"],["tributaria","Tributária"],["juridica","Jurídica"]];
-  const areaNome = k => (AREAS.find(a => a[0] === k) || [k, k])[1];
+  /* áreas da Due Diligence; a diligência jurídica fica no Jurídico, mas os ajustes dela seguem o mesmo fluxo de OK */
+  const AREAS = [["contabil","Contábil"],["financeira","Financeira"],["trabalhista","Trabalhista"],["tributaria","Tributária"]], AREAS_TODAS = [...AREAS, ["juridica","Jurídica"]];
+  const areaNome = k => (AREAS_TODAS.find(a => a[0] === k) || [k, k])[1];
   const EF = [["ebitda","EBITDA"],["divida","Dívida líquida"],["ncg","Capital de giro"],["pl","Patrimônio líquido"],["lucro","Lucro líquido"]];
   const mi = (v, d = 1) => v == null || !isFinite(v) ? "—" : (v < 0 ? "−" : "") + "R$ " + fmt(Math.abs(v) / 1e6, d) + " mi";
   const mil = v => v == null || !isFinite(v) ? "—" : (v < 0 ? "−" : "+") + "R$ " + fmt(Math.abs(v) / 1e3, 0) + " mil";
@@ -290,7 +291,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Ajuste do consultor · balancete ${esc(per)}</div><h2>Novo ajuste de Due Diligence</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
       <form class="sheet-b" id="fam" novalidate><div class="form">
         <div class="fld full"><label for="am-t">Título</label><input id="am-t" placeholder="ex.: Contingência trabalhista provável"></div>
-        <div class="fld"><label for="am-a">Área</label><select id="am-a">${AREAS.map(([k, l]) => `<option value="${k}" ${k === area ? "selected" : ""}>${l}</option>`).join("")}</select></div>
+        <div class="fld"><label for="am-a">Área</label><select id="am-a">${AREAS_TODAS.map(([k, l]) => `<option value="${k}" ${k === area ? "selected" : ""}>${l}</option>`).join("")}</select></div>
         <div class="fld"><label for="am-n">Norma ou fundamento</label><input id="am-n" placeholder="ex.: CPC 25"></div>
         <div class="fld"><label for="am-tp">Tipo</label><select id="am-tp">${["Normalização do EBITDA","Dívida equivalente","Capital de giro e PL","Contábil (lucro e PL)","Reclassificação (EBITDA e dívida)","Item não operacional"].map(t => `<option>${t}</option>`).join("")}</select></div>
         <div class="fld full eyebrow" style="margin-top:6px">Efeitos anuais (R$ mil; negativo reduz)</div>
@@ -389,13 +390,17 @@ if (typeof MA_MODELOS !== "undefined") (() => {
   const alvoSel = () => { const L = targets(); let s = supById(S.ddSel); if (!s || s.nivel !== "N3") s = L.find(temBal) || L[0]; if (s) S.ddSel = s.id; return s; };
   const perSel = s => { const P = periodos(s), db = s.perfil?.dataBase?.slice(0, 7); if (!P.includes(S.ddPer)) S.ddPer = (db && P.includes(db) ? db : P[0]) || ""; return S.ddPer; };
   const statusAlvo = s => { if (!temBal(s)) return "sem"; const L = ajustes(s, periodos(s)[0]); return L.some(a => pendFin(a) || pendVal(a)) ? "pend" : "ok"; };
+  /* painel lateral das pastas de análise: identificação da pasta (mini globo como emblema, sem mapa) e lista dos targets.
+     O globo com o mapa fica só na tela principal (Órbita). */
+  const PASTAS = {financas:["Análises financeiras","#3DDC97","EBITDA, endividamento, indicadores e capital de giro"], valuation:["Valuation","#F2C14E","FCD, múltiplos e outras avaliações · EV e equity"], apresentacao:["Apresentação","#4FB0F5","Teaser antes e depois do NDA"], pos:["Pós-aquisição","#C39BFF","PPA e base de modelos"], juridico:["Jurídico","#FF8A65","Diligência jurídica, NDAs, mandatos e honorários"]};
+  const emblema = cor => `<svg viewBox="0 0 48 48" width="44" height="44" aria-hidden="true"><circle cx="24" cy="24" r="19" fill="none" stroke="${cor}" stroke-width="2.4"/><ellipse cx="24" cy="24" rx="8" ry="19" fill="none" stroke="${cor}" stroke-width="1.6" opacity=".8"/><path d="M5 24h38M8 14h32M8 34h32" stroke="${cor}" stroke-width="1.4" opacity=".6"/><circle cx="38" cy="10" r="4" fill="${cor}"/></svg>`;
   function lado(s, onPick, legenda){
-    const L = targets();
-    return {html:`<div class="dd-side"><div class="card" style="display:flex;flex-direction:column;gap:8px;padding:12px"><div id="dd-globo"></div>
-      <div class="sub" style="margin:0;font-size:11.5px;display:flex;gap:10px;flex-wrap:wrap"><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${COR.ok}"></i> ${legenda[0]}</span><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${COR.pend}"></i> ${legenda[1]}</span><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${COR.sem}"></i> sem balancete</span></div>
-      <div class="dd-list">${L.map(x => `<button type="button" data-ddsel="${x.id}" aria-pressed="${x.id === s?.id}"><i style="background:${COR[statusAlvo(x)]}"></i><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.mandato?.codinome ? x.mandato.codinome + " · " : "")}${esc((x.nome || "").replace(/^EXEMPLO /, ""))}</span></button>`).join("")}</div></div></div>`,
-      bind:host => { $$("[data-ddsel]", host).forEach(b => b.onclick = () => onPick(b.dataset.ddsel));
-        miniGlobo($("#dd-globo", host), L.map(x => ({id:x.id, lat:x.lat, lng:x.lng, cor:COR[statusAlvo(x)], rot:(x.mandato?.codinome || x.nome || "").replace(/^EXEMPLO /, "").slice(0, 24)})), s?.id, onPick); }};
+    const L = targets(), P = PASTAS[S.view] || ["Análise","#4FB0F5",""];
+    return {html:`<div class="dd-side"><div class="card" style="display:flex;flex-direction:column;gap:10px;padding:12px">
+      ${S.view === "juridico" ? "" : `<div style="display:flex;gap:10px;align-items:center">${emblema(P[1])}<div style="min-width:0"><div class="eyebrow" style="color:${P[1]}">Pasta de análise</div><b style="font-size:15px">${esc(P[0])}</b><div class="sub" style="margin:0;font-size:11.5px">${esc(P[2])}</div></div></div>`}
+      <div class="sub" style="margin:0;font-size:11.5px;display:flex;gap:10px;flex-wrap:wrap"><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${COR.ok}"></i> ${legenda[0]}</span><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${COR.pend}"></i> ${legenda[1]}</span><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${COR.sem}"></i> ${legenda[2] || "sem balancete"}</span></div>
+      <div class="eyebrow">Targets (N3)</div><div class="dd-list" style="max-height:520px">${L.map(x => `<button type="button" data-ddsel="${x.id}" aria-pressed="${x.id === s?.id}"><i style="background:${(legenda[3] || (y => COR[statusAlvo(y)]))(x)}"></i><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.mandato?.codinome ? x.mandato.codinome + " · " : "")}${esc((x.nome || "").replace(/^EXEMPLO /, ""))}</span></button>`).join("")}</div></div></div>`,
+      bind:host => { $$("[data-ddsel]", host).forEach(b => b.onclick = () => onPick(b.dataset.ddsel)); }};
   }
   const cab = (eb, tit, sub, acoes = "") => `<div class="head"><div><div class="eyebrow">${eb}</div><h2>${tit}</h2><p class="sub">${sub}</p></div>${acoes}</div>`;
   const semBal = s => `<div class="card" style="display:flex;flex-direction:column;gap:10px;align-items:flex-start"><h3>${esc(s?.nome || "Nenhum target")}</h3><p class="sub" style="margin:0">Ainda sem balancete. Importe na Due Diligence para calcular os indicadores, os procedimentos e o valuation.</p>${s ? `<button type="button" class="btn primary" data-ddimp>Importar balancete</button>` : ""}</div>`;
@@ -411,6 +416,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     const tabs = `<div class="dd-tabs" style="margin-bottom:14px">${[["geral","Visão geral"], ...AREAS, ["pt","Papéis de trabalho"], ["rel","Relatório"], ["base","Base de auditoria"]].map(([k, l]) => `<button type="button" class="fbtn" data-ddtab="${k}" aria-pressed="${S.ddTab === k}">${l}</button>`).join("")}</div>`;
     const bindTabs = () => $$("[data-ddtab]", host).forEach(b => b.onclick = () => { S.ddTab = b.dataset.ddtab; renderAuditoria(); });
     if (S.ddTab === "base"){ _aud.apply(this, arguments); host.insertAdjacentHTML("afterbegin", cab("Due Diligence", "Base de auditoria", "Matriz de risco, testes, órgãos públicos e operações comerciais da plataforma.") + tabs); bindTabs(); return; }
+    if (S.ddTab === "juridica") S.ddTab = "geral";
     const s = alvoSel(), per = s ? perSel(s) : "", b = per ? s.dd.bal[per] : null, K = b ? calc(b) : null;
     const L = targets();
     let h = cab("Due Diligence", "Due Diligence", "Procedimentos automáticos sobre o balancete e procedimentos mínimos dos consultores especialistas. Todo ajuste apurado vai para as Análises financeiras e só muda indicadores e valuation com o OK do consultor.",
@@ -430,7 +436,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
       h += window.KT_REL ? (S.ddTab === "pt" ? KT_REL.ddPapeisView(s, per) : KT_REL.ddRelView(s, per)) : "";
     } else {
       const area = S.ddTab, ra = R.filter(x => x.p.area === area), mn = MINIMOS[area];
-      h += `${area === "juridica" && window.KT_JDD ? KT_JDD.html(s) : ""}<div class="card" style="display:flex;flex-direction:column;gap:6px"><div class="head" style="margin:0"><div><div class="eyebrow">Due Diligence ${esc(areaNome(area))} · ${esc(s.nome)}</div><h3>Procedimentos automáticos</h3><p class="sub" style="margin:2px 0 0">Consultor responsável: <b>${esc(s.dd.cons?.[area] || "a definir")}</b></p></div>${selPer(s, per)}</div>
+      h += `<div class="card" style="display:flex;flex-direction:column;gap:6px"><div class="head" style="margin:0"><div><div class="eyebrow">Due Diligence ${esc(areaNome(area))} · ${esc(s.nome)}</div><h3>Procedimentos automáticos</h3><p class="sub" style="margin:2px 0 0">Consultor responsável: <b>${esc(s.dd.cons?.[area] || "a definir")}</b></p></div>${selPer(s, per)}</div>
         <div>${ra.map(({p, r}) => { const a = AJ.find(x => x.proc === p.id);
           return `<div class="dd-proc"><div style="min-width:0"><b>${esc(p.t)}</b> <span class="sub" style="font-size:11.5px">· ${esc(p.n)}</span><div style="font-size:13px;margin-top:3px">${esc(r.txt)}</div>
             ${a ? `<div class="sub" style="margin:4px 0 0;font-size:12px">Ajuste proposto: <b>${esc(a.titulo)}</b> · ${esc(efeitoTxt(a))} · Análises ${stPill(a.fin, "OK")} · Valuation ${okFin(a) ? stPill(a.val, "OK") : `<span class="pill r-pend">Depois do OK</span>`}</div>` : ""}</div><div>${pill(r.st)}</div></div>`; }).join("")}</div></div>
@@ -448,7 +454,6 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     $$("[data-pobs]", host).forEach(x => x.onchange = () => up(s, {dd:{proc:{[x.dataset.pobs]:{obs:x.value.trim(), em:nowISO()}}}}));
     const mb = $("#dd-man", host); if (mb) mb.onclick = () => ajusteManual(s, per, S.ddTab);
     if (window.KT_REL && S.ddTab === "pt") KT_REL.ddPapeisBind(host, s, per);
-    if (window.KT_JDD && S.ddTab === "juridica") KT_JDD.bind(host, s);
     if (window.KT_REL && S.ddTab === "rel") KT_REL.ddRelBind(host, s, per);
     bindAjustes(host, s, AJ);
   };
@@ -573,6 +578,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
       if (o.perfil && !x.perfil) p.perfil = o.perfil; ["jdd","interacoes","lado"].forEach(k => { if (o[k] && !x[k]) p[k] = o[k]; });
       if (o.dd){ const dd = {}; Object.entries(o.dd.bal || {}).forEach(([k, v]) => { if (!x.dd?.bal?.[k]) (dd.bal ||= {})[k] = v; }); if (o.dd.vl && !x.dd?.vl) dd.vl = o.dd.vl; if (!x.dd) Object.assign(dd, o.dd); if (Object.keys(dd).length) p.dd = dd; }
       if (Object.keys(p).length) Store.update("suppliers", id, p); });
+    window.SEED.filter(([c, id]) => c === "suppliers" && /^kc-/.test(id) && !Store.local?.suppliers?.[id]).forEach(([, id, o]) => Store.set("suppliers", id, o));
     window.SEED.filter(([c, id]) => c === "config" && ["comparaveis","transacoes"].includes(id)).forEach(([, id, o]) => { if (!Store.local?.config?.[id]) Store.set("config", id, o); }); }, 1500);
-  window.KT_DD = {calc, indic, ajustes, classifica, lerTabela, csv, soma, okFin, okVal, pendFin, pendVal, tabAjustes, bindAjustes, lado, cab, semBal, selPer, bindComum, pick, alvoSel, periodos, temBal, targets, ponte, faixas, mi, mil, pc, xx, dias, div, norm, ed, up, C, GRUPOS, AREAS, areaNome, PROCS, MINIMOS, efeitoTxt, importar, aprovar};
+  window.KT_DD = {calc, indic, ajustes, classifica, lerTabela, csv, soma, okFin, okVal, pendFin, pendVal, tabAjustes, bindAjustes, lado, cab, AREAS_TODAS, emblema, COR, statusAlvo, semBal, selPer, bindComum, pick, alvoSel, periodos, temBal, targets, ponte, faixas, mi, mil, pc, xx, dias, div, norm, ed, up, C, GRUPOS, AREAS, areaNome, PROCS, MINIMOS, efeitoTxt, importar, aprovar};
 })();

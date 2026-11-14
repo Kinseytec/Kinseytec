@@ -34,15 +34,19 @@ if (typeof MA_MODELOS !== "undefined") (() => {
   };
   setTimeout(lvlUi, 0);
   /* ligações próprias do M&A, desenhadas por cima das rotas do núcleo */
+  /* ligações da rede: N1 investidor → N2 intermediador (ou a própria Kinsey Capital) → N3 target.
+     O núcleo desenha N3 → N2 (quem trouxe o target); aqui o M&A desenha N1 → N2 para cada investidor indicado ao target
+     (ou N1 → N3 quando o target não tem intermediador). Ao selecionar um ponto, a cadeia inteira dele fica em destaque. */
   EXT_ORB.push((ctx, now, list) => {
-    if (!S.lv.rotas) return; const CL = CLI();
-    ctx.lineWidth = 1.2; ctx.setLineDash([2, 5]); ctx.lineDashOffset = G.reduce ? 0 : now / 80;
-    list.filter(s => s.nivel === "N2" && !s.parentId).forEach(s => { ctx.beginPath(); G.path({type:"LineString", coordinates:[[s.lng, s.lat], [CL.lng, CL.lat]]}); ctx.strokeStyle = "rgba(195,155,255,.55)"; ctx.stroke(); });
-    if (S.lv.N1) list.filter(s => s.nivel === "N3" && (s.investidores || []).length && s.etapa !== "descartada").forEach(s => s.investidores.forEach(id => {
-      const v = supById(id); if (!v || v.lat == null) return; const on = S.sel && (S.sel === s.id || S.sel === id);
-      if (S.sel && !on) return;
-      ctx.beginPath(); G.path({type:"LineString", coordinates:[[s.lng, s.lat], [v.lng, v.lat]]});
-      ctx.strokeStyle = on ? "rgba(242,193,78,.95)" : "rgba(242,193,78,.38)"; ctx.lineWidth = on ? 1.8 : 1.1; ctx.stroke(); }));
+    if (!S.lv.rotas || !S.lv.N1) return; const vis = new Set(list.map(s => s.id)), feitos = new Set();
+    ctx.setLineDash([3, 5]); ctx.lineDashOffset = G.reduce ? 0 : now / 80;
+    list.filter(t => t.nivel === "N3" && t.etapa !== "descartada" && (t.investidores || []).length).forEach(t => {
+      const n2 = t.parentId && vis.has(t.parentId) ? supById(t.parentId) : null;
+      t.investidores.forEach(id => { const v = supById(id); if (!v || v.lat == null || !vis.has(id)) return; const alvo = n2 || t, k = id + "|" + alvo.id, on = !!S.sel && [id, t.id, alvo.id].includes(S.sel);
+        if (feitos.has(k) && !on) return; feitos.add(k);
+        ctx.beginPath(); G.path({type:"LineString", coordinates:[[v.lng, v.lat], [alvo.lng, alvo.lat]]});
+        ctx.strokeStyle = on ? "rgba(242,193,78,.95)" : S.sel ? "rgba(242,193,78,.12)" : "rgba(242,193,78,.42)"; ctx.lineWidth = on ? 2 : 1.1; ctx.stroke();
+        if (on && n2){ ctx.beginPath(); G.path({type:"LineString", coordinates:[[n2.lng, n2.lat], [t.lng, t.lat]]}); ctx.stroke(); } }); });
     ctx.setLineDash([]);
   });
   /* cartão da órbita: resumo M&A da empresa */

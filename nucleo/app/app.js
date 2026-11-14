@@ -263,7 +263,7 @@ function draw(now){
     ctx.lineWidth = 1.4; ctx.setLineDash([5, 6]); ctx.lineDashOffset = G.reduce ? 0 : -now/60;
     list.forEach(s => {
       const par = s.parentId ? supById(s.parentId) : null;
-      const to = par && par.lat != null ? [par.lng, par.lat] : (s.nivel==="N1" ? [CLI().lng, CLI().lat] : null);
+      const to = par && par.lat != null ? [par.lng, par.lat] : (s.nivel==="N1" && !window.ORB_SEM_CLIENTE ? [CLI().lng, CLI().lat] : null);
       if (!to) return;
       ctx.beginPath(); G.path({type:"LineString", coordinates:[[s.lng, s.lat], to]});
       ctx.strokeStyle = S.sel && (S.sel===s.id || S.sel===s.parentId) ? "rgba(140,210,255,.95)" : "rgba(79,176,245,.45)"; ctx.stroke();
@@ -273,7 +273,7 @@ function draw(now){
   EXT_ORB.forEach(f => { try{ f(ctx, now, list); }catch(e){} });
   // cliente contratante
   G.hits = [];
-  const CL = CLI(); if (visible(CL.lng, CL.lat)){ const p = G.proj([CL.lng, CL.lat]); ctx.strokeStyle = "#E6E8EC"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(p[0], p[1], 7, 0, 7); ctx.stroke(); ctx.fillStyle = "#E6E8EC"; ctx.beginPath(); ctx.arc(p[0], p[1], 2.5, 0, 7); ctx.fill(); if (G.k > 2.5){ ctx.font = "500 10px 'IBM Plex Mono', monospace"; ctx.textAlign = "left"; ctx.fillText(`${CL.nome} · ${CL.local}`.toUpperCase().slice(0,40), p[0]+11, p[1]+3); } }
+  const CL = CLI(); if (!window.ORB_SEM_CLIENTE && visible(CL.lng, CL.lat)){ const p = G.proj([CL.lng, CL.lat]); ctx.strokeStyle = "#E6E8EC"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(p[0], p[1], 7, 0, 7); ctx.stroke(); ctx.fillStyle = "#E6E8EC"; ctx.beginPath(); ctx.arc(p[0], p[1], 2.5, 0, 7); ctx.fill(); if (G.k > 2.5){ ctx.font = "500 10px 'IBM Plex Mono', monospace"; ctx.textAlign = "left"; ctx.fillText(`${CL.nome} · ${CL.local}`.toUpperCase().slice(0,40), p[0]+11, p[1]+3); } }
   // pinos
   list.forEach(s => {
     if (!visible(s.lng, s.lat)) return; const [x, y] = G.proj([s.lng, s.lat]); const r = riskOf(s), col = (window.ORB_COR && window.ORB_COR(s)) || RCOL[r.level], sz = s.nivel==="N1" ? 7 : s.nivel==="N2" ? 5.5 : 4.5;

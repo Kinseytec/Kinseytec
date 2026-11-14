@@ -1,5 +1,12 @@
 # Registro de versões
 
+## v2.4 — 2026-11-14 · M&A: diligência jurídica no Jurídico, globo só na tela principal
+- Diligência jurídica dentro do Jurídico (sai da Due Diligence): o Jurídico passa a ter abas — Diligência jurídica (targets, questionário numerado, contratos dos últimos 3 a 5 anos, processos e contingências, evidências, relatório, procedimentos automáticos J-01 a J-04 e ajustes jurídicos), NDAs, mandatos e modelos, Honorários, e Contratos e pareceres
+- Os ajustes jurídicos (ex.: contingências prováveis não provisionadas) continuam no fluxo de OK do consultor nas Análises financeiras e no Valuation
+- Globo só na tela principal (Órbita), para ligar os pontos da rede: investidor (N1) → intermediador ou Kinsey Capital (N2) → target (N3); ao selecionar um ponto, a cadeia inteira fica em destaque; sem o ponto de "cliente contratante"
+- Pastas de análise (Análises financeiras, Valuation, Apresentação, Pós-aquisição, Jurídico) sem globo: o mini globo virou o emblema que identifica cada pasta, com a lista dos targets
+- Exemplo da cadeia informada pela Kinsey no teste local: Elis / Lavevras (N1) → Kinsey Capital (N2) → ServBrasil (N3), com local provisório até o CNPJ
+
 ## v2.3.1 — 2026-11-14 · Valuation: dívida líquida automática e equity value em todos os métodos
 - Dívida líquida automática pelo balancete da data-base: empréstimos e financiamentos de curto e longo prazo, caixa e aplicações, parcelamentos tributários, mútuos com sócios e provisões para contingências; cada valor editável pelo consultor (com volta ao valor do balancete) e cada item pode ser excluído
 - Ajustes de dívida da Due Diligence entram com o OK no valuation (pendentes aparecem, sem somar); complementos do consultor com tipo, valor base, ponderação e justificativa (contingências prováveis e possíveis, passivos trabalhistas e tributários, earn-out, dividendos e JCP, arrendamentos, mútuos, vencidos); botão para trazer as contingências possíveis da diligência jurídica; caixa mínimo operacional opcional

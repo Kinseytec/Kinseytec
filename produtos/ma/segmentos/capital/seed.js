@@ -45,6 +45,8 @@ window.SEED = (() => {
     contato:"Sócio · exemplo@pampa.exemplo", answers:{...INV_OK, n1_07:{v:"nao"}, n1_08:{v:"nao"}}, docs:{d0:"ok",d1:"ok",d4:"ok"}, invest:INVN({}),
     nda:NDA("Responsável Exemplo","Sócio","000.000.000-00","2026-09-30T09:00:00.000Z")}),
 
+  sup("kc-n1-elis", {nivel:"N1", tipo:"Investidor estratégico", nome:"Elis / Lavevras", doc:"", uf:"SP", municipio:"São Paulo", pais:"Brasil", lat:-23.52, lng:-46.60,
+    tese:{segmentos:["Serviços"]}, obsMapa:"Cadeia informada pela Kinsey: investidor (N1) → Kinsey Capital (N2) → ServBrasil (N3). Local provisório: confirmar CNPJ, cidade e tese.", answers:{}, docs:{}, invest:{}}),
   /* ---------- N2 · intermediadores e parceiros ---------- */
   sup("ex-int-kc", {nivel:"N2", tipo:"Kinsey Capital", nome:"Kinsey Capital · originação própria", doc:"", uf:"SP", municipio:"São Paulo", pais:"Brasil", lat:-23.590, lng:-46.676,
     acordo:{status:"interno"}, answers:A(["n2_01","n2_02","n2_03","n2_04","n2_05","n2_06"],"sim"), docs:{}, invest:INVN({}), nda:{aceito:true, nome:"Kinsey Capital", cargo:"Interno", doc:"", em:t, versao:"interno", validado:true, validadoEm:t}}),
@@ -58,6 +60,8 @@ window.SEED = (() => {
     nda:NDA("Responsável Exemplo","Sócio","000.000.000-00","2026-06-01T16:00:00.000Z")}),
 
   /* ---------- N3 · targets ---------- */
+  sup("kc-n3-servbrasil", {nivel:"N3", tipo:"Target · mandato de venda", parentId:"ex-int-kc", nome:"ServBrasil", doc:"", uf:"SP", municipio:"São Paulo", pais:"Brasil", lat:-23.63, lng:-46.72, segmento:"Serviços", etapa:"abordada", investidores:["kc-n1-elis"], lado:"venda",
+    obsMapa:"Cadeia informada pela Kinsey: Elis / Lavevras (N1) → Kinsey Capital (N2) → ServBrasil (N3). Local provisório: confirmar CNPJ e dados.", answers:{}, docs:{}, invest:{}}),
   sup("ex-t-ipe", {nivel:"N3", tipo:"Target · mandato de venda", parentId:"ex-int-kc", nome:"EXEMPLO Laticínios Serra Verde Ltda.", doc:"00.000.401/0001-00", abertura:"1994-03-02", uf:"MG", municipio:"Juiz de Fora", pais:"Brasil", lat:-21.762, lng:-43.350,
     segmento:"Alimentos", cnae:"10.51-1-00 · Preparação do leite", perfil:{segmento:"Alimentos", segSim:["Agro","Varejo"], dataBase:"2025-12-31", regime:"Lucro real", atuacao:"Sudeste e Centro-Oeste", funcionarios:"640", fundacao:"1994", clientes:"3 redes de supermercados respondem por 38% da receita", sazonalidade:"Captação de leite menor na entressafra (maio a setembro)", descricao:"Laticínio regional com marca própria forte em queijos e iogurtes, duas fábricas em Minas Gerais e distribuição para 4 estados.",
       linhas:[{nome:"Leite UHT", pct:"48%", desc:"leite longa vida, marca própria e terceiros"}, {nome:"Queijos", pct:"35%", desc:"muçarela, prato e linha premium"}, {nome:"Iogurtes e bebidas lácteas", pct:"17%", desc:"linha infantil e proteica"}]}, fin:{ano:2025, receita:180, ebitda:22, divLiq:35, cresc:8}, etapa:"cim", investidores:["ex-inv-ibe","ex-inv-and","ex-inv-atl"],
