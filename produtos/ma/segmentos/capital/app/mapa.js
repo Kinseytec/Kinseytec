@@ -53,7 +53,7 @@ if (window.KT_DD) (() => {
       $$("[data-mpn]").forEach(x => x.onchange = () => { lido.L[+x.dataset.mpn].nivel = x.value; prev(); }); $("#mp-ok").disabled = false; $("#mp-ok").textContent = `Importar ${L.length} empresas`; };
     $("#mp-nv").onchange = () => lido && prev();
     $("#mp-ler").onclick = async () => { err(""); try{ const f = $("#mp-f").files[0], t = $("#mp-p").value.trim(); let rows;
-        if (f){ const n = f.name.toLowerCase(), buf = await f.arrayBuffer(); rows = /\.xlsx$|\.xlsm$/.test(n) ? await IMP.lerXLSX(buf) : /\.ods$/.test(n) ? await IMP.lerODS(buf) : D.csv((() => { let x = new TextDecoder("utf-8").decode(buf); if (x.includes("�")) x = new TextDecoder("latin1").decode(buf); return x; })()); }
+        if (f){ const n = f.name.toLowerCase(), buf = await f.arrayBuffer(); rows = /\.xlsx$|\.xlsm$/.test(n) ? await IMP.lerXLSX(buf) : /\.ods$/.test(n) ? await IMP.lerODS(buf) : D.csv((() => { let x = new TextDecoder("utf-8").decode(buf); if (x.includes("\uFFFD")) x = new TextDecoder("latin1").decode(buf); return x; })()); }
         else if (t) rows = D.csv(t); else { err("Escolha um arquivo ou cole as linhas."); return; }
         lido = ler(rows); if (!lido.L.length){ err("Nenhuma empresa encontrada."); return; } prev(); }catch(e){ err(e.message || "Não foi possível ler a planilha."); } };
     $("#fmp").onsubmit = async e => { e.preventDefault(); if (!lido) return; const nv = $("#mp-nv").value, L = lido.L.map(o => ({...o, nivel:o.nivel || nv})), rf = $("#mp-rf").checked;
