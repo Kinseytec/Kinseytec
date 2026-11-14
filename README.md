@@ -11,7 +11,7 @@ kinseytec-plataforma/
 │   └── recursos/                mapas, bibliotecas, logo e compactador
 ├── produtos/
 │   ├── cadeias/segmentos/       Cacau, Soja, Açaí, Gado, Café, Cobre e Metal
-│   ├── ma/                      M&A (em preparação)
+│   ├── ma/                      M&A · Kinsey Capital (segmento capital)
 │   └── fraudes/                 Fraudes e Investigações (em preparação)
 ├── ferramentas/
 │   ├── construir.py             gera qualquer sistema: núcleo + segmento
