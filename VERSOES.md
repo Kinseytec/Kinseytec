@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v2.6 — 2026-11-14 · Valuation: EBITDA apurado × múltiplos de mercado, sempre
+- Comparativo fixo no Valuation (Síntese e Múltiplos de mercado), no relatório em PDF e no PowerPoint: EBITDA do target pela base contábil (balancete, sem ajustes) e pela base financeira (ajustes da Due Diligence com OK no valuation; também com OK só nas análises e a média ajustada dos exercícios) frente ao EV/EBITDA de companhias do mesmo segmento e de segmentos semelhantes, e às transações comparáveis
+- Para cada EBITDA: enterprise value pela mediana do mesmo segmento e dos semelhantes, faixa p25 a p75 e equity, com desconto de liquidez de empresa fechada
+- Múltiplo implícito do FCD moderado, do FCD otimista, do meio da faixa moderada e da proposta (LOI, MOU ou SPA, quando houver) sobre o EBITDA contábil e o ajustado, com a posição frente ao mercado
+- Novos avisos: sem comparável do mesmo segmento (usa semelhantes), EBITDA ajustado mais de 20% diferente do contábil e proposta fora da faixa de mercado
+
 ## v2.5 — 2026-11-14 · M&A: base simplificada, mapa da Kinsey e risco só do target (N3)
 - Importador do mapa de M&A da Kinsey em Excel com várias abas: vendedoras viram targets (N3), compradoras viram investidores (N1), assessorias e parcerias viram intermediadores (N2); blocos comprador × vendedor viram as ligações da Órbita; temperatura, mandato, faturamento, contato, site, observações e fichas ficam na "Situação no mapa" de cada empresa
 - CNPJs das ligações conferidos na Receita pela semelhança do nome: CNPJ deslocado para a empresa vizinha é reatribuído à empresa certa, e CNPJ de outra empresa é rejeitado com aviso

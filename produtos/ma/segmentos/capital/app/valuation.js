@@ -188,6 +188,46 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
     return {L, eb:stats(L.map(t => t.evEb).filter(x => x > 0 && x < 40)), rec:stats(L.map(t => t.evRec).filter(x => x > 0))};
   }
 
+  /* ---------------- COMPARATIVO · EBITDA APURADO × MÚLTIPLOS DE MERCADO ----------------
+     Sempre: o EBITDA do target pela base contábil (balancete) e pela base financeira (ajustes da Due Diligence)
+     frente aos múltiplos EV/EBITDA de companhias do mesmo segmento e de segmentos semelhantes. */
+  function proposta(s){ const c = S.contracts.filter(c => c.supplierId === s.id && /LOI|SPA|MOU|proposta/i.test(c.tipo || "") && num(c.volume)).sort((a, b) => String(b.criadoEm).localeCompare(a.criadoEm))[0];
+    return c ? {ev:num(c.volume) * 1e6, rot:`${c.tipo} ${c.numero || ""}`.trim()} : null; }
+  function cmpEbitda(s, R){
+    const X = R.X, C = R.C, T = R.T, d = 1 - X.Bs.P.desc.v / 100, per = X.perBase, AJ = D.ajustes(s, per);
+    const ebFin = X.bp.ebRep + D.soma(AJ.filter(D.okFin)).ebitda, anu = X.H.anuais;
+    const bases = [
+      {k:"cont", rot:"EBITDA contábil", sub:`balancete ${per}${X.bp.meses < 12 ? `, ${X.bp.meses} meses anualizado` : ""}, sem ajustes`, eb:X.bp.ebRep},
+      {k:"fin", rot:"EBITDA financeiro ajustado", sub:`ajustes da Due Diligence com OK no valuation (${AJ.filter(D.okVal).length})`, eb:X.bp.eb}];
+    if (Math.abs(ebFin - X.bp.eb) > 1) bases.push({k:"finP", rot:"EBITDA ajustado · OK só nas análises", sub:"inclui ajustes ainda sem OK no valuation", eb:ebFin});
+    if (anu.length >= 2) bases.push({k:"med", rot:"EBITDA ajustado médio dos exercícios", sub:anu.map(a => a.ano).join(", "), eb:anu.reduce((t, a) => t + a.eb, 0) / anu.length});
+    bases.forEach(b => b.mg = div(b.eb, X.bp.rl));
+    const mesmo = stats(C.ok.filter(c => c.mesmo).map(c => c.evEb)), semel = stats(C.ok.filter(c => !c.mesmo).map(c => c.evEb));
+    const grupos = [["Mesmo segmento", C.seg || "—", mesmo, stats(C.ok.filter(c => c.mesmo).map(c => c.mg))], ["Segmentos semelhantes", C.sim.join(", ") || "—", semel, stats(C.ok.filter(c => !c.mesmo).map(c => c.mg))], ["Todas as comparáveis (usadas no valuation)", "", C.eb, C.mg], ["Transações comparáveis", "", T.eb, null]].filter(g => g[2]);
+    const ref = mesmo && mesmo.n >= 3 ? {nome:"mesmo segmento", st:mesmo} : C.eb ? {nome:mesmo ? "mesmo segmento e semelhantes (menos de 3 do mesmo segmento)" : "segmentos semelhantes (sem comparável do mesmo segmento)", st:C.eb} : null;
+    const pos = m => !ref || m == null || !isFinite(m) ? "—" : m < ref.st.p25 * d ? "abaixo do mercado" : m > ref.st.p75 ? "acima do mercado" : "dentro da faixa";
+    const fcd = R.mod.c.ev, ot = R.ot.c.ev, meio = R.rec ? (R.rec[0] + R.rec[1]) / 2 : null, pr = proposta(s);
+    const evs = [["FCD moderado", fcd], ["FCD otimista", ot], ["Meio da faixa moderada", meio], ...(pr ? [[`Proposta (${pr.rot})`, pr.ev]] : [])].filter(e => e[1]);
+    const impl = evs.map(([rot, ev]) => ({rot, ev, cont:div(ev, X.bp.ebRep), fin:div(ev, X.bp.eb)}));
+    const gap = X.bp.eb - X.bp.ebRep, gapPc = div(gap, Math.abs(X.bp.ebRep));
+    return {d, bases, grupos, ref, pos, impl, gap, gapPc, efeitoEv:ref ? gap * ref.st.med * d : null, mesmo, semel, pr};
+  }
+  function vCmpEbitda(s, R, compacto){
+    const Q = cmpEbitda(s, R), X = R.X, st = o => o ? `${xx(o.p25)} · ${xx(o.med)} · ${xx(o.p75)}` : "—";
+    if (!Q.ref) return `<div class="card"><h3>EBITDA apurado × múltiplos de mercado</h3><div class="empty">Sem comparáveis do mesmo segmento ou semelhantes. Inclua companhias na base Kinsey ou atualize pela CVM/B3 na aba Múltiplos de mercado.</div></div>`;
+    const r = Q.ref.st, d = Q.d;
+    const L1 = (t, sub) => `<div style="min-width:170px"><b>${esc(t)}</b>${sub ? `<div class="sub" style="margin:0;font-size:11.5px">${esc(sub)}</div>` : ""}</div>`;
+    const tMerc = tbl(["Comparáveis (EV/EBITDA)", "Cias.", "p25", "Mediana", "p75", "Mediana com desconto", "Margem EBITDA"], Q.grupos.map(g => tr([L1(g[0], g[1]), String(g[2].n), xx(g[2].p25), `<b>${xx(g[2].med)}</b>`, xx(g[2].p75), xx(g[2].med * d), g[3] ? pc(g[3].med) : "—"])));
+    const ms = Q.mesmo, sm = Q.semel;
+    const tBase = tbl(["EBITDA do target", "Valor", "Margem", ms ? `EV · mediana mesmo segmento (${xx(ms.med * d)})` : null, sm ? `EV · mediana semelhantes (${xx(sm.med * d)})` : null, `EV · faixa p25 a p75 (${Q.ref.nome.split(" (")[0]})`, "Equity · mediana"].filter(Boolean),
+      Q.bases.map(b => tr([L1(b.rot, b.sub), mi(b.eb), pc(b.mg), ms ? `<b>${mi(b.eb * ms.med * d)}</b>` : null, sm ? mi(b.eb * sm.med * d) : null, `${mi(b.eb * r.p25 * d)} a ${mi(b.eb * r.p75 * d)}`, mi(b.eb * r.med * d - X.dl)].filter(x => x != null))));
+    const tImp = tbl(["Valor de referência", "Enterprise value", "× EBITDA contábil", "× EBITDA ajustado", "Posição frente ao mercado (ajustado)"], Q.impl.map(i => tr([L1(i.rot), mi(i.ev), xx(i.cont), `<b>${xx(i.fin)}</b>`, esc(Q.pos(i.fin))])));
+    const resumoTxt = `Diferença entre o EBITDA ajustado e o contábil: ${mi(Q.gap)} (${pc(Q.gapPc)}), efeito de ${mi(Q.efeitoEv)} no enterprise value pela mediana de ${xx(r.med * d)}.`;
+    return `<div class="card" style="display:flex;flex-direction:column;gap:10px"><div><h3>EBITDA apurado × múltiplos de mercado</h3>
+      <p class="sub" style="margin:2px 0 0">EBITDA do target pela base contábil (balancete) e pela base financeira (ajustes da Due Diligence) frente ao EV/EBITDA de companhias do ${esc(Q.ref.nome)}. Desconto de liquidez de ${fmt(X.Bs.P.desc.v, 0)}% por ser empresa fechada.</p></div>
+      ${compacto ? "" : tMerc}${tBase}${tImp}<p class="sub" style="margin:0">${esc(resumoTxt)}</p></div>`;
+  }
+
   /* ---------------- ALERTAS ---------------- */
   function alertas(s, X){
     const out = [], vl = X.vl, P = X.Bs.P, just = vl.just || {}, add = (nivel, txt, key) => out.push({nivel, txt, key, ok:key ? !!just[key]?.texto : false});
@@ -202,6 +242,9 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
     const C = comparaveis(s), mod = cenario(X, "mod"), ot = cenario(X, "ot");
     if (C.eb){ [["mod", "moderado", mod], ["ot", "otimista", ot]].forEach(([k, l, c]) => { if (c.mult > C.eb.p75 * 1.25 || c.mult < C.eb.p25 * .75) add(k === "ot" ? "justificar" : "aviso", `FCD ${l}: EV/EBITDA implícito de ${xx(c.mult)}, fora da faixa dos comparáveis (${xx(C.eb.p25)} a ${xx(C.eb.p75)}).`, k === "ot" ? "x:ot" : null); }); }
     else add("aviso", "Sem comparáveis de mercado para o segmento: o FCD não pode ser conferido com múltiplos.");
+    if (C.eb && !C.ok.some(c => c.mesmo)) add("aviso", `Sem companhia comparável do mesmo segmento (${C.seg || "—"}): os múltiplos vêm de segmentos semelhantes.`);
+    { const g = div(X.bp.eb - X.bp.ebRep, Math.abs(X.bp.ebRep)); if (g != null && Math.abs(g) > .2) add("aviso", `EBITDA financeiro ajustado ${pc(g)} diferente do contábil (${mi(X.bp.ebRep)} → ${mi(X.bp.eb)}). Confira os ajustes antes de aplicar os múltiplos.`); }
+    { const pr = proposta(s), m = pr && div(pr.ev, X.bp.eb); if (m && C.eb && (m < C.eb.p25 * (1 - P.desc.v / 100) || m > C.eb.p75)) add("aviso", `Proposta ${pr.rot}: ${xx(m)} o EBITDA ajustado, fora da faixa de mercado (${xx(C.eb.p25 * (1 - P.desc.v / 100))} a ${xx(C.eb.p75)}).`); }
     if (C.mg && X.mgHist > C.mg.med * 1.6) add("aviso", `Margem EBITDA histórica de ${pc(X.mgHist)} bem acima da mediana do setor (${pc(C.mg.med)}). Conferir normalização na Due Diligence.`);
     const pend = D.ajustes(s, X.perBase).filter(D.pendVal); if (pend.length) add("aviso", `${pend.length} ajuste(s) de Due Diligence com OK nas análises aguardando OK no valuation.`);
     const dSel = X.Bs.mercado.selic - P.selic.v; if (Math.abs(dSel) >= .5) add("aviso", `Selic de mercado (${fmt(X.Bs.mercado.selic, 2)}%) diferente da base de apuração (${fmt(P.selic.v, 2)}%). Revise o custo da dívida e o WACC.`);
@@ -276,6 +319,7 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
     return `<div class="card" style="display:flex;flex-direction:column;gap:12px"><h3>Avaliação comparativa</h3>
       <div class="dd-kpis">${k("Enterprise value · faixa moderada", `${mi(rec[0])} a ${mi(rec[1])}`, "FCD histórico e múltiplos de mercado")}${k("(−) Dívida líquida ajustada", mi(X.dl), `balancete ${mi(X.pt.reportada)} + ajustes e complementos`)}${k("Equity value · faixa moderada", `${mi(rec[0] - X.dl)} a ${mi(rec[1] - X.dl)}`, "líquido de dívidas · 100% do capital")}
         ${k("FCD otimista (justificado)", `${mi(ot.min)} a ${mi(ot.max)}`, "não usar como referência principal")}${k("EBITDA na base", mi(X.bp.eb), `margem ${pc(div(X.bp.eb, X.bp.rl))} · WACC ${pc(X.W.wacc)}`)}</div>
+      </div>${vCmpEbitda(s, R, true)}<div class="card" style="display:flex;flex-direction:column;gap:12px">
       <h3 style="font-size:14px">Enterprise value por método</h3>${D.faixas(met.map(m => [m[0], m[1], m[2]]), rec[0], rec[1])}
       <h3 style="font-size:14px">Equity value por método (líquido da dívida de ${mi(X.dl)})</h3>${D.faixas(met.map(m => [m[0], m[1] - X.dl, m[2] - X.dl]), rec[0] - X.dl, rec[1] - X.dl)}
       ${tbl(["Método", "EV mínimo", "EV máximo", "Equity mínimo", "Equity máximo", "Base"], met.map(m => tr([`<b>${esc(m[0])}</b>`, mi(m[1]), mi(m[2]), mi(m[1] - X.dl), mi(m[2] - X.dl), `<span style="font-size:12px">${esc(m[3])}</span>`])))}
@@ -326,7 +370,7 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
   }
   function vMult(s, R){
     const C = R.C, X = R.X, d = 1 - X.Bs.P.desc.v / 100, st = (o, f = xx) => o ? `${f(o.p25)} · ${f(o.med)} · ${f(o.p75)}` : "—";
-    return `<div class="card" style="display:flex;flex-direction:column;gap:10px"><div class="head" style="margin:0"><div><h3>Companhias comparáveis · ${esc(C.seg || "—")}${C.sim.length ? ` e semelhantes (${esc(C.sim.join(", "))})` : ""}</h3>
+    return vCmpEbitda(s, R) + `<div class="card" style="display:flex;flex-direction:column;gap:10px"><div class="head" style="margin:0"><div><h3>Companhias comparáveis · ${esc(C.seg || "—")}${C.sim.length ? ` e semelhantes (${esc(C.sim.join(", "))})` : ""}</h3>
       <p class="sub" style="margin:2px 0 0">Dados públicos de companhias abertas (CVM, B3 e plataformas públicas de mercado) e base Kinsey. Desmarque para excluir do cálculo.</p></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">${ed() ? `<button type="button" class="btn sm" id="cp-add">+ Comparável</button><button type="button" class="btn sm" id="cp-imp">Importar planilha</button>` : ""}<button type="button" class="btn sm primary" id="cp-atu">Atualizar CVM/B3</button></div></div>
       ${C.L.length ? `<div class="tbl"><table><thead><tr><th></th><th>Companhia</th><th>Segmento</th><th class="dd-num">EV/EBITDA</th><th class="dd-num">EV/Receita</th><th class="dd-num">P/L</th><th class="dd-num">Margem EBITDA</th><th>Fonte e data</th></tr></thead><tbody>${C.L.map(c => `<tr style="${c.excl || c.fora ? "opacity:.5" : ""}">
@@ -417,5 +461,5 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
     $$("[data-vrel]", host).forEach(b => b.onclick = async () => { if (!window.KT_REL){ toast("Módulo de relatórios indisponível."); return; }
       try{ await KT_REL.valuation(s, b.dataset.vrel); up(s, {dd:{vl:{emissoes:{["e" + Date.now().toString(36)]:{em:nowISO(), fmt:b.dataset.vrel, por:Store.me?.email || "", faixa:`${mi(R.rec[0])} a ${mi(R.rec[1])}`}}}}}); }catch(e){ console.error(e); toast("Não foi possível gerar o relatório."); } });
   }
-  window.KT_VAL = {resumo, contexto, historico, cenario, wacc, comparaveis, transacoes, alertas, podeEmitir, base, perfilFalta, editarPerfil, linhasDe};
+  window.KT_VAL = {cmpEbitda, resumo, contexto, historico, cenario, wacc, comparaveis, transacoes, alertas, podeEmitir, base, perfilFalta, editarPerfil, linhasDe};
 })();
