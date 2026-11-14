@@ -1,5 +1,12 @@
 # Registro de versões
 
+## v2.9 — 2026-11-14 · Órbita por investidor: o mapa mostra só os targets (N3)
+- O mapa mostra apenas os targets vendedores (N3); investidores e intermediadores não poluem mais o globo, e os nomes não se sobrepõem ao aproximar
+- Escolha do investidor (N1) no topo da Órbita: o mapa passa a mostrar só os N3 que ele compra, ligados a ele por linhas, com o total e o critério ("7 targets que Alsco Uniformes compra · lavanderia")
+- O que o investidor compra vem do cadastro: atividades (ex.: lavanderia industrial; soja, milho, fertilizantes), CNAEs, CNPJs de targets específicos, estados, cidades e regiões; também valem as ligações do mapa da Kinsey e o texto da tese importado da planilha
+- Modo consulta (sem investidor escolhido): todos os targets, com filtro por segmento e por estado, para o N2 ou um investidor consultar N3
+- "Ver na órbita" de um investidor abre o mapa já no modo dele; as condições de compra do dossiê do N1 usam os mesmos critérios
+
 ## v2.8 — 2026-11-14 · KinseyTec – M&A: Base inicial, consultas automáticas e dossiês do N1 e do N3
 - Nome do sistema: KinseyTec – M&A, um sistema da KinseyTec, empresa do grupo KinseyBR (a Kinsey Capital segue como intermediador N2 e emissora dos relatórios)
 - Base inicial como primeiro item do menu: cadastro geral de investidores e compradores (N1), intermediadores e parceiros (N2) e targets vendedores (N3); sem a análise prévia solta na Órbita, toda empresa entra pelo cadastro

@@ -55,7 +55,7 @@ if (window.KT_DD) (() => {
         ${nivel !== "N2" ? sel("bi-par", "Intermediador ou parceiro (N2)", [["", "—"], ...N2.map(x => [x.id, x.nome])], s.parentId) : ""}
         ${nivel === "N3" ? `${tit("Números do target · último exercício (R$ milhões)")}${f("bi-rec", "Faturamento", F.receita, {num:1})}${f("bi-eb", "EBITDA", F.ebitda, {num:1})}${f("bi-dl", "Dívida líquida", F.divLiq, {num:1})}
           <div class="fld full"><label for="bi-inv">Investidores de interesse (N1)</label><select id="bi-inv" multiple size="${Math.min(6, Math.max(3, N1.length))}">${N1.map(x => `<option value="${x.id}" ${(s.investidores || []).includes(x.id) ? "selected" : ""}>${esc(x.nome)}</option>`).join("")}</select><span class="hint">Marque um ou mais compradores.</span></div>` : ""}
-        ${nivel === "N1" ? `${tit("Tese de investimento (R$ milhões)")}${f("bi-tseg", "Segmentos de interesse", (T.segmentos || []).join(", "), {full:1, ph:"Alimentos, Saúde"})}
+        ${nivel === "N1" ? `${tit("O que o investidor compra · define os targets que aparecem no mapa para ele")}${f("bi-tatv", "Atividades que compra", (T.atividades || []).join(", ") || T.texto || "", {full:1, ph:"lavanderia industrial; soja, milho, fertilizantes", hint:"separe por vírgula; o mapa mostra os targets dessas atividades"})}${f("bi-tcn", "CNAEs de interesse", (T.cnaes || []).join(", "), {ph:"9601-7, 0115-6"})}${f("bi-tseg", "Segmentos amplos", (T.segmentos || []).join(", "), {ph:"Serviços, Agro"})}${f("bi-tuf", "Estados (UF)", (T.ufs || []).join(", "), {ph:"SP, RJ, MG"})}${f("bi-tcid", "Cidades", (T.cidades || []).join(", "), {ph:"Campinas, Santos"})}${f("bi-treg", "Regiões", (T.regioes || []).join(", "), {ph:"Sudeste, Sul"})}${f("bi-tcnpj", "CNPJs de targets específicos", (T.cnpjs || []).join(", "), {full:1, ph:"opcional"})}${tit("Tamanho do negócio (R$ milhões)")}
           ${f("bi-tmin", "Ticket mínimo", T.ticketMin, {num:1})}${f("bi-tmax", "Ticket máximo", T.ticketMax, {num:1})}${f("bi-fmin", "Faturamento mínimo do target", T.fatMin, {num:1})}${f("bi-fmax", "Faturamento máximo do target", T.fatMax, {num:1})}
           ${tit("Condições para comprar (R$ milhões) · companhias abertas são preenchidas pela CVM e B3")}
           ${f("bi-aum", "Capital disponível para investir", C.aum, {num:1, hint:"fundos e family offices: recursos ainda não investidos"})}${f("bi-cx", "Caixa e aplicações", C.caixa, {num:1})}${f("bi-ceb", "EBITDA do comprador", C.ebitda, {num:1})}${f("bi-cdl", "Dívida líquida do comprador", C.divLiq, {num:1})}
@@ -81,7 +81,8 @@ if (window.KT_DD) (() => {
         mapa:{site:v("bi-site"), contato:v("bi-cont"), telefone:v("bi-tel"), obs:v("bi-obs")}};
       if (nivel !== "N2") o.parentId = v("bi-par");
       if (nivel === "N3"){ o.mandato = {codinome:v("bi-cod")}; o.fin = {receita:nv("bi-rec"), ebitda:nv("bi-eb"), divLiq:nv("bi-dl")}; o.investidores = [...$f("bi-inv").selectedOptions].map(x => x.value); if (!s.lado) o.lado = "venda"; if (!s.etapa) o.etapa = "mapeada"; }
-      if (nivel === "N1"){ o.tese = {segmentos:v("bi-tseg").split(/[,;/]/).map(x => x.trim()).filter(Boolean), ticketMin:nv("bi-tmin"), ticketMax:nv("bi-tmax"), fatMin:nv("bi-fmin"), fatMax:nv("bi-fmax")};
+      if (nivel === "N1"){ const lst = k => v(k).split(/[,;]/).map(x => x.trim()).filter(Boolean);
+        o.tese = {atividades:lst("bi-tatv"), cnaes:lst("bi-tcn"), segmentos:lst("bi-tseg"), ufs:lst("bi-tuf").map(x => x.toUpperCase()), cidades:lst("bi-tcid"), regioes:lst("bi-treg"), cnpjs:lst("bi-tcnpj"), ticketMin:nv("bi-tmin"), ticketMax:nv("bi-tmax"), fatMin:nv("bi-fmin"), fatMax:nv("bi-fmax")};
         o.capac = {aum:nv("bi-aum"), caixa:nv("bi-cx"), ebitda:nv("bi-ceb"), divLiq:nv("bi-cdl"), ticker:v("bi-tk").toUpperCase()}; }
       if (nivel === "N2") o.acordo = {fee:v("bi-fee")};
       if (rf) o.receita = {...rf, em:nowISO()};
@@ -122,7 +123,8 @@ if (window.KT_DD) (() => {
     return v <= L ? {cls:"r-baixo", txt:"Tem condições", V, K, L} : v <= L * 1.25 ? {cls:"r-medio", txt:"No limite", V, K, L} : {cls:"r-alto", txt:"Acima da capacidade", V, K, L};
   }
   const pillC = c => `<span class="pill ${c.cls}" style="font-size:11px;padding:2px 9px;white-space:nowrap">${esc(c.txt)}</span>`;
-  const sugeridos = (inv, n = 6) => { try{ return S.suppliers.filter(t => t.nivel === "N3" && t.etapa !== "descartada" && !(t.investidores || []).includes(inv.id)).map(t => ({t, sc:KT_MATCH.score(inv, t)})).filter(x => !x.sc.elim && x.sc.score >= 60).sort((a, b) => b.sc.score - a.sc.score).slice(0, n); }catch(e){ return []; } };
+  /* targets que o investidor compra (atividades, CNAEs, CNPJs e região do cadastro), além dos ligados no mapa */
+  const sugeridos = (inv, n = 12) => { try{ return S.suppliers.filter(t => t.nivel === "N3" && t.etapa !== "descartada" && !(t.investidores || []).includes(inv.id)).map(t => ({t, mot:window.KT_ORBINV ? KT_ORBINV.aderente(inv, t) : null, sc:KT_MATCH.score(inv, t)})).filter(x => x.mot || (!window.KT_ORBINV && !x.sc.elim && x.sc.score >= 60)).sort((a, b) => b.sc.score - a.sc.score).slice(0, n); }catch(e){ return []; } };
 
   /* ================= CONSULTAS AUTOMÁTICAS ================= */
   function consultas(s){
@@ -155,7 +157,7 @@ if (window.KT_DD) (() => {
     const linha = (t, origem) => { const c = condicao(inv, t); return `<tr><td><a href="#" data-goto="${t.id}" style="color:var(--glow)">${esc(t.mandato?.codinome || t.nome)}</a><div class="sub" style="margin:0;font-size:11px">${esc(origem)}</div></td><td class="dd-num">${c.V ? mi(c.V.eq) : "—"}</td><td>${pillC(c)}</td></tr>`; };
     return `<div class="card" style="display:flex;flex-direction:column;gap:8px"><h3>Condições de compra</h3>
       <div class="dd-kpis"><div class="dd-k"><span>Ticket</span><b>${K.tmin != null || K.tmax != null ? `${mi(K.tmin)} a ${mi(K.tmax)}` : "—"}</b><small>tese informada</small></div><div class="dd-k"><span>Capacidade financeira</span><b>${K.cap != null ? mi(K.cap) : "—"}</b><small>${esc(K.base || "informe no cadastro ou pela CVM")}</small></div>${K.mcap ? `<div class="dd-k"><span>Valor de mercado</span><b>${mi(K.mcap)}</b><small>B3</small></div>` : ""}</div>
-      ${lig.length || sug.length ? `<div class="tbl"><table><thead><tr><th>Target</th><th class="dd-num">Valor estimado (equity)</th><th>Condição</th></tr></thead><tbody>${lig.map(t => linha(t, "ligado no mapa")).join("")}${sug.map(x => linha(x.t, `aderente à tese · ${x.sc.score} pts`)).join("")}</tbody></table></div>` : `<div class="empty">Nenhum target ligado ou aderente à tese ainda.</div>`}
+      ${lig.length || sug.length ? `<div class="tbl"><table><thead><tr><th>Target</th><th class="dd-num">Valor estimado (equity)</th><th>Condição</th></tr></thead><tbody>${lig.map(t => linha(t, "ligado no mapa")).join("")}${sug.map(x => linha(x.t, x.mot || `aderente à tese · ${x.sc.score} pts`)).join("")}</tbody></table></div>` : `<div class="empty">Nenhum target ligado ou aderente à tese ainda.</div>`}
       <p class="sub" style="margin:0;font-size:12px">Compara o valor estimado do target (valuation, ou EBITDA × múltiplo do segmento) com o menor entre o ticket máximo e a capacidade financeira. "No limite": até 25% acima.</p></div>`;
   }
   function compradoresCard(t){
@@ -178,7 +180,8 @@ if (window.KT_DD) (() => {
     const kv = [["CNPJ", s.doc || "—"], ["Razão social (Receita)", rf?.razao], ["Tipo", s.tipo], ["Segmento", s.perfil?.segmento || s.segmento || M.segmentoTxt], ["Local", [s.municipio, s.uf, s.pais && !/^bra/i.test(s.pais) ? s.pais : ""].filter(Boolean).join(" · ")],
       s.nivel === "N3" ? ["Nome-código", s.mandato?.codinome] : null, par ? ["Intermediador ou parceiro", `<a href="#" data-goto="${par.id}" style="color:var(--glow)">${esc(par.nome)}</a>`, 1] : null,
       s.nivel === "N3" && (F.receita || F.ebitda) ? ["Faturamento · EBITDA", `${mi((F.receita || 0) * 1e6)} · ${mi((F.ebitda || 0) * 1e6)}`] : null, s.nivel === "N3" && M.fat ? ["Faturamento (mapa)", M.fat] : null,
-      s.nivel === "N1" && (T.segmentos || []).length ? ["Tese", T.segmentos.join(", ")] : null, ["Site", M.site ? `<a href="${esc(/^https?:/.test(M.site) ? M.site : "https://" + M.site)}" target="_blank" rel="noopener" style="color:var(--glow)">${esc(M.site)}</a>` : "", 1],
+      s.nivel === "N1" && ((T.atividades || []).length || T.texto) ? ["O que compra", (T.atividades || []).join(", ") || T.texto] : null, s.nivel === "N1" && ((T.ufs || []).length || (T.cidades || []).length || (T.regioes || []).length) ? ["Onde", [...(T.ufs || []), ...(T.cidades || []), ...(T.regioes || [])].join(", ")] : null,
+      s.nivel === "N1" && (T.segmentos || []).length ? ["Segmentos", T.segmentos.join(", ")] : null, ["Site", M.site ? `<a href="${esc(/^https?:/.test(M.site) ? M.site : "https://" + M.site)}" target="_blank" rel="noopener" style="color:var(--glow)">${esc(M.site)}</a>` : "", 1],
       ["Contato", [M.contato, M.telefone].filter(Boolean).join(" · ")], ["Observações", M.obs]].filter(x => x && x[1]);
     return `<div class="card"><h3>Cadastro</h3><dl class="kv" style="margin-top:8px">${kv.map(([k, v, raw]) => `<dt>${esc(k)}</dt><dd>${raw ? v : esc(String(v))}</dd>`).join("")}</dl></div>`;
   }
@@ -226,7 +229,7 @@ if (window.KT_DD) (() => {
       const K = capacidade(s), T = s.tese || {}; R.sec(P, k++, "Tese e condições de compra");
       R.kpisPdf(P, [["Ticket", K.tmin != null || K.tmax != null ? `${mi(K.tmin)} a ${mi(K.tmax)}` : "—", "tese"], ["Capacidade financeira", K.cap != null ? mi(K.cap) : "—", K.base.slice(0, 40)], ["Valor de mercado", K.mcap ? mi(K.mcap) : "—", K.mcap ? "B3" : ""]]);
       if ((T.segmentos || []).length) R.par(P, "Segmentos de interesse: " + T.segmentos.join(", ") + ".");
-      const lig = S.suppliers.filter(t => t.nivel === "N3" && (t.investidores || []).includes(s.id)).map(t => [t, "ligado"]), sug = sugeridos(s).map(z => [z.t, `aderente · ${z.sc.score} pts`]);
+      const lig = S.suppliers.filter(t => t.nivel === "N3" && (t.investidores || []).includes(s.id)).map(t => [t, "ligado"]), sug = sugeridos(s).map(z => [z.t, z.mot || `aderente · ${z.sc.score} pts`]);
       [...lig, ...sug].length ? R.tab(P, ["Target (nome-código)", "Origem", "Equity estimado", "Condição"], [...lig, ...sug].map(([t, o]) => { const c = condicao(s, t); return [t.mandato?.codinome || t.nome, o, c.V ? mi(c.V.eq) : "—", c.txt]; }), [.36, .2, .2, .24]) : R.par(P, "Nenhum target ligado ou aderente.");
     }
     R.sec(P, k++, s.nivel === "N1" ? "Últimas aquisições e notícias" : "Notícias");

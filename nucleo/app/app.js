@@ -258,7 +258,7 @@ function draw(now){
   // grade de escala ao aproximar (efeito "satélite")
   if (G.k > 8){ ctx.strokeStyle = "rgba(79,176,245,.07)"; ctx.lineWidth = 1; const step = 48; ctx.beginPath(); for (let x = (cx % step); x < w; x += step){ ctx.moveTo(x,0); ctx.lineTo(x,h); } for (let y = (cyy % step); y < h; y += step){ ctx.moveTo(0,y); ctx.lineTo(w,y); } ctx.stroke(); }
   // rotas N3 → N2 → N1 → cliente
-  const list = S.suppliers.filter(s => s.lat != null && S.lv[s.nivel]);
+  const list = S.suppliers.filter(s => s.lat != null && S.lv[s.nivel] && (!window.ORB_FILTRO || window.ORB_FILTRO(s)));
   if (S.lv.rotas){
     ctx.lineWidth = 1.4; ctx.setLineDash([5, 6]); ctx.lineDashOffset = G.reduce ? 0 : -now/60;
     list.forEach(s => {
@@ -275,6 +275,7 @@ function draw(now){
   G.hits = [];
   const CL = CLI(); if (!window.ORB_SEM_CLIENTE && visible(CL.lng, CL.lat)){ const p = G.proj([CL.lng, CL.lat]); ctx.strokeStyle = "#E6E8EC"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(p[0], p[1], 7, 0, 7); ctx.stroke(); ctx.fillStyle = "#E6E8EC"; ctx.beginPath(); ctx.arc(p[0], p[1], 2.5, 0, 7); ctx.fill(); if (G.k > 2.5){ ctx.font = "500 10px 'IBM Plex Mono', monospace"; ctx.textAlign = "left"; ctx.fillText(`${CL.nome} · ${CL.local}`.toUpperCase().slice(0,40), p[0]+11, p[1]+3); } }
   // pinos
+  const rotulos = [];
   list.forEach(s => {
     if (!visible(s.lng, s.lat)) return; const [x, y] = G.proj([s.lng, s.lat]); const r = riskOf(s), col = (window.ORB_COR && window.ORB_COR(s)) || RCOL[r.level], sz = s.nivel==="N1" ? 7 : s.nivel==="N2" ? 5.5 : 4.5;
     ctx.save(); ctx.shadowColor = col; ctx.shadowBlur = 12; ctx.fillStyle = col; ctx.strokeStyle = "#000a1c"; ctx.lineWidth = 1.2; ctx.beginPath();
@@ -282,7 +283,8 @@ function draw(now){
     else if (s.nivel==="N2") ctx.rect(x-sz, y-sz, sz*2, sz*2); else ctx.arc(x, y, sz, 0, 7);
     ctx.fill(); ctx.restore(); ctx.stroke();
     G.hits.push({id:s.id, x, y});
-    if (G.k > 7 && S.sel !== s.id){ ctx.font = "500 10px 'IBM Plex Mono', monospace"; ctx.textAlign = "left"; ctx.fillStyle = "rgba(230,232,236,.8)"; ctx.fillText(`${s.nivel} ${(s.nome||"").slice(0,22)}`, x+10, y+3); }
+    if (G.k > 7 && S.sel !== s.id){ const txt = `${s.nivel} ${(s.nome||"").slice(0,22)}`, bw = txt.length * 6.2;
+      if (!rotulos.some(b => x + 10 < b[0] + b[2] && b[0] < x + 10 + bw && Math.abs(b[1] - y) < 13)){ rotulos.push([x + 10, y, bw]); ctx.font = "500 10px 'IBM Plex Mono', monospace"; ctx.textAlign = "left"; ctx.fillStyle = "rgba(230,232,236,.8)"; ctx.fillText(txt, x+10, y+3); } }
   });
   // fotos geolocalizadas do alvo
   if (S.sel){
@@ -313,7 +315,7 @@ function selectSup(id, fly){
   const s = supById(id); if (fly && s?.lat != null) flyTo(s.lng, s.lat, s.nivel==="N3" ? 9 : 5.5);
 }
 function renderStrip(){
-  const list = S.suppliers.filter(s => S.lv[s.nivel]).sort((a,b) => a.nivel.localeCompare(b.nivel) || (a.nome||"").localeCompare(b.nome||""));
+  const list = S.suppliers.filter(s => S.lv[s.nivel] && (!window.ORB_FILTRO || window.ORB_FILTRO(s))).sort((a,b) => a.nivel.localeCompare(b.nivel) || (a.nome||"").localeCompare(b.nome||""));
   $("#h-n").textContent = S.suppliers.length;
   $("#h-hi").textContent = S.suppliers.filter(s => riskOf(s).level==="alto").length;
   $("#strip").innerHTML = list.length ? list.map(s => { const r = riskOf(s); return `<button type="button" class="chip" data-sel="${s.id}" aria-pressed="${S.sel===s.id}"><span style="color:${RCOL[r.level]}">${s.nivel==="N1"?"◆":s.nivel==="N2"?"■":"●"}</span>${esc((s.nome||"").slice(0,30))}<span class="lv">${esc(s.uf||s.pais||"")}</span></button>`; }).join("")

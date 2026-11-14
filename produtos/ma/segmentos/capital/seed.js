@@ -23,11 +23,11 @@ window.SEED = (() => {
   return [
   /* ---------- N1 · investidores ---------- */
   sup("ex-inv-atl", {nivel:"N1", tipo:"Private equity", nome:"EXEMPLO Atlântico Partners Gestão de Recursos", doc:"00.000.201/0001-00", abertura:"2011-03-14", uf:"SP", municipio:"São Paulo", lat:-23.571, lng:-46.692, pais:"Brasil",
-    tese:{segmentos:["Saúde","Tecnologia","Alimentos"], cnaes:["86","62","10"], fatMin:30, fatMax:300, ebitdaMin:5, ticketMin:40, ticketMax:250, participacao:["Controle","100%"], regioes:["Brasil"], restricoes:"Não investe em agro primário nem em empresas em recuperação judicial"}, capac:{aum:300},
+    tese:{atividades:["laticínios","hospitais","software de gestão"], segmentos:["Saúde","Tecnologia","Alimentos"], cnaes:["86","62","10"], fatMin:30, fatMax:300, ebitdaMin:5, ticketMin:40, ticketMax:250, participacao:["Controle","100%"], regioes:["Brasil"], restricoes:"Não investe em agro primário nem em empresas em recuperação judicial"}, capac:{aum:300},
     contato:"Sócia de originação · exemplo@atlantico.exemplo", answers:{...INV_OK, n1_03:{v:"sim"}, n1_07:{v:"nao"}, n1_08:{v:"nao"}}, docs:{d0:"ok",d1:"ok",d2:"ok",d3:"ok",d4:"ok"}, invest:INVN({}),
     nda:NDA("Responsável Exemplo","Sócia","000.000.000-00","2026-10-02T14:10:00.000Z")}),
   sup("ex-inv-ibe", {nivel:"N1", tipo:"Investidor estratégico", nome:"EXEMPLO Iberia Alimentos y Energía S.A.", doc:"Espanha · registro EX-5530", abertura:"2004-09-09", uf:"", municipio:"Madri", pais:"Espanha", lat:40.417, lng:-3.704,
-    tese:{segmentos:["Alimentos","Energia"], cnaes:["10","35"], fatMin:80, fatMax:600, ebitdaMin:10, ticketMin:100, ticketMax:700, participacao:["Controle","100%"], regioes:["Brasil"], restricoes:""}, capac:{caixa:180, ebitda:240, divLiq:420},
+    tese:{atividades:["laticínios","biodiesel"], ufs:["MG","SP","GO"], segmentos:["Alimentos","Energia"], cnaes:["10","35"], fatMin:80, fatMax:600, ebitdaMin:10, ticketMin:100, ticketMax:700, participacao:["Controle","100%"], regioes:["Brasil"], restricoes:""}, capac:{caixa:180, ebitda:240, divLiq:420},
     contato:"Director de M&A · exemplo@iberia.exemplo", answers:{...INV_OK, n1_03:{v:"sim"}, n1_07:{v:"sim", n:"EXEMPLO: conselheiro foi secretário de governo regional"}, n1_08:{v:"nao"}}, docs:{d0:"ok"}, invest:INVN({pep:{v:"sim", n:"EXEMPLO: conselheiro com cargo público até 2024"}}),
     nda:NDA("Responsable Ejemplo","Director de M&A","Pasaporte EX000000","2026-10-20T10:30:00.000Z")}),
   /* ---------- N2 · intermediadores e parceiros ---------- */
