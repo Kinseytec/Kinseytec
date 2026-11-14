@@ -170,4 +170,4 @@ const LISTAS = {lista_suja: listaSuja, ceis: () => cgu("ceis"), cnep: () => cgu(
 function blocos(rows){ const B = {}; for (const [k, v] of rows){ const p = k.slice(0, 3); (B[p] = B[p] || {})[k] = v; } return B; }
 function hash(rows){ const c = require("crypto").createHash("sha1"); [...rows.keys()].sort().forEach(k => c.update(k + "|" + rows.get(k).join("|") + "\n")); return c.digest("hex"); }
 
-module.exports = {cotacoes, dolar, cepea, lme, icco, LISTAS, blocos, hash, chaves, csvLinhas};
+module.exports = {cotacoes, dolar, cepea, lme, icco, LISTAS, blocos, hash, chaves, csvLinhas, pega, zipBytes, txt};

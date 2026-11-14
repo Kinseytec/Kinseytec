@@ -122,6 +122,7 @@ Matriz provável/possível/remota com valores → impacto no preço (ajuste, esc
 | v2.2 | Funil do target e mandatos com teaser anônimo e NDA por mandato |
 | v2.3 | Matching com pontuação explicada |
 | v2.1 ✔ | Due Diligence (contábil, financeira, trabalhista, tributária), Análises financeiras e Valuation com mini globos e dupla aprovação dos ajustes pelo consultor |
+| v2.2 ✔ | Valuation comparativo (FCD com histórico e cenários, múltiplos CVM/B3, transações), apresentação pré/pós-NDA, análise pró-vendedor de contratos, PPA e modelos, relatórios de DD, valuation e teaser, funções de mercado |
 | v2.4 | Estruturação societária no dossiê (organograma antes/depois) |
 | v2.5 | Relatórios (teaser, dossiê, diligência, pipeline, oportunidades) |
 | v2.6 | Portal (data room, NDA) e regras do Firebase para sigilo entre investidores |

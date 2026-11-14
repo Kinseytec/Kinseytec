@@ -12,7 +12,7 @@ window.OPS_SEM_DEMO = true;
 /* Indicadores de mercado (barra do topo, registro manual) */
 const PRACAS_BR = [["SELIC","Selic (% a.a.)"],["IPCA","IPCA 12 meses (%)"],["CDI","CDI (% a.a.)"],["DOLAR","Dólar PTAX (R$)"],["EURO","Euro (R$)"],["IBOV","Ibovespa (pontos)"]];
 const INTL = [["SP500","S&P 500","pontos"],["UST10","Treasury 10 anos","% a.a."],["FED","Fed funds","% a.a."]];
-const PRECO = {bar:["SELIC","DOLAR","IBOV"], barLabel:{SELIC:"Selic",DOLAR:"Dólar",IBOV:"Ibovespa"}, fonteEx:"Banco Central, B3 ou terminal de mercado",
+const PRECO = {bar:["SELIC","IPCA","DOLAR"], barLabel:{SELIC:"Selic",IPCA:"IPCA 12m",DOLAR:"Dólar"}, fonteEx:"Banco Central, B3 ou terminal de mercado",
   hist:[["SELIC","Selic"],["DOLAR","Dólar"],["IBOV","Ibovespa"]],
   links:[["Banco Central · Selic","https://www.bcb.gov.br/controleinflacao/historicotaxasjuros"],["Banco Central · câmbio PTAX","https://www.bcb.gov.br/estabilidadefinanceira/historicocotacoes"],["IBGE · IPCA","https://www.ibge.gov.br/explica/inflacao.php"],["B3 · Ibovespa","https://www.b3.com.br"]]};
 
@@ -101,7 +101,7 @@ const INSP = {
  N3:[["i_sede","Visita à sede e às unidades operacionais"],["i_gestao","Reunião com sócios e gestão (management presentation)"],["i_ativos","Ativos relevantes conferidos (imóveis, máquinas, estoques)"],["i_sist","Sistemas de gestão e controles financeiros conferidos"]]
 };
 
-const EV_TYPES = ["Apresentação / teaser","Contrato social","Demonstração financeira","Relatório de auditoria","Certidão","Contrato","NDA assinado","Mandato assinado","Proposta (IOI / LOI)","Laudo / valuation","Ata de reunião","Foto de visita","Outro"];
+const EV_TYPES = ["Apresentação / teaser","Apresentação institucional","Pre-release / comunicado","Contrato social","Demonstração financeira","Relatório de auditoria","Certidão","Contrato","NDA assinado","Mandato assinado","Proposta (IOI / LOI)","Laudo / valuation","Ata de reunião","Foto de visita","Outro"];
 const PHOTO_TYPES = ["Foto de visita"];
 
 const SUP_TYPES = {N1:["Investidor estratégico","Private equity","Family office","Fundo de investimento","Venture capital","Pessoa física qualificada"],N2:["Kinsey Capital","Parceiro originador","Assessor financeiro","Escritório de advocacia","Consultoria contábil"],N3:["Target · prospecção","Target · mandato de venda","Target · buy-side (procurada para investidor)"]};
@@ -207,3 +207,33 @@ const FONTES_EXTRA = [
  ["OFAC · lista de sanções (EUA)","https://sanctionssearch.ofac.treas.gov/"],
  ["CADE · atos de concentração","https://www.gov.br/cade/pt-br"]
 ];
+
+/* ================= VALUATION · base de apuração (metodologia e fontes) =================
+   Valores do Banco Central (Selic, CDI, IPCA, PTAX e Focus) consultados em 14/11/2026 nas APIs públicas do BCB;
+   a função "mercado" do Firebase atualiza todo dia. Parâmetros internacionais e setoriais são valores iniciais:
+   a Kinsey confirma e registra a própria fonte em Valuation · Base de apuração. */
+const SEGMENTOS = ["Alimentos","Agro","Tecnologia","Saúde","Educação","Industrial","Energia","Logística","Varejo","Construção","Serviços","Outros"];
+const VAL_BASE = {
+ params:[
+  /* id, rótulo, valor, unidade, fonte, data, metodologia */
+  ["rf","Taxa livre de risco (US Treasury 10 anos)",4.3,"% a.a.","U.S. Department of the Treasury · valor inicial a confirmar","2026-11","Média de 12 meses do rendimento do T-Note de 10 anos, em dólar"],
+  ["erp","Prêmio de risco de mercado (ERP)",4.5,"%","Damodaran (NYU Stern) · valor inicial a confirmar","2026-01","Prêmio implícito do S&P 500 publicado no início do ano"],
+  ["crp","Risco-país do Brasil",2.8,"%","EMBI+ (J.P. Morgan) ou Damodaran · valor inicial a confirmar","2026-11","Spread soberano médio de 12 meses"],
+  ["infUS","Inflação de longo prazo dos EUA",2.4,"% a.a.","Federal Reserve / CBO · valor inicial a confirmar","2026-11","Expectativa de longo prazo para conversão do custo de capital em reais"],
+  ["infBR","Inflação de longo prazo do Brasil (IPCA)",4.0,"% a.a.","Banco Central · Focus de 06/11/2026 (mediana 2028 a 2030)","2026-11-06","Mediana do Focus para os anos sem meta de curto prazo"],
+  ["selic","Selic meta",13.75,"% a.a.","Banco Central · SGS 432","2026-11-14","Taxa vigente na data da base"],
+  ["spread","Spread de crédito sobre a Selic (empresa de porte médio)",3.0,"p.p.","Kinsey · valor inicial a confirmar","2026-11","Spread médio de captação de empresas fechadas de porte médio"],
+  ["ir","IRPJ e CSLL (lucro real)",34,"%","Lei 9.249/1995 e Lei 7.689/1988","2026-11","Alíquota combinada de 25% + 9%"],
+  ["size","Prêmio de tamanho (receita até R$ 300 mi)",3.0,"%","Kroll Cost of Capital · valor inicial a confirmar","2026-11","Prêmio adicional para empresas de menor porte"],
+  ["desc","Desconto de liquidez de empresa fechada sobre múltiplos de bolsa",25,"%","Kinsey · prática de mercado","2026-11","Aplicado aos múltiplos de companhias abertas"],
+  ["gReal","Crescimento real na perpetuidade",1.0,"% a.a.","Kinsey","2026-11","Crescimento acima da inflação após o 5º ano"],
+  ["desvio","Tolerância de crescimento acima do histórico sem justificativa",3,"p.p.","Kinsey","2026-11","Acima disso o consultor justifica com orçamento, estudo técnico ou novo negócio"]
+ ],
+ /* beta desalavancado e dívida/patrimônio setoriais (mercados emergentes) · valores iniciais a confirmar */
+ betas:{Alimentos:[.62,.25], Agro:[.70,.45], Tecnologia:[1.15,.08], Saúde:[.80,.30], Educação:[.85,.25], Industrial:[.90,.35], Energia:[.55,.90], Logística:[.85,.60], Varejo:[.85,.40], Construção:[.95,.50], Serviços:[.85,.30], Outros:[.90,.40]},
+ ipca:{2020:4.52, 2021:10.06, 2022:5.79, 2023:4.62, 2024:4.83, 2025:4.26},
+ focus:{data:"2026-11-06", ipca:{2026:5.22, 2027:4.90, 2028:4.00, 2029:4.00, 2030:3.94}, selic:{2026:13.75, 2027:12.50, 2028:11.00, 2029:10.25, 2030:10.00}},
+ mercado:{em:"2026-11-14", fonte:"Banco Central do Brasil (SGS)", selic:13.75, ipca12:4.63, ipca12ref:"outubro/2026", cdi:13.65, ptax:5.6518}
+};
+/* segmentos semelhantes para os múltiplos */
+const SEG_SIM = {Alimentos:["Agro","Varejo"], Agro:["Alimentos"], Tecnologia:["Serviços","Educação"], Saúde:["Serviços","Educação"], Educação:["Serviços","Saúde"], Industrial:["Construção","Energia"], Energia:["Industrial"], Logística:["Industrial","Varejo"], Varejo:["Alimentos","Serviços"], Construção:["Industrial"], Serviços:["Tecnologia"], Outros:[]};

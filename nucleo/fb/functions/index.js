@@ -41,6 +41,10 @@ async function gravarListas(quais){
 }
 exports.cotacoes = onSchedule({schedule: "15 8-19 * * *", timeZone: "America/Sao_Paulo", memory: "256MiB", timeoutSeconds: 120}, () => gravarCotacoes());
 exports.listas = onSchedule({schedule: "30 6 * * *", timeZone: "America/Sao_Paulo", memory: "2GiB", timeoutSeconds: 540}, () => gravarListas(Object.keys(F.LISTAS)));
+/* funções próprias de um produto (ex.: M&A), quando o segmento traz functions/extra.js */
+let EXTRA_TIPOS = {};
+const EXTRA = (() => { try{ return require("./extra.js"); }catch(e){ if (e.code !== "MODULE_NOT_FOUND") throw e; return null; } })();
+if (EXTRA){ const x = EXTRA({db, logger, onSchedule, F}); Object.assign(exports, x.exports || {}); EXTRA_TIPOS = x.tipos || {}; }
 exports.atualizarAgora = onCall({memory: "2GiB", timeoutSeconds: 540}, async req => {
   const email = String(req.auth?.token?.email || "").toLowerCase();
   if (!req.auth || !req.auth.token.email_verified) throw new HttpsError("unauthenticated", "Entre no sistema.");
@@ -50,6 +54,7 @@ exports.atualizarAgora = onCall({memory: "2GiB", timeoutSeconds: 540}, async req
   const tipo = req.data?.tipo || "tudo", out = {};
   if (tipo === "tudo" || tipo === "cotacoes") out.cotacoes = await gravarCotacoes();
   if (tipo === "tudo" || tipo === "listas") out.listas = await gravarListas(Object.keys(F.LISTAS));
+  for (const [k, fn] of Object.entries(EXTRA_TIPOS)) if (tipo === "tudo" || tipo === k) out[k] = await fn();
   return out;
 });
 module.exports._interno = {gravarCotacoes, gravarListas};

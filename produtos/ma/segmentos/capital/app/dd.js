@@ -379,7 +379,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     $("#v-auditoria").insertAdjacentHTML("afterend", `<section class="view" id="v-financas" data-view="financas" hidden><div class="pad" id="financas"></div></section><section class="view" id="v-valuation" data-view="valuation" hidden><div class="pad" id="valuation"></div></section>`); })();
 
   const alvoSel = () => { const L = targets(); let s = supById(S.ddSel); if (!s || s.nivel !== "N3") s = L.find(temBal) || L[0]; if (s) S.ddSel = s.id; return s; };
-  const perSel = s => { const P = periodos(s); if (!P.includes(S.ddPer)) S.ddPer = P[0] || ""; return S.ddPer; };
+  const perSel = s => { const P = periodos(s), db = s.perfil?.dataBase?.slice(0, 7); if (!P.includes(S.ddPer)) S.ddPer = (db && P.includes(db) ? db : P[0]) || ""; return S.ddPer; };
   const statusAlvo = s => { if (!temBal(s)) return "sem"; const L = ajustes(s, periodos(s)[0]); return L.some(a => pendFin(a) || pendVal(a)) ? "pend" : "ok"; };
   function lado(s, onPick, legenda){
     const L = targets();
@@ -400,7 +400,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
   const _aud = renderAuditoria;
   renderAuditoria = function(){
     const host = $("#auditoria"); if (!host) return;
-    const tabs = `<div class="dd-tabs" style="margin-bottom:14px">${[["geral","Visão geral"], ...AREAS, ["base","Base de auditoria"]].map(([k, l]) => `<button type="button" class="fbtn" data-ddtab="${k}" aria-pressed="${S.ddTab === k}">${l}</button>`).join("")}</div>`;
+    const tabs = `<div class="dd-tabs" style="margin-bottom:14px">${[["geral","Visão geral"], ...AREAS, ["pt","Papéis de trabalho"], ["rel","Relatório"], ["base","Base de auditoria"]].map(([k, l]) => `<button type="button" class="fbtn" data-ddtab="${k}" aria-pressed="${S.ddTab === k}">${l}</button>`).join("")}</div>`;
     const bindTabs = () => $$("[data-ddtab]", host).forEach(b => b.onclick = () => { S.ddTab = b.dataset.ddtab; renderAuditoria(); });
     if (S.ddTab === "base"){ _aud.apply(this, arguments); host.insertAdjacentHTML("afterbegin", cab("Due Diligence", "Base de auditoria", "Matriz de risco, testes, órgãos públicos e operações comerciais da plataforma.") + tabs); bindTabs(); return; }
     const s = alvoSel(), per = s ? perSel(s) : "", b = per ? s.dd.bal[per] : null, K = b ? calc(b) : null;
@@ -418,6 +418,8 @@ if (typeof MA_MODELOS !== "undefined") (() => {
         <div class="tbl"><table><thead><tr><th>Área</th><th>Consultor responsável</th><th>Automáticos</th><th>Mínimos</th><th>Ajustes</th><th></th></tr></thead><tbody>${AREAS.map(([k, l]) => { const ra = R.filter(x => x.p.area === k), mn = MINIMOS[k], feitos = mn.filter((m, i) => ["ok","achado","na"].includes(proc[k + i]?.st)).length, aa = AJ.filter(a => a.area === k);
           return `<tr><td><b>${l}</b></td><td><input data-cons="${k}" value="${esc(s.dd.cons?.[k] || "")}" placeholder="Nome e registro" aria-label="Consultor de ${l}" ${ed() ? "" : "disabled"} style="min-width:180px"></td><td>${ra.filter(x => x.r.st === "achado").length} achado(s) de ${ra.length}</td><td>${feitos} de ${mn.length}</td><td>${aa.length ? `${aa.filter(pendFin).length} aguardando OK` : "—"}</td><td><button type="button" class="btn sm" data-ddtab="${k}">Abrir</button></td></tr>`; }).join("")}</tbody></table></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn" data-goview="financas">Ver Análises financeiras</button><button type="button" class="btn" data-goview="valuation">Ver Valuation</button></div></div>`;
+    } else if (S.ddTab === "pt" || S.ddTab === "rel"){
+      h += window.KT_REL ? (S.ddTab === "pt" ? KT_REL.ddPapeisView(s, per) : KT_REL.ddRelView(s, per)) : "";
     } else {
       const area = S.ddTab, ra = R.filter(x => x.p.area === area), mn = MINIMOS[area];
       h += `<div class="card" style="display:flex;flex-direction:column;gap:6px"><div class="head" style="margin:0"><div><div class="eyebrow">Due Diligence ${esc(areaNome(area))} · ${esc(s.nome)}</div><h3>Procedimentos automáticos</h3><p class="sub" style="margin:2px 0 0">Consultor responsável: <b>${esc(s.dd.cons?.[area] || "a definir")}</b></p></div>${selPer(s, per)}</div>
@@ -437,6 +439,8 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     $$("[data-pst]", host).forEach(x => x.onchange = () => up(s, {dd:{proc:{[x.dataset.pst]:{st:x.value, por:s.dd.cons?.[x.dataset.pst.replace(/\d+$/, "")] || Store.me?.email || "", em:nowISO()}}}}));
     $$("[data-pobs]", host).forEach(x => x.onchange = () => up(s, {dd:{proc:{[x.dataset.pobs]:{obs:x.value.trim(), em:nowISO()}}}}));
     const mb = $("#dd-man", host); if (mb) mb.onclick = () => ajusteManual(s, per, S.ddTab);
+    if (window.KT_REL && S.ddTab === "pt") KT_REL.ddPapeisBind(host, s, per);
+    if (window.KT_REL && S.ddTab === "rel") KT_REL.ddRelBind(host, s, per);
     bindAjustes(host, s, AJ);
   };
   function tabAjustes(L, ctx){
@@ -548,7 +552,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     const f = $("#fvp", host); if (f) f.onsubmit = ev => { ev.preventDefault(); const v = {}; ["mMin","mMax","rMin","rMax","cresc","wacc","g","ir","capex","ncgp"].forEach(k => { const x = num($("#vp-" + k).value); if (x != null) v[k] = x; }); up(s, {dd:{val:v}}).then(() => toast("Premissas salvas")); };
   };
   function faixas(M, a, b){
-    const W = 680, H = 16 + (M.length + 1) * 30, x0 = 170, w = W - x0 - 150, mx = Math.max(...M.map(m => m[2]), b), mn0 = Math.min(...M.map(m => m[1]), a), mn = Math.max(0, mn0 - (mx - mn0) * .25), sx = v => x0 + (v - mn) / (mx - mn) * w;
+    const W = 720, H = 16 + (M.length + 1) * 30, x0 = 250, w = W - x0 - 160, mx = Math.max(...M.map(m => m[2]), b), mn0 = Math.min(...M.map(m => m[1]), a), mn = Math.max(0, mn0 - (mx - mn0) * .25), sx = v => x0 + (v - mn) / (mx - mn) * w;
     const L = [...M.map(m => [m[0], m[1], m[2], "#4FB0F5"]), ["Faixa de referência", a, b, "#F2C14E"]];
     return `<div style="overflow-x:auto"><svg class="dd-svg" viewBox="0 0 ${W} ${H}" width="100%" style="min-width:520px" role="img" aria-label="Faixas de valor por método">
       ${L.map((l, i) => { const y = 6 + i * 30; return `<text x="${x0 - 8}" y="${y + 16}" text-anchor="end" class="lb">${esc(l[0])}</text><rect x="${sx(l[1])}" y="${y + 3}" width="${Math.max(3, sx(l[2]) - sx(l[1]))}" height="18" rx="4" fill="${l[3]}" fill-opacity="${i === L.length - 1 ? .9 : .75}"/><text x="${sx(l[2]) + 8}" y="${y + 16}">${mi(l[1], 0)} a ${mi(l[2], 0)}</text>`; }).join("")}
@@ -556,6 +560,10 @@ if (typeof MA_MODELOS !== "undefined") (() => {
   }
   /* teste local já aberto em versão anterior: completa os exemplos com os balancetes de demonstração */
   setTimeout(() => { if (Store.db || !Array.isArray(window.SEED)) return;
-    window.SEED.filter(([c, id, o]) => c === "suppliers" && o.dd).forEach(([, id, o]) => { const x = Store.local?.suppliers?.[id]; if (x && !x.dd) Store.update("suppliers", id, {dd:o.dd}); }); }, 1500);
-  window.KT_DD = {calc, indic, ajustes, classifica, lerTabela, csv};
+    window.SEED.filter(([c, id, o]) => c === "suppliers" && (o.dd || o.perfil)).forEach(([, id, o]) => { const x = Store.local?.suppliers?.[id]; if (!x) return; const p = {};
+      if (o.perfil && !x.perfil) p.perfil = o.perfil;
+      if (o.dd){ const dd = {}; Object.entries(o.dd.bal || {}).forEach(([k, v]) => { if (!x.dd?.bal?.[k]) (dd.bal ||= {})[k] = v; }); if (o.dd.vl && !x.dd?.vl) dd.vl = o.dd.vl; if (!x.dd) Object.assign(dd, o.dd); if (Object.keys(dd).length) p.dd = dd; }
+      if (Object.keys(p).length) Store.update("suppliers", id, p); });
+    window.SEED.filter(([c, id]) => c === "config" && ["comparaveis","transacoes"].includes(id)).forEach(([, id, o]) => { if (!Store.local?.config?.[id]) Store.set("config", id, o); }); }, 1500);
+  window.KT_DD = {calc, indic, ajustes, classifica, lerTabela, csv, soma, okFin, okVal, pendFin, pendVal, tabAjustes, bindAjustes, lado, cab, semBal, selPer, bindComum, pick, alvoSel, periodos, temBal, targets, ponte, faixas, mi, mil, pc, xx, dias, div, norm, ed, up, C, GRUPOS, AREAS, areaNome, PROCS, MINIMOS, efeitoTxt, importar, aprovar};
 })();
