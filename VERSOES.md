@@ -1,5 +1,13 @@
 # Registro de versões
 
+## v2.5 — 2026-11-14 · M&A: base simplificada, mapa da Kinsey e risco só do target (N3)
+- Importador do mapa de M&A da Kinsey em Excel com várias abas: vendedoras viram targets (N3), compradoras viram investidores (N1), assessorias e parcerias viram intermediadores (N2); blocos comprador × vendedor viram as ligações da Órbita; temperatura, mandato, faturamento, contato, site, observações e fichas ficam na "Situação no mapa" de cada empresa
+- CNPJs das ligações conferidos na Receita pela semelhança do nome: CNPJ deslocado para a empresa vizinha é reatribuído à empresa certa, e CNPJ de outra empresa é rejeitado com aviso
+- Risco sempre do vendedor: só os targets (N3) têm matriz de risco, investigação, NDA, questionário, documentos e diligência; investidores (N1) e intermediadores (N2) ficam com cadastro simples (Dados e M&A); o target fica "Em avaliação" até haver dado real
+- Base M&A enxuta: abas Targets, Investidores, Intermediadores e Pipeline, com busca, filtros por temperatura e segmento, etapa, mandato, compradores ligados, último contato e próximo passo
+- Menu simplificado: Órbita, Base M&A, Due Diligence, Análises financeiras, Valuation, Apresentação, Jurídico e Pós-aquisição; sem Evidências e Relatório soltos no menu
+- Exemplo de demonstração reduzido ao Projeto Ipê; os dados reais do mapa não ficam no repositório nem na publicação, só no teste local entregue à Kinsey
+
 ## v2.4 — 2026-11-14 · M&A: diligência jurídica no Jurídico, globo só na tela principal
 - Diligência jurídica dentro do Jurídico (sai da Due Diligence): o Jurídico passa a ter abas — Diligência jurídica (targets, questionário numerado, contratos dos últimos 3 a 5 anos, processos e contingências, evidências, relatório, procedimentos automáticos J-01 a J-04 e ajustes jurídicos), NDAs, mandatos e modelos, Honorários, e Contratos e pareceres
 - Os ajustes jurídicos (ex.: contingências prováveis não provisionadas) continuam no fluxo de OK do consultor nas Análises financeiras e no Valuation

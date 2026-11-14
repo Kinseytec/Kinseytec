@@ -78,7 +78,7 @@ if (window.KT_DD) (() => {
   };
 
   /* ---------------- BASE M&A · pipeline ---------------- */
-  EXT_CAD.push(() => { const host = $("#cadeia"); if (!host || $("#ma-pipe", host)) return;
+  function pipeline(host){ if (!host || $("#ma-pipe", host)) return;
     const T = S.suppliers.filter(s => s.nivel === "N3"), hoje = new Date().toISOString().slice(0, 10);
     const passos = S.suppliers.flatMap(s => Object.values(s.interacoes || {}).filter(v => v && v.proximo && !v.feito).map(v => ({s, v}))).sort((a, b) => String(a.v.prazo || "9").localeCompare(b.v.prazo || "9")).slice(0, 8);
     const el = document.createElement("div"); el.id = "ma-pipe"; el.style.cssText = "display:flex;flex-direction:column;gap:14px;margin-bottom:16px";
@@ -92,6 +92,7 @@ if (window.KT_DD) (() => {
       ${passos.length ? `<div class="card" style="display:flex;flex-direction:column;gap:6px"><h3>Próximos passos</h3>${passos.map(({s, v}) => `<div style="display:flex;gap:10px;font-size:13px;border-top:1px solid var(--line);padding-top:6px"><span class="mono" style="min-width:86px;${v.prazo && v.prazo < hoje ? "color:var(--bad)" : ""}">${esc(v.prazo || "sem prazo")}</span><span><b>${esc(s.nome.replace(/^EXEMPLO /, ""))}</b> · ${esc(v.proximo)}</span></div>`).join("")}</div>` : ""}`;
     host.prepend(el); $$("[data-open]", el).forEach(b => b.onclick = () => openSupplier(b.dataset.open, "ma"));
     if (window.KT_MAPA){ const a = $("#ma-pipe-acts", el); a.innerHTML = `<button type="button" class="btn sm primary" id="mp-imp">Importar mapa M&A</button><button type="button" class="btn sm" id="mp-mod">Modelo da planilha</button>`; $("#mp-imp", a).onclick = KT_MAPA.importar; $("#mp-mod", a).onclick = KT_MAPA.modelo; }
-  });
-  window.KT_MATCH = {score, numeros};
+  }
+  EXT_CAD.push(() => pipeline($("#cadeia")));
+  window.KT_MATCH = {score, numeros, pipeline};
 })();

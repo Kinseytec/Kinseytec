@@ -36,3 +36,73 @@ if (window.KT_DD && window.KT_JDD) (() => {
     host.appendChild(box); sd.bind(box); if (s) J.bind(box, s);
   };
 })();
+
+/* ================= KINSEY CAPITAL · BASE SIMPLIFICADA =================
+   - Análise de risco e dossiê completo só para o N3 (target vendedor); N1 e N2 têm cadastro simples (Dados e M&A).
+   - Menu enxuto: Órbita, Base M&A, Due Diligence, Análises financeiras, Valuation, Apresentação, Jurídico, Pós-aquisição.
+   - Base M&A: targets vendedores, investidores e compradores, parceiros e pipeline, com temperatura do mapa da Kinsey. */
+if (window.KT_DD) (() => {
+  const D = KT_DD, {mi} = D;
+  const nrm = t => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  /* ---------- risco só do N3 ---------- */
+  RCOL.na = "#7A8699"; RISK_LABEL.na = "Sem análise de risco";
+  const st = document.createElement("style"); st.textContent = ".r-na{color:var(--muted);background:rgba(122,134,153,.12)}.tp{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;letter-spacing:.03em}.tp-quente{background:rgba(255,107,107,.15);color:#FF6B6B}.tp-morno{background:rgba(242,193,78,.15);color:#F2C14E}.tp-frio{background:rgba(79,176,245,.15);color:#4FB0F5}.tp-declinada{background:rgba(122,134,153,.15);color:#93A3BC}.mb-row{cursor:pointer}.mb-row:hover td{background:rgba(79,176,245,.06)}"; document.head.appendChild(st);
+  /* N3 só sai de "Em avaliação" quando há dado real (respostas, documentos, NDA, Receita, investigação respondida, balancete ou diligência jurídica) */
+  const temDado = s => answersCount(s).done > 0 || S.evidences.some(e => e.supplierId === s.id) || s.nda?.aceito || (s.receita && !s.receita.erro) || Object.values(s.invest || {}).some(v => v && ["sim","nao"].includes(v.v)) || D.temBal(s) || Object.keys(s.jdd?.q || {}).length > 0;
+  const _risk = riskOf; riskOf = function(s){ if (s && s.nivel !== "N3") return {score:0, level:"na", auto:"na", manual:null, reasons:[]}; const r = _risk.apply(this, arguments); return !r.manual && !temDado(s) ? {...r, level:"pend", auto:"pend"} : r; };
+  EXT_TARGET.push((s, el) => { if (s.nivel === "N3") return; el.querySelectorAll(".why, .side .pill").forEach(x => x.remove()); });
+  /* ---------- dossiê: N3 completo, N1 e N2 simples ---------- */
+  const COMPLETO = TABS.filter(t => !["insp","testes","ops"].includes(t[0])), SIMPLES = TABS.filter(t => ["dados","ma"].includes(t[0]));
+  const _open = openSupplier; openSupplier = function(id, tab){ const s = supById(id); const L = s?.nivel === "N3" ? COMPLETO : SIMPLES; TABS.splice(0, TABS.length, ...L);
+    if (!L.some(t => t[0] === (tab || S.supTab))) tab = "ma"; return _open.call(this, id, tab); };
+  /* ---------- menu enxuto ---------- */
+  const enxuga = () => { ["evidencias","relatorio"].forEach(v => { const b = $(`nav.tabs [data-go="${v}"]`); if (b) b.hidden = true; }); ["#kim-tour","#rpt-top"].forEach(q => { const b = $(q); if (b){ b.hidden = true; b.style.display = "none"; } });
+    const nav = $("nav.tabs"), pos = $('[data-go="pos"]', nav), jur = $('[data-go="juridico"]', nav); if (nav && pos && jur) jur.after(pos); };
+  enxuga(); setTimeout(enxuga, 0);
+  /* ---------- Base M&A ---------- */
+  const TEMPS = ["Quente","Morno","Frio","Declinada"], tp = t => t ? `<span class="tp tp-${nrm(t).split(" ")[0]}">${esc(t)}</span>` : "";
+  const etapaNome = k => (MA_FUNIL.find(f => f[0] === k) || [k, k || "—"])[1];
+  const ult = s => { const I = Object.values(s.interacoes || {}).filter(Boolean); const u = I.filter(i => i.data).sort((a, b) => String(b.data).localeCompare(a.data))[0], p = I.find(i => i.proximo && !i.feito); return {u, p}; };
+  S.mbTab = S.mbTab || "N3"; S.mbF = S.mbF || {q:"", t:"", seg:""};
+  renderCadeia = function(){
+    const host = $("#cadeia"); if (!host) return; const all = S.suppliers, F = S.mbF, N3 = all.filter(s => s.nivel === "N3"), N1 = all.filter(s => s.nivel === "N1"), N2 = all.filter(s => s.nivel === "N2");
+    const temp = s => s.mapa?.temperatura || (s.etapa === "descartada" ? "Declinada" : "");
+    const filtra = L => L.filter(s => (!F.q || nrm([s.nome, s.segmento, s.mapa?.segmentoTxt, s.tese?.texto, s.municipio, s.uf, s.doc].join(" ")).includes(nrm(F.q))) && (!F.t || temp(s) === F.t) && (!F.seg || s.segmento === F.seg || s.perfil?.segmento === F.seg));
+    const ativos = N3.filter(s => s.etapa !== "descartada"), segs = [...new Set(all.map(s => s.perfil?.segmento || s.segmento).filter(Boolean))].sort();
+    const k = (l, v, sm) => `<div class="dd-k"><span>${l}</span><b>${v}</b>${sm ? `<small>${sm}</small>` : ""}</div>`;
+    let corpo = "";
+    if (S.mbTab === "N3"){ const L = filtra(N3).sort((a, b) => TEMPS.indexOf(temp(a) || "Frio") - TEMPS.indexOf(temp(b) || "Frio") || (b.fin?.receita || 0) - (a.fin?.receita || 0));
+      corpo = `<div class="tbl"><table><thead><tr><th>Target vendedor</th><th>Local</th><th class="dd-num">Faturamento</th><th>Temperatura</th><th>Etapa · mandato</th><th>Compradores ligados</th><th>Último contato · próximo passo</th><th>Risco</th></tr></thead><tbody>${L.map(s => { const {u, p} = ult(s), inv = (s.investidores || []).map(supById).filter(Boolean), r = riskOf(s);
+        return `<tr class="mb-row" data-mb="${s.id}"><td style="min-width:200px"><b>${esc(s.mandato?.codinome ? s.mandato.codinome + " · " : "")}${esc(s.nome)}</b><div class="sub" style="margin:0;font-size:11.5px">${esc(s.mapa?.segmentoTxt || s.segmento || "")}${s.doc ? " · " + esc(s.doc) : ""}</div></td><td>${esc([s.municipio, s.uf].filter(Boolean).join("/"))}</td>
+          <td class="dd-num">${s.fin?.receita ? mi(s.fin.receita * 1e6, 1) : esc(s.mapa?.fat || "—")}</td><td>${tp(temp(s))}</td><td style="font-size:12px">${esc(etapaNome(s.etapa))}${s.mandato?.status ? `<div class="sub" style="margin:0;font-size:11px">mandato ${esc({assinado:"assinado", negociacao:"em negociação", encerrado:"encerrado", minuta:"em minuta", enviado:"enviado"}[s.mandato.status] || s.mandato.status)}</div>` : ""}${s.etapa === "descartada" && s.motivoDescarte ? `<div class="sub" style="margin:0;font-size:11px">${esc(s.motivoDescarte.slice(0, 60))}</div>` : ""}</td>
+          <td style="font-size:12px;max-width:220px">${inv.length ? esc(inv.map(v => v.nome).slice(0, 3).join(", ")) + (inv.length > 3 ? ` +${inv.length - 3}` : "") : `<span class="sub">—</span>`}</td>
+          <td style="font-size:12px">${u ? esc(u.data) : ""}${p ? `<div class="sub" style="margin:0;font-size:11px">${esc(p.proximo.slice(0, 60))}</div>` : ""}</td><td><span class="pill r-${r.level}" style="font-size:10px">${RISK_LABEL[r.level]}</span></td></tr>`; }).join("")}</tbody></table></div>`; }
+    else if (S.mbTab === "N1"){ const L = filtra(N1).sort((a, b) => TEMPS.indexOf(temp(a) || "Frio") - TEMPS.indexOf(temp(b) || "Frio") || a.nome.localeCompare(b.nome, "pt"));
+      corpo = `<div class="tbl"><table><thead><tr><th>Investidor ou comprador</th><th>Tipo</th><th>Tese</th><th>Local</th><th>Temperatura</th><th>Targets ligados</th><th>Contato</th></tr></thead><tbody>${L.map(s => { const T = N3.filter(t => (t.investidores || []).includes(s.id));
+        return `<tr class="mb-row" data-mb="${s.id}"><td style="min-width:180px"><b>${esc(s.nome)}</b>${s.doc ? `<div class="sub mono" style="margin:0;font-size:11px">${esc(s.doc)}</div>` : ""}</td><td style="font-size:12px">${esc(s.tipo || "")}</td><td style="font-size:12px;max-width:260px">${esc((s.tese?.texto || (s.tese?.segmentos || []).join(", ")).slice(0, 110))}</td>
+          <td>${esc([s.municipio, s.uf || s.pais].filter(Boolean).join("/"))}</td><td>${tp(temp(s))}</td><td style="font-size:12px;max-width:220px">${T.length ? esc(T.map(t => t.mandato?.codinome || t.nome).slice(0, 3).join(", ")) + (T.length > 3 ? ` +${T.length - 3}` : "") : `<span class="sub">—</span>`}</td><td style="font-size:11.5px;max-width:200px;overflow-wrap:anywhere">${esc((s.mapa?.contato || s.contato || "").slice(0, 70))}</td></tr>`; }).join("")}</tbody></table></div>`; }
+    else if (S.mbTab === "N2") corpo = `<div class="tbl"><table><thead><tr><th>Intermediador ou parceiro</th><th>Tipo</th><th>Acordo</th><th>Targets trazidos</th></tr></thead><tbody>${filtra(N2).map(s => { const T = N3.filter(t => t.parentId === s.id);
+        return `<tr class="mb-row" data-mb="${s.id}"><td><b>${esc(s.nome)}</b></td><td>${esc(s.tipo || "")}</td><td style="font-size:12px">${esc(s.acordo?.status || "—")}${s.acordo?.fee ? " · " + esc(s.acordo.fee) : ""}</td><td style="font-size:12px">${T.length} · ${esc(T.filter(t => t.etapa !== "descartada").map(t => t.nome).slice(0, 4).join(", "))}</td></tr>`; }).join("")}</tbody></table></div>`;
+    host.innerHTML = `<div class="head"><div><div class="eyebrow">Kinsey Capital · M&A</div><h2>Base M&A</h2><p class="sub">Targets vendedores (N3), investidores e compradores (N1) e a Kinsey com os parceiros (N2). A análise de risco, a due diligence e o valuation são sempre do target vendedor.</p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn primary" id="mb-imp">Importar mapa M&A</button><button type="button" class="btn" id="mb-nova">Nova empresa</button></div></div>
+      <div class="dd-kpis" style="margin-bottom:14px">${k("Targets ativos", ativos.length, `${N3.length - ativos.length} declinados`)}${TEMPS.slice(0, 3).map(t => k(t, ativos.filter(s => temp(s) === t).length, "targets")).join("")}${k("Mandatos assinados", N3.filter(s => s.mandato?.status === "assinado").length)}${k("Investidores e compradores", N1.length)}${k("Kinsey e parceiros", N2.length)}</div>
+      <div class="dd-tabs" style="margin-bottom:10px">${[["N3",`Targets vendedores · ${N3.length}`],["N1",`Investidores e compradores · ${N1.length}`],["N2",`Kinsey e parceiros · ${N2.length}`],["pipe","Pipeline"]].map(([v, l]) => `<button type="button" class="fbtn" data-mbt="${v}" aria-pressed="${S.mbTab === v}">${l}</button>`).join("")}</div>
+      ${S.mbTab === "pipe" ? `<div id="mb-pipe"></div>` : `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px"><input id="mb-q" placeholder="Buscar por nome, segmento, cidade ou CNPJ" value="${esc(F.q)}" style="flex:1 1 240px;min-width:0" aria-label="Buscar">
+        ${["", ...TEMPS].map(t => `<button type="button" class="fbtn" data-mbtp="${t}" aria-pressed="${F.t === t}">${t || "Todas"}</button>`).join("")}<select id="mb-seg" aria-label="Segmento"><option value="">Todos os segmentos</option>${segs.map(x => `<option ${x === F.seg ? "selected" : ""}>${esc(x)}</option>`).join("")}</select></div>${corpo}`}`;
+    $$("[data-mbt]", host).forEach(b => b.onclick = () => { S.mbTab = b.dataset.mbt; renderCadeia(); });
+    $$("[data-mbtp]", host).forEach(b => b.onclick = () => { F.t = b.dataset.mbtp; renderCadeia(); });
+    const q = $("#mb-q", host); if (q) q.oninput = () => { F.q = q.value; clearTimeout(S.mbT); S.mbT = setTimeout(() => { renderCadeia(); const n = $("#mb-q"); if (n){ n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }, 250); };
+    const sg = $("#mb-seg", host); if (sg) sg.onchange = () => { F.seg = sg.value; renderCadeia(); };
+    $$("[data-mb]", host).forEach(r => r.onclick = () => openSupplier(r.dataset.mb, "ma"));
+    $("#mb-imp", host).onclick = () => window.KT_MAPA ? KT_MAPA.importar() : toast("Importador indisponível.");
+    $("#mb-nova", host).onclick = () => openSupplierForm();
+    if (S.mbTab === "pipe" && window.KT_MATCH?.pipeline) KT_MATCH.pipeline($("#mb-pipe", host));
+  };
+  /* ---------- dossiê · aba M&A: dados do mapa da Kinsey ---------- */
+  const _tab = EXT_TABS.ma;
+  if (_tab) EXT_TABS.ma = (s, b, r) => { _tab(s, b, r); const m = s.mapa; if (!m) return; const el = document.createElement("div"); el.className = "card"; el.style.cssText = "display:flex;flex-direction:column;gap:6px";
+    el.innerHTML = `<div class="head" style="margin:0"><div><div class="eyebrow">Mapa M&A Kinsey · aba ${esc(m.aba || "")}</div><h3>Situação no mapa</h3></div>${tp(m.temperatura)}</div>
+      <dl class="kv">${[["Segmento", m.segmentoTxt], ["Faturamento", m.fat], ["Mandato", m.mandato], ["Contato", m.contato], ["Celular", m.telefone], ["Site", m.site], ["Razão social no mapa", m.razao], ["Observações", m.obs], ["CNPJ do link", m.cnpjLink], ["Conferência do CNPJ", m.avisoCnpj]].filter(x => x[1]).map(([a, v]) => `<dt>${a}</dt><dd style="overflow-wrap:anywhere">${esc(v)}</dd>`).join("")}</dl>
+      ${m.ficha ? `<details><summary class="sub">Ficha (anotações)</summary><p style="white-space:pre-wrap;font-size:13px;margin:6px 0 0">${esc(m.ficha)}</p></details>` : ""}`;
+    b.firstElementChild.insertBefore(el, b.firstElementChild.children[1] || null); };
+})();

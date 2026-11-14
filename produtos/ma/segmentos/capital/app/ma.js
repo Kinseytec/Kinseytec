@@ -18,7 +18,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
 
   /* ---------------- ÓRBITA ---------------- */
   S.orbCor = "nivel";
-  window.ORB_COR = s => S.orbCor === "risco" ? null : (s.etapa === "descartada" ? CINZA : LVC[s.nivel]);
+  window.ORB_COR = s => S.orbCor === "risco" && s.nivel === "N3" ? null : (s.etapa === "descartada" ? CINZA : LVC[s.nivel]);
   const lvlUi = () => {
     const g = $(".lvl"); if (!g || g.dataset.ma) return; g.dataset.ma = "1";
     const st = document.createElement("style"); st.textContent = ".lvl button{width:auto;white-space:nowrap;display:flex;flex-direction:row;align-items:center;gap:6px;justify-content:flex-start}#ma-cor{opacity:1}"; document.head.appendChild(st);

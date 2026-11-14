@@ -124,10 +124,11 @@ Matriz provável/possível/remota com valores → impacto no preço (ajuste, esc
 | v2.1 ✔ | Due Diligence (contábil, financeira, trabalhista, tributária), Análises financeiras e Valuation com mini globos e dupla aprovação dos ajustes pelo consultor |
 | v2.2 ✔ | Valuation comparativo (FCD com histórico e cenários, múltiplos CVM/B3, transações), apresentação pré/pós-NDA, análise pró-vendedor de contratos, PPA e modelos, relatórios de DD, valuation e teaser, funções de mercado |
 | v2.3 ✔ | Diligência jurídica, honorários dos mandatos, matching, buy-side, interações, pipeline e importação do mapa M&A com CNPJ |
-| v2.4 | Estruturação societária no dossiê (organograma antes/depois), Q&A do data room e trilha de acesso, regras do Firebase por mandato |
-| v2.5 | Relatórios (teaser, dossiê, diligência, pipeline, oportunidades) |
-| v2.6 | Portal (data room, NDA) e regras do Firebase para sigilo entre investidores |
-| v2.7 | Publicação no projeto `kinsey-capital-ma` |
+| v2.4 ✔ | Diligência jurídica dentro do Jurídico; globo só na Órbita ligando N1 → N2 → N3; emblema nas pastas de análise |
+| v2.5 ✔ | Base simplificada; importador do mapa Excel da Kinsey (vendedoras, compradoras, parcerias, ligações, fichas, CNPJs conferidos); risco e dossiê completo só do target (N3) |
+| v2.6 | Estruturação societária no dossiê (organograma antes/depois), Q&A do data room e trilha de acesso |
+| v2.7 | Portal (data room, NDA) e regras do Firebase para sigilo entre investidores e por mandato |
+| v2.8 | Publicação no projeto `kinsey-capital-ma` |
 
 ## 11. Pontos para decidir com a Kinsey
 
