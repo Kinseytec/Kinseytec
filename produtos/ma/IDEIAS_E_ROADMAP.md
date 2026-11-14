@@ -11,7 +11,7 @@ Base: plataforma KinseyTec v1.9.11 (núcleo comum) + segmento `produtos/ma/segme
 | Nome e níveis | "Kinsey Capital – M&A", N1 Investidores · N2 Intermediadores · N3 Targets (apenas nos textos trocados) |
 | Conteúdo do segmento | Ainda é Cobre e Metal: questionário, documentos, riscos, cotações (Cobre/Alumínio/Ferroso), 12 exemplos de recicladoras e ferros-velhos |
 | Textos remanescentes | "KINSEYTEC – COBRE E METAL · ÓRBITA", "Análise prévia do fornecedor", "Origem e risco", aba Cotações, "Tour com a Kim" falando de cadeia |
-| Órbita na versão local (`kinseytec.html`) | Não desenha o globo; erro de JavaScript `Cannot read properties of undefined (reading 'slice')` na abertura — investigar antes da v2.0 |
+| Órbita na versão local (`kinseytec.html`) | Funciona. O erro visto na análise inicial vinha só do ambiente de teste sem acesso ao CDN das bibliotecas; desde a v2.0 a tela não trava se o globo não carregar |
 | Regras do Firebase | Isolamento por **cliente** (`clienteId`). Não existe isolamento por **investidor** nem por **mandato** — é a principal lacuna de sigilo |
 | Projeto Firebase | `kinsey-capital-ma` (precisa ser criado no console pela Kinsey) |
 
@@ -117,7 +117,7 @@ Matriz provável/possível/remota com valores → impacto no preço (ajuste, esc
 
 | Versão | Entrega |
 |---|---|
-| v2.0 | Corrigir erro da órbita local; trocar todos os textos de cadeia/cobre por M&A; remover cotações de metal (ou trocar por indicadores: Selic, IPCA, dólar, Ibovespa); seed com 5 investidores, 2 intermediadores, 8 targets, 2 mandatos |
+| v2.0 ✔ | Globo mundial (investidores, intermediadores/parceiros, targets); conteúdo M&A; indicadores de mercado; exemplos; Jurídico com modelos Kinsey provisórios (NDA, mandatos, originação), aba M&A no dossiê com funil e mandato. Falta: textos restantes "fornecedor" nas telas de Cadeia, Auditoria e consulta rápida |
 | v2.1 | Tese do investidor, financeiros do target, importação por planilha |
 | v2.2 | Funil do target e mandatos com teaser anônimo e NDA por mandato |
 | v2.3 | Matching com pontuação explicada |

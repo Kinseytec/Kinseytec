@@ -653,7 +653,7 @@ const OPS = (() => {
   });
 
   /* ---------- exemplos de demonstração (marcados EXEMPLO) ---------- */
-  if (Array.isArray(window.SEED)){
+  if (Array.isArray(window.SEED) && !window.OPS_SEM_DEMO){  /* o segmento pode dispensar os exemplos de notas (ex.: M&A) */
     const sups = window.SEED.filter(([c]) => c === "suppliers").map(([, id, b]) => ({id, ...b}));
     const A1 = sups.filter(s => s.nivel === "N1")[0], B1 = sups.filter(s => s.nivel === "N1")[1], C2 = sups.find(s => s.nivel === "N2");
     if (A1 && B1){

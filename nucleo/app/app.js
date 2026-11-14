@@ -41,7 +41,7 @@ const PORTAL_URL = location.origin + "/portal.html";
 const APP_URL = location.origin;
 const COLS = ["suppliers","evidences","contracts","pareceres","config","operacoes"];
 /* Extensões por segmento (ex.: cadeia do cobre): abas extras no dossiê, riscos extras e quadros na Auditoria */
-const EXT_TABS = {}, EXT_RISKS = [], EXT_AUD = [], EXT_QUEST = [], EXT_DOCS = [], EXT_TOUCH = [], EXT_VIEWS = {}, EXT_EVID = [], EXT_JUR = [], EXT_INV = [], EXT_EVVIEW = [], EXT_CAD = [];
+const EXT_TABS = {}, EXT_RISKS = [], EXT_AUD = [], EXT_QUEST = [], EXT_DOCS = [], EXT_TOUCH = [], EXT_VIEWS = {}, EXT_EVID = [], EXT_JUR = [], EXT_INV = [], EXT_EVVIEW = [], EXT_CAD = [], EXT_ORB = [], EXT_TARGET = [];
 const LV_NOME = Object.fromEntries(["N1","N2","N3"].map(l => [l, l==="N1"?"Traders":l==="N2"?"Fornecedores":"Produtores"]));
 const Store = {
   mode:"local", db:null, assets:null, user:null, sample:null, me:{id:null, canEdit:true, canWrite:true},
@@ -167,7 +167,7 @@ function initGlobe(){
   G.canvas = $("#globe"); G.ctx = G.canvas.getContext("2d");
   G.proj = d3.geoOrthographic().clipAngle(90).precision(.4);
   G.path = d3.geoPath(G.proj, G.ctx);
-  G.rot = [52, 12, 0]; G.k = 1; G.t0 = performance.now();
+  const H0 = window.ORB_HOME || [-52, -12, 1]; G.rot = [-H0[0], -H0[1], 0]; G.k = H0[2]; G.t0 = performance.now();
   G.reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   let seed = 7; const rnd = () => (seed = (seed*16807) % 2147483647) / 2147483647;
   G.stars = Array.from({length:240}, () => ({x:rnd(), y:rnd(), r:rnd()*1.2+.2, a:rnd()*.6+.2, p:rnd()*6}));
@@ -195,7 +195,7 @@ function bindGlobe(){
   G.canvas.addEventListener("wheel", e => { e.preventDefault(); G.anim = null; G.k = clampK(G.k * Math.exp(-e.deltaY*.0016)); G.dirty = true; }, {passive:false});
   $("#z-in").onclick = () => flyTo(null, null, G.k*2);
   $("#z-out").onclick = () => flyTo(null, null, G.k/2);
-  $("#z-home").onclick = () => { selectSup(null); flyTo(-50, -12, 1); };
+  $("#z-home").onclick = () => { selectSup(null); flyTo(...(window.ORB_HOME || [-50, -12, 1])); };
   $$(".lvl button").forEach(b => b.onclick = () => { S.lv[b.dataset.lv] = !S.lv[b.dataset.lv]; b.setAttribute("aria-pressed", S.lv[b.dataset.lv]); G.dirty = true; renderStrip(); });
 }
 const clampK = k => Math.max(.7, Math.min(70, k));
@@ -206,6 +206,7 @@ function tapAt(e){
   if (best) selectSup(best.id, true);
 }
 function flyTo(lng, lat, k, dur=1500){
+  if (!G.proj || !G.rot) return;
   const r0 = G.rot.slice(), k0 = G.k;
   const r1 = lng == null ? r0 : [-lng, -lat, 0];
   while (r1[0] - r0[0] > 180) r1[0] -= 360; while (r1[0] - r0[0] < -180) r1[0] += 360;
@@ -269,12 +270,13 @@ function draw(now){
     });
     ctx.setLineDash([]);
   }
+  EXT_ORB.forEach(f => { try{ f(ctx, now, list); }catch(e){} });
   // cliente contratante
   G.hits = [];
   const CL = CLI(); if (visible(CL.lng, CL.lat)){ const p = G.proj([CL.lng, CL.lat]); ctx.strokeStyle = "#E6E8EC"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(p[0], p[1], 7, 0, 7); ctx.stroke(); ctx.fillStyle = "#E6E8EC"; ctx.beginPath(); ctx.arc(p[0], p[1], 2.5, 0, 7); ctx.fill(); if (G.k > 2.5){ ctx.font = "500 10px 'IBM Plex Mono', monospace"; ctx.textAlign = "left"; ctx.fillText(`${CL.nome} · ${CL.local}`.toUpperCase().slice(0,40), p[0]+11, p[1]+3); } }
   // pinos
   list.forEach(s => {
-    if (!visible(s.lng, s.lat)) return; const [x, y] = G.proj([s.lng, s.lat]); const r = riskOf(s), col = RCOL[r.level], sz = s.nivel==="N1" ? 7 : s.nivel==="N2" ? 5.5 : 4.5;
+    if (!visible(s.lng, s.lat)) return; const [x, y] = G.proj([s.lng, s.lat]); const r = riskOf(s), col = (window.ORB_COR && window.ORB_COR(s)) || RCOL[r.level], sz = s.nivel==="N1" ? 7 : s.nivel==="N2" ? 5.5 : 4.5;
     ctx.save(); ctx.shadowColor = col; ctx.shadowBlur = 12; ctx.fillStyle = col; ctx.strokeStyle = "#000a1c"; ctx.lineWidth = 1.2; ctx.beginPath();
     if (s.nivel==="N1"){ ctx.moveTo(x, y-sz); ctx.lineTo(x+sz, y); ctx.lineTo(x, y+sz); ctx.lineTo(x-sz, y); ctx.closePath(); }
     else if (s.nivel==="N2") ctx.rect(x-sz, y-sz, sz*2, sz*2); else ctx.arc(x, y, sz, 0, 7);
@@ -314,7 +316,7 @@ function renderStrip(){
   const list = S.suppliers.filter(s => S.lv[s.nivel]).sort((a,b) => a.nivel.localeCompare(b.nivel) || (a.nome||"").localeCompare(b.nome||""));
   $("#h-n").textContent = S.suppliers.length;
   $("#h-hi").textContent = S.suppliers.filter(s => riskOf(s).level==="alto").length;
-  $("#strip").innerHTML = list.length ? list.map(s => { const r = riskOf(s); return `<button type="button" class="chip" data-sel="${s.id}" aria-pressed="${S.sel===s.id}"><span style="color:${RCOL[r.level]}">${s.nivel==="N1"?"◆":s.nivel==="N2"?"■":"●"}</span>${esc((s.nome||"").slice(0,30))}<span class="lv">${esc(s.uf||"")}</span></button>`; }).join("")
+  $("#strip").innerHTML = list.length ? list.map(s => { const r = riskOf(s); return `<button type="button" class="chip" data-sel="${s.id}" aria-pressed="${S.sel===s.id}"><span style="color:${RCOL[r.level]}">${s.nivel==="N1"?"◆":s.nivel==="N2"?"■":"●"}</span>${esc((s.nome||"").slice(0,30))}<span class="lv">${esc(s.uf||s.pais||"")}</span></button>`; }).join("")
     : `<button type="button" class="chip" data-go-to="cadeia">+ Cadastrar o primeiro fornecedor</button>`;
   $$("#strip [data-sel]").forEach(b => b.onclick = () => selectSup(b.dataset.sel, true));
   $$("#strip [data-go-to]").forEach(b => b.onclick = () => { go("cadeia"); openSupplierForm(); });
@@ -327,7 +329,7 @@ function renderTarget(){
   el.hidden = false;
   el.innerHTML = `
     <div style="min-width:0">
-      <div class="loc">Brasil · ${esc(s.uf||"—")} · ${esc(s.municipio||"—")}</div>
+      <div class="loc">${esc(s.pais||"Brasil")} · ${esc(s.uf||"—")} · ${esc(s.municipio||"—")}</div>
       <h3>${esc(s.nome)}</h3>
       <div class="coords">${s.lat!=null ? `${dms(s.lat,"N","S")} ${dms(s.lng,"L","O")}` : "sem coordenadas"} · ${esc(s.tipo||s.nivel)}${par ? ` · fornece a ${esc(par.nome)}` : s.nivel==="N1" ? " · fornece ao cliente" : ""}</div>
     </div>
@@ -341,6 +343,7 @@ function renderTarget(){
   el.querySelector("[data-open]").onclick = () => openSupplier(s.id);
   el.querySelector("[data-close-target]").onclick = () => selectSup(null);
   $$("[data-lb]", el).forEach(i => i.onclick = () => lightbox(i.dataset.lb));
+  EXT_TARGET.forEach(f => f(s, el));
 }
 function lightbox(url){ const d = document.createElement("div"); d.className = "lightbox"; d.innerHTML = `<img src="${esc(url)}" alt="Evidência">`; d.onclick = () => d.remove(); document.body.appendChild(d); }
 

@@ -1,5 +1,15 @@
 # Registro de versões
 
+## v2.0 — 2026-11-14 · Kinsey Capital – M&A (primeira versão do produto)
+- Órbita mundial do M&A: investidores (N1, inclusive no exterior), intermediadores e parceiros (N2, com a Kinsey Capital) e targets (N3, empresas com potencial de venda); cores por nível (alternável para risco), targets descartados em cinza; ligações target → intermediador → Kinsey e target → investidores indicados (em destaque ao selecionar); país no cartão e na lista; visão inicial com Américas e Europa
+- Cartão da órbita com o resumo M&A: etapa do funil, segmento, receita e EBITDA, mandato e investidores indicados (target); tese, ticket e oportunidades (investidor); acordo e targets originados (parceiro)
+- Dossiê · aba M&A: tese do investidor e oportunidades (nome do target protegido até o NDA do mandato); acordo de originação do parceiro; funil do target com motivo de descarte, financeiros (margem e dívida líquida/EBITDA), intermediador, mandato (nome-código sugerido, exclusividade, prazo, retainer, success fee) e acesso de cada investidor ao mandato (teaser, NDA, data room, IOI, LOI, declinou)
+- Jurídico · Modelos padronizados Kinsey: NDA geral, NDA do mandato, mandato de venda (sell-side), mandato de compra (buy-side) e acordo de originação; textos provisórios até o Jurídico incluir o oficial pelo próprio sistema (versão registrada, volta ao provisório quando quiser); o NDA oficial passa a valer no aceite do dossiê
+- Jurídico · NDAs, mandatos e acordos por empresa, com "Gerar": documento preenchido com os dados do cadastro e do mandato, para copiar ou baixar em PDF (marcado como provisório enquanto não houver o oficial)
+- Conteúdo M&A: questionário (tese e KYC do investidor, acordo do parceiro, societário, financeiro, fiscal, trabalhista, ambiental e contratos do target), checklist do data room, investigação (CEIS/CNEP, sanções, recuperação judicial, contingências), cláusulas de SPA, tipos de contrato (LOI, SPA, acordo de investimento e de sócios, mandato), indicadores de mercado (Selic, IPCA, dólar, Ibovespa) no lugar das cotações
+- Exemplos fictícios: 6 investidores (São Paulo, Belo Horizonte, Porto Alegre, Nova York, Londres e Madri), 4 intermediadores e parceiros (Kinsey Capital, Recife, Curitiba e Lisboa), 8 targets e 2 mandatos (Projeto Ipê e Projeto Aroeira)
+- Núcleo: pontos de extensão da órbita (ORB_HOME, ORB_COR, EXT_ORB, EXT_TARGET), país da empresa, órbita não trava a tela se as bibliotecas do globo não carregarem, segmento pode dispensar os exemplos de notas fiscais (OPS_SEM_DEMO) e construção inclui `app/ma.js` quando o segmento tiver
+
 ## v1.9.11 — 2026-11-13
 - Botão "Relatório de pontos" do topo funciona com qualquer ficha aberta e abre um menu: relatório geral (PDF, todos os fornecedores), resumido e completo do fornecedor aberto ou selecionado, análise prévia/WhatsApp e tela Relatório
 - Relatório por fornecedor em duas versões, com os mesmos pontos da base: resumido (1 página: risco, situação da análise, andamento, principais pontos com recomendação e revisões) e completo; disponíveis na consulta rápida (celular e computador), na tela Relatório, no dossiê e no menu do topo
