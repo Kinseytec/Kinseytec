@@ -79,7 +79,7 @@ if (window.KT_DD) (() => {
       sh.push({x:.6, y, w:3.7, h:st, al:"r", v:"ctr", p:[{t:T(r[0]), s:11, b:last, c:"011F4B"}]}, {x:sx(r[1]), y:y + st * .2, w:Math.max(.05, sx(r[2]) - sx(r[1])), h:st * .6, f:c, round:true}, {x:sx(r[2]) + .1, y, w:2.4, h:st, v:"ctr", p:[{t:T(`${mi(r[1], 0)} a ${mi(r[2], 0)}`), s:10, c:"5A6578"}]}); }); }
 
   /* ---------------- DUE DILIGENCE · papéis de trabalho ---------------- */
-  const LETRA = {contabil:"C", financeira:"F", trabalhista:"T", tributaria:"X"};
+  const LETRA = {contabil:"C", financeira:"F", trabalhista:"T", tributaria:"X", juridica:"J"};
   function papeis(s, per){
     const b = s.dd?.bal?.[per]; if (!b) return []; const K = D.calc(b), out = [], proc = s.dd.proc || {}, pt = s.dd.pt || {};
     D.AREAS.forEach(([a, nome]) => { let i = 0;
@@ -144,7 +144,7 @@ if (window.KT_DD) (() => {
     tab(P, ["", "Reportado", "Ajustado"], [["Receita líquida", mi(K.recLiq), mi(K.recLiq)], ["EBITDA", mi(K.ebitda), mi(I.ebitda)], ["Margem EBITDA", pc(I0.mEbitda), pc(I.mEbitda)], ["Lucro líquido", mi(K.ll), mi(I.ll)], ["Patrimônio líquido", mi(K.PL), mi(I.pl)], ["Dívida líquida", mi(K.dl), mi(I.dl)], ["Capital de giro (NCG)", mi(K.ncg), mi(I.ncg)], ["Liquidez corrente", xx(I0.lc, 2), xx(I.lc, 2)], ["Endividamento geral", pc(I0.endiv), pc(I.endiv)], ["Ciclo de caixa", fmt(K.ciclo, 0) + " dias", fmt(K.ciclo, 0) + " dias"]], [.5, .25, .25]);
     D.AREAS.forEach(([a, nome], i) => { sec(P, 4 + i, "Due Diligence " + nome); P.para(T(`Consultor responsável: ${s.dd.cons?.[a] || "a definir"}`), {size:9, color:MUT});
       tab(P, ["Código", "Procedimento", "Resultado"], L.filter(p => p.area === a && p.tipo !== "Ajuste").map(p => [p.cod, p.titulo, `${ST[p.st]?.[0] || p.st}: ${p.resultado}`]), [.12, .33, .55]); });
-    sec(P, 8, "Conclusão"); par(P, `A Due Diligence ${prelim ? "está em andamento: este relatório é preliminar" : "foi concluída nos procedimentos previstos"}. Os ajustes com OK do consultor foram incorporados às Análises financeiras${AJ.some(D.okVal) ? " e ao valuation" : ""}. Os papéis de trabalho que suportam cada ponto estão disponíveis em documento separado.`);
+    sec(P, 4 + D.AREAS.length, "Conclusão"); par(P, `A Due Diligence ${prelim ? "está em andamento: este relatório é preliminar" : "foi concluída nos procedimentos previstos"}. Os ajustes com OK do consultor foram incorporados às Análises financeiras${AJ.some(D.okVal) ? " e ao valuation" : ""}. Os papéis de trabalho que suportam cada ponto estão disponíveis em documento separado.`);
     P.y += 30; Object.entries(s.dd.cons || {}).filter(([, v]) => v).forEach(([a, v]) => { P.ensure(40); P.line(P.M, P.y + 20, P.M + 220, P.y + 20, NAVY, .6); P.text(P.M, P.y + 32, T(`${v} · ${D.areaNome(a)}`), 8.5, false, MUT); P.y += 46; });
     await rptSave(P.out(`Due Diligence · ${s.nome}`, T(`Kinsey Capital · Relatório de Due Diligence · ${s.nome} · ${b.dataBase} · confidencial`)), arq(s, "due_diligence", "pdf"), "application/pdf");
   }

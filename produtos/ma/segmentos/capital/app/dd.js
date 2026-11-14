@@ -5,7 +5,7 @@
    → OK do consultor no Valuation. Nenhum ajuste muda indicador ou valuation sem o OK correspondente.
    Dados no próprio target: s.dd = {bal:{periodo:{...}}, aj:{id:{...}}, proc:{id:{...}}, cons:{area:nome}, val:{...}} */
 if (typeof MA_MODELOS !== "undefined") (() => {
-  const AREAS = [["contabil","Contábil"],["financeira","Financeira"],["trabalhista","Trabalhista"],["tributaria","Tributária"]];
+  const AREAS = [["contabil","Contábil"],["financeira","Financeira"],["trabalhista","Trabalhista"],["tributaria","Tributária"],["juridica","Jurídica"]];
   const areaNome = k => (AREAS.find(a => a[0] === k) || [k, k])[1];
   const EF = [["ebitda","EBITDA"],["divida","Dívida líquida"],["ncg","Capital de giro"],["pl","Patrimônio líquido"],["lucro","Lucro líquido"]];
   const mi = (v, d = 1) => v == null || !isFinite(v) ? "—" : (v < 0 ? "−" : "") + "R$ " + fmt(Math.abs(v) / 1e6, d) + " mi";
@@ -227,6 +227,13 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     {id:"x_cont", area:"tributaria", t:"Contingências fiscais", n:"CPC 25", f:(K, b, s) => (s.invest?.proc_trib?.v === "sim" || s.invest?.divida?.v === "sim") ? {st:"achado", txt:`${[s.invest?.proc_trib?.n, s.invest?.divida?.n].filter(Boolean).join(" ") || "Apontamentos fiscais na investigação."} Prognóstico provável entra como ajuste manual.`} : {st:"ok", txt:"Sem execuções ou dívida ativa na investigação."}},
     {id:"x_carga", area:"tributaria", t:"Carga tributária sobre a receita", n:"Análise tributária", f:(K) => { const c = div(K.deducoes, K.recBruta); if (c == null) return {st:"sd", txt:"Sem receita no balancete."};
       return c < .03 ? {st:"achado", txt:`Deduções de ${pc(c)} da receita bruta, baixo para o setor. Conferir regime, benefícios fiscais e receitas sem nota.`} : {st:"ok", txt:`Deduções de ${pc(c)} da receita bruta.`}; }},
+    {id:"j_prov", area:"juridica", t:"Provisões contábeis × processos prováveis", n:"CPC 25", f:(K, b, s) => { const c = window.KT_JDD ? KT_JDD.contingencias(s) : null; if (!c || !c.n) return {st:"sd", txt:"Relação de processos ainda não registrada na diligência jurídica."};
+      const falta = c.provavel - K.G.provisoes; return falta > Math.max(1e5, c.provavel * .05) ? {st:"achado", txt:`Processos prováveis de ${mi(c.provavel)} e provisão contábil de ${mi(K.G.provisoes)}: faltam ${mi(falta)}.`, aj:{titulo:"Contingências prováveis não provisionadas", tipo:"Dívida equivalente", v:{divida:falta, pl:-falta}}} : {st:"ok", txt:`Processos prováveis de ${mi(c.provavel)} cobertos pela provisão de ${mi(K.G.provisoes)}.`}; }},
+    {id:"j_dep", area:"juridica", t:"Depósitos judiciais", n:"CPC 25", f:(K) => K.G.deposJud ? {st:"achado", txt:`Depósitos judiciais de ${mi(K.G.deposJud)}: conferir os processos correspondentes e a chance de levantamento.`} : {st:"ok", txt:"Sem depósitos judiciais."}},
+    {id:"j_coc", area:"juridica", t:"Contratos com mudança de controle", n:"Código Civil, art. 421", f:(K, b, s) => { if (!window.KT_JDD) return {st:"sd", txt:""}; const L = KT_JDD.contratos(s).filter(c => KT_JDD.noPeriodo(s, c)); if (!L.length) return {st:"sd", txt:"Contratos ainda não registrados na diligência jurídica."};
+      const c = L.filter(x => x.flags.coc); return c.length ? {st:"achado", txt:`${c.length} contrato(s) com cláusula de mudança de controle: ${c.map(x => x.contraparte).join(", ")}.`} : {st:"ok", txt:`${L.length} contrato(s) analisados sem cláusula de mudança de controle.`}; }},
+    {id:"j_quest", area:"juridica", t:"Questionário de diligência jurídica", n:"Pedido de informações", f:(K, b, s) => { if (!window.KT_JDD) return {st:"sd", txt:""}; const q = s.jdd?.q || {}, Q = KT_JDD.QS, r = Q.filter(x => q[x.id]?.v).length, rk = Q.filter(x => x.risco && q[x.id]?.v === x.risco);
+      return !r ? {st:"sd", txt:"Questionário ainda não respondido."} : rk.length ? {st:"achado", txt:`${r} de ${Q.length} respostas; ${rk.length} ponto(s) de risco: ${rk.slice(0, 3).map(x => x.t.replace(/\?$/, "")).join("; ")}${rk.length > 3 ? "…" : ""}`} : {st:"ok", txt:`${r} de ${Q.length} respostas, sem pontos de risco.`}; }},
     {id:"x_reg", area:"tributaria", t:"Regime tributário compatível com o faturamento", n:"LC 123/2006; Lei 9.718/1998", f:(K, b) => { const simples = contas(b, /simples nacional/).length;
       return simples && K.recBruta > 4.8e6 ? {st:"achado", txt:`Contas de Simples Nacional com receita anual de ${mi(K.recBruta)}, acima do limite de R$ 4,8 mi.`} : K.recBruta > 78e6 && contas(b, /presumid/).length ? {st:"achado", txt:"Lucro presumido com receita acima de R$ 78 mi."} : {st:"ok", txt:"Regime compatível com o faturamento informado."}; }}
   ];
@@ -234,7 +241,8 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     contabil:["Conciliação bancária na data-base","Inventário físico dos estoques","Circularização de clientes e fornecedores","Teste de corte (cut-off) das receitas","Relatório do imobilizado e laudos"],
     financeira:["Receita por cliente (concentração)","Projeções e orçamento da gestão","Contratos de dívida: covenants, garantias e mudança de controle","Capital de giro médio de 12 meses (balancetes mensais)","Despesas pessoais dos sócios na empresa"],
     trabalhista:["Folha e eSocial (amostra)","Convenções e acordos coletivos","Relação de processos com prognóstico do advogado","Prestadores PJ e terceirizados","Bônus, PLR e benefícios a pagar"],
-    tributaria:["Enquadramento e regime tributário","Obrigações acessórias (SPED, EFD, DCTFWeb)","Certidões negativas atualizadas","Autuações, execuções e parcelamentos","Créditos tributários: origem e realização"]
+    tributaria:["Enquadramento e regime tributário","Obrigações acessórias (SPED, EFD, DCTFWeb)","Certidões negativas atualizadas","Autuações, execuções e parcelamentos","Créditos tributários: origem e realização"],
+    juridica:["Certidões dos distribuidores (cível, trabalhista, federal, protesto)","Leitura dos contratos relevantes dos últimos 3 a 5 anos","Relação de processos com prognóstico do advogado da empresa","Atos societários, livros e ônus sobre quotas","Marcas, patentes e domínios (INPI)"]
   };
 
   /* ---------------- AJUSTES ---------------- */
@@ -422,7 +430,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
       h += window.KT_REL ? (S.ddTab === "pt" ? KT_REL.ddPapeisView(s, per) : KT_REL.ddRelView(s, per)) : "";
     } else {
       const area = S.ddTab, ra = R.filter(x => x.p.area === area), mn = MINIMOS[area];
-      h += `<div class="card" style="display:flex;flex-direction:column;gap:6px"><div class="head" style="margin:0"><div><div class="eyebrow">Due Diligence ${esc(areaNome(area))} · ${esc(s.nome)}</div><h3>Procedimentos automáticos</h3><p class="sub" style="margin:2px 0 0">Consultor responsável: <b>${esc(s.dd.cons?.[area] || "a definir")}</b></p></div>${selPer(s, per)}</div>
+      h += `${area === "juridica" && window.KT_JDD ? KT_JDD.html(s) : ""}<div class="card" style="display:flex;flex-direction:column;gap:6px"><div class="head" style="margin:0"><div><div class="eyebrow">Due Diligence ${esc(areaNome(area))} · ${esc(s.nome)}</div><h3>Procedimentos automáticos</h3><p class="sub" style="margin:2px 0 0">Consultor responsável: <b>${esc(s.dd.cons?.[area] || "a definir")}</b></p></div>${selPer(s, per)}</div>
         <div>${ra.map(({p, r}) => { const a = AJ.find(x => x.proc === p.id);
           return `<div class="dd-proc"><div style="min-width:0"><b>${esc(p.t)}</b> <span class="sub" style="font-size:11.5px">· ${esc(p.n)}</span><div style="font-size:13px;margin-top:3px">${esc(r.txt)}</div>
             ${a ? `<div class="sub" style="margin:4px 0 0;font-size:12px">Ajuste proposto: <b>${esc(a.titulo)}</b> · ${esc(efeitoTxt(a))} · Análises ${stPill(a.fin, "OK")} · Valuation ${okFin(a) ? stPill(a.val, "OK") : `<span class="pill r-pend">Depois do OK</span>`}</div>` : ""}</div><div>${pill(r.st)}</div></div>`; }).join("")}</div></div>
@@ -440,6 +448,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     $$("[data-pobs]", host).forEach(x => x.onchange = () => up(s, {dd:{proc:{[x.dataset.pobs]:{obs:x.value.trim(), em:nowISO()}}}}));
     const mb = $("#dd-man", host); if (mb) mb.onclick = () => ajusteManual(s, per, S.ddTab);
     if (window.KT_REL && S.ddTab === "pt") KT_REL.ddPapeisBind(host, s, per);
+    if (window.KT_JDD && S.ddTab === "juridica") KT_JDD.bind(host, s);
     if (window.KT_REL && S.ddTab === "rel") KT_REL.ddRelBind(host, s, per);
     bindAjustes(host, s, AJ);
   };
@@ -560,8 +569,8 @@ if (typeof MA_MODELOS !== "undefined") (() => {
   }
   /* teste local já aberto em versão anterior: completa os exemplos com os balancetes de demonstração */
   setTimeout(() => { if (Store.db || !Array.isArray(window.SEED)) return;
-    window.SEED.filter(([c, id, o]) => c === "suppliers" && (o.dd || o.perfil)).forEach(([, id, o]) => { const x = Store.local?.suppliers?.[id]; if (!x) return; const p = {};
-      if (o.perfil && !x.perfil) p.perfil = o.perfil;
+    window.SEED.filter(([c, id, o]) => c === "suppliers" && (o.dd || o.perfil || o.jdd || o.interacoes)).forEach(([, id, o]) => { const x = Store.local?.suppliers?.[id]; if (!x) return; const p = {};
+      if (o.perfil && !x.perfil) p.perfil = o.perfil; ["jdd","interacoes","lado"].forEach(k => { if (o[k] && !x[k]) p[k] = o[k]; });
       if (o.dd){ const dd = {}; Object.entries(o.dd.bal || {}).forEach(([k, v]) => { if (!x.dd?.bal?.[k]) (dd.bal ||= {})[k] = v; }); if (o.dd.vl && !x.dd?.vl) dd.vl = o.dd.vl; if (!x.dd) Object.assign(dd, o.dd); if (Object.keys(dd).length) p.dd = dd; }
       if (Object.keys(p).length) Store.update("suppliers", id, p); });
     window.SEED.filter(([c, id]) => c === "config" && ["comparaveis","transacoes"].includes(id)).forEach(([, id, o]) => { if (!Store.local?.config?.[id]) Store.set("config", id, o); }); }, 1500);

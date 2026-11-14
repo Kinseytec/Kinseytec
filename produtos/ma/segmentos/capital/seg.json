@@ -74,7 +74,7 @@
   ],
   [
    "l===\"N1\"?\"Traders\":l===\"N2\"?\"Fornecedores\":\"Produtores\"",
-   "l===\"N1\"?\"Investidores\":l===\"N2\"?\"Intermediadores\":\"Targets\""
+   "l===\"N1\"?\"Investidores\":l===\"N2\"?\"Intermediadores e parceiros\":\"Targets (vendedores)\""
   ],
   [
    "N1 · Traders",
@@ -82,11 +82,11 @@
   ],
   [
    "N2 · Fornecedores",
-   "N2 · Intermediadores"
+   "N2 · Intermediadores e parceiros"
   ],
   [
    "N3 · Produtores",
-   "N3 · Targets"
+   "N3 · Targets (vendedores)"
   ],
   [
    "Ex.: Trader Xingu Ltda",

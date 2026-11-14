@@ -7,7 +7,7 @@
      controle de NDAs e mandatos por empresa e geração do documento preenchido (texto e PDF). */
 if (typeof MA_MODELOS !== "undefined") (() => {
   const LVC = {N1:"#5AB0FF", N2:"#C39BFF", N3:"#3DDC97"}, CINZA = "#7A8699";
-  const LVN = {N1:"Investidores", N2:"Intermediadores e parceiros", N3:"Targets"};
+  const LVN = {N1:"Investidores", N2:"Intermediadores e parceiros", N3:"Targets (vendedores)"};
   const FUNIL = MA_FUNIL, etapaNome = k => (FUNIL.find(f => f[0] === k) || [k, k || "—"])[1];
   const ACESSO = [["convidado","Convidado"],["teaser","Teaser enviado"],["nda","NDA do mandato assinado"],["dataroom","Data room liberado"],["ioi","IOI enviada"],["loi","LOI"],["declinou","Declinou"]];
   const MAND_ST = [["minuta","Minuta em preparação"],["enviado","Enviado ao target"],["negociacao","Em negociação"],["assinado","Assinado"],["encerrado","Encerrado"]];
@@ -25,7 +25,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     /* busca da órbita: textos do M&A */
     $$("#v-orbita *").forEach(e => { if (e.children.length === 0 && /Análise prévia do fornecedor/.test(e.textContent)) e.textContent = e.textContent.replace("Análise prévia do fornecedor", "Análise prévia da empresa"); });
     $$("#v-orbita input[placeholder]").forEach(i => i.placeholder = i.placeholder.replace(/do fornecedor/g, "da empresa (investidor, parceiro ou target)"));
-    const nomes = {N1:"Investidores", N2:"Intermediadores", N3:"Targets"};
+    const nomes = {N1:"Investidores", N2:"Intermediadores e parceiros", N3:"Targets (vendedores)"};
     $$("[data-lv]", g).forEach(b => { const l = b.dataset.lv; if (nomes[l]) b.innerHTML = `<span class="ma-gl" data-gl="${l}">${l === "N1" ? "◆" : l === "N2" ? "■" : "●"}</span> ${nomes[l]}`; });
     const c = document.createElement("button"); c.type = "button"; c.id = "ma-cor"; c.setAttribute("aria-pressed", "false");
     const pinta = () => { c.textContent = S.orbCor === "risco" ? "COR: RISCO" : "COR: NÍVEL"; c.setAttribute("aria-pressed", String(S.orbCor === "risco"));
@@ -85,10 +85,10 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     return o?.texto?.length ? {...m, texto:o.texto, versao:o.versao || "oficial", oficial:true, em:o.em} : {...m, texto: id === "nda_geral" ? NDA_PROV : m.texto, oficial:false}; };
   const syncNda = () => { const m = modelo("nda_geral"); NDA_TEXT.splice(0, NDA_TEXT.length, ...m.texto); NDA_VERSION = m.oficial ? "NDA Kinsey Capital · " + m.versao : NDA_VPROV; };
   const _rl = renderLgpd; renderLgpd = function(s, b){ syncNda(); return _rl(s, b); };
-  const campos = (s, extra = {}) => { const md = extra.mand || s.mandato || {};
+  const campos = (s, extra = {}) => { const md = extra.mand || s.mandato || {}, H = window.KT_HON ? KT_HON.campos(s, s.lado === "compra" || s.nivel === "N1" ? "compra" : "venda") : {};
     return {EMPRESA:s.nome || "[empresa]", DOC:s.doc || "[CNPJ / registro]", REPRESENTANTE:s.nda?.nome || s.responsavel || "[representante]", CODINOME:md.codinome || "[nome-código]",
-      PARTICIPACAO:md.participacao || "[participação]", EXCLUSIVIDADE:md.exclusividade || "[exclusividade]", PRAZO:md.prazo || "[prazo]", RETAINER:md.retainer || "[retainer]",
-      SUCCESS:md.success || s.acordo?.fee || "[success fee]", DATA:hoje()}; };
+      PARTICIPACAO:md.participacao || "[participação]", EXCLUSIVIDADE:md.exclusividade || "[exclusividade]", PRAZO:md.prazo || "[prazo]", RETAINER:md.retainer || H.RETAINER || "[retainer]",
+      SUCCESS:md.success || s.acordo?.fee || H.SUCCESS || "[success fee]", TAIL:H.TAIL || "12", DATA:hoje()}; };
   const preenche = (txt, c) => String(txt).replace(/\{([A-Z]+)\}/g, (m, k) => c[k] != null ? c[k] : m);
   const textoPlano = (m, c) => `${m.titulo.toUpperCase()}\n${m.oficial ? "Versão oficial " + m.versao : "MODELO PROVISÓRIO — substituir pelo modelo oficial Kinsey"}\n\n` + m.texto.map(([h, t]) => `${preenche(h, c)}\n${preenche(t, c)}`).join("\n\n") + `\n\n\n______________________________          ______________________________\n${c.EMPRESA}          Kinsey Capital`;
   const mandatos = () => S.suppliers.filter(x => x.nivel === "N3" && x.mandato?.codinome);

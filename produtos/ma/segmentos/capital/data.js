@@ -169,8 +169,8 @@ const MA_MODELOS = [
   ["2. Objeto","Assessoria financeira na venda de {PARTICIPACAO} da Contratante a investidores estratégicos ou financeiros, sob o nome-código {CODINOME}."],
   ["3. Serviços","Valuation, preparação do teaser e do memorando (CIM), organização do data room, seleção e abordagem de investidores, condução de propostas (IOI, LOI), apoio na diligência e na negociação dos contratos."],
   ["4. Exclusividade e prazo","{EXCLUSIVIDADE}, por {PRAZO} meses a partir da assinatura, renovável por acordo."],
-  ["5. Remuneração","Retainer de {RETAINER} por mês e success fee de {SUCCESS} sobre o valor da operação (enterprise value), devido no fechamento. Despesas reembolsáveis mediante aprovação."],
-  ["6. Cauda (tail)","Success fee devido se a operação for fechada com investidor apresentado pela Kinsey em até 12 meses após o término do mandato."],
+  ["5. Remuneração","Retainer mensal de {RETAINER}. Success fee: {SUCCESS}, calculado sobre o valor da operação (enterprise value) e devido no fechamento. Despesas reembolsáveis mediante aprovação prévia."],
+  ["6. Cauda (tail)","Success fee devido se a operação for fechada com investidor apresentado pela Kinsey em até {TAIL} meses após o término do mandato."],
   ["7. Confidencialidade","A Kinsey só revela a identidade da Contratante a investidores que assinarem o NDA do mandato."],
   ["8. Foro","Comarca de São Paulo/SP ou arbitragem, conforme a versão oficial. Data: {DATA}."]]},
  {id:"mandato_compra", titulo:"Mandato de assessoria · compra (buy-side)", para:["N1"], uso:"Investidor que contrata a Kinsey para encontrar e adquirir empresas.", versao:"provisório v0.1", texto:[
@@ -178,7 +178,7 @@ const MA_MODELOS = [
   ["2. Objeto","Busca, triagem e abordagem de empresas-alvo aderentes à tese de investimento da Contratante, e assessoria na aquisição."],
   ["3. Tese","Segmentos, faixa de faturamento e EBITDA, ticket e participação conforme o cadastro do investidor na Kinsey, revisados por escrito."],
   ["4. Exclusividade e prazo","{EXCLUSIVIDADE}, por {PRAZO} meses."],
-  ["5. Remuneração","Retainer de {RETAINER} por mês e success fee de {SUCCESS} sobre o valor de cada aquisição concluída."],
+  ["5. Remuneração","Retainer mensal de {RETAINER}. Success fee: {SUCCESS}, sobre o valor de cada aquisição concluída. Cauda (tail) de {TAIL} meses."],
   ["6. Confidencialidade e foro","Sigilo sobre a tese e as empresas apresentadas. Foro de São Paulo/SP. Data: {DATA}."]]},
  {id:"acordo_originacao", titulo:"Acordo de originação e parceria", para:["N2"], uso:"Parceiros que trazem targets ou investidores à Kinsey.", versao:"provisório v0.1", texto:[
   ["1. Partes","Kinsey Capital e {EMPRESA}, CNPJ {DOC}, representada por {REPRESENTANTE} (\"Parceiro\")."],
