@@ -111,5 +111,5 @@ if (window.KT_DD) (() => {
   const _upd = Store.update.bind(Store);
   document.addEventListener("submit", e => { const id = e.target?.id; if (id === "ma-m" || id === "ma-f"){ const s = supById(S.openSup); if (!s) return; setTimeout(() => _upd("suppliers", s.id, id === "ma-m" ? {mandato:{fonte:"manual"}} : {fin:{manual:true}}).catch(() => {}), 300); } }, true);
 
-  window.KT_AUTO = {lerMandato, lerNda, patchDe, sincronizar};
+  window.KT_AUTO = {lerMandato, lerNda, patchDe, sincronizar, texto};
 })();

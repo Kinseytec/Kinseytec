@@ -146,6 +146,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     if (/\.xlsx$|\.xlsm$/.test(n)) return lerTabela(await IMP.lerXLSX(buf));
     if (/\.ods$/.test(n)) return lerTabela(await IMP.lerODS(buf));
     if (/\.xls$/.test(n)) throw new Error("Arquivo .xls antigo: salve como .xlsx ou CSV e importe de novo.");
+    if (/\.pdf$/.test(n)){ const L = await IMP.lerPDF(buf); const r = lerTabela((L || []).map(l => Array.isArray(l) ? l : String(l).split(/\s{2,}|\t/))); if (!r || !r.length) throw new Error("PDF sem tabela de contas legível: envie o balancete em Excel ou CSV."); return r; }
     let t = new TextDecoder("utf-8").decode(buf); if (t.includes("\uFFFD")) t = new TextDecoder("latin1").decode(buf);
     return lerTabela(csv(t));
   }
@@ -640,5 +641,5 @@ if (typeof MA_MODELOS !== "undefined") (() => {
       if (Object.keys(p).length) Store.update("suppliers", id, p); });
     window.SEED.filter(([c, id]) => c === "suppliers" && /^kc-/.test(id) && !Store.local?.suppliers?.[id]).forEach(([, id, o]) => Store.set("suppliers", id, o));
     window.SEED.filter(([c, id]) => c === "config" && ["comparaveis","transacoes"].includes(id)).forEach(([, id, o]) => { if (!Store.local?.config?.[id]) Store.set("config", id, o); }); }, 1500);
-  window.KT_DD = {calc, indic, ajustes, classifica, lerTabela, csv, soma, okFin, okVal, pendFin, pendVal, tabAjustes, bindAjustes, lado, cab, AREAS_TODAS, emblema, COR, statusAlvo, semBal, selPer, bindComum, pick, alvoSel, periodos, temBal, targets, ponte, faixas, mi, mil, pc, xx, dias, div, norm, ed, up, C, GRUPOS, AREAS, areaNome, PROCS, MINIMOS, efeitoTxt, importar, aprovar};
+  window.KT_DD = {lerArquivo, calc, indic, ajustes, classifica, lerTabela, csv, soma, okFin, okVal, pendFin, pendVal, tabAjustes, bindAjustes, lado, cab, AREAS_TODAS, emblema, COR, statusAlvo, semBal, selPer, bindComum, pick, alvoSel, periodos, temBal, targets, ponte, faixas, mi, mil, pc, xx, dias, div, norm, ed, up, C, GRUPOS, AREAS, areaNome, PROCS, MINIMOS, efeitoTxt, importar, aprovar};
 })();

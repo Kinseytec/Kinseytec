@@ -1,5 +1,14 @@
 # Registro de versões
 
+## v2.17 — 2026-11-15 · Cadastro principal do projeto, painéis e Ramper
+- Cadastro principal do projeto na Base inicial ("+ Novo projeto"): target pelo CNPJ (consultas automáticas), nome-código, lado; equipe Kinsey (sócio do projeto, sócio que trouxe o mandato, sócio que trouxe o investidor), parceiro N2 e investidores (inclusive novo); mandato (situação e anexo em PDF ou Word, lido e enviado ao Jurídico); due diligence pela Kinsey ou self due, com 2, 3 ou 5 exercícios e os balanços ou balancetes anexados já importados (análise prévia automática); valuation pela Kinsey e data-base, que já preenche o Valuation; informações iniciais
+- Política de honorários Kinsey como padrão: 6% de success fee e retainer negociável, usualmente devido após a apresentação do NDA com investidor
+- Base de due diligence para envio: pedido de documentos dos exercícios definidos (demonstrações, balancetes e documentos da diligência) para copiar, com envio do questionário pelo portal e registro do envio
+- Painel do projeto no dossiê do target (N3): equipe, mandato e fee, due diligence (exercícios recebidos, achados e ajustes sem OK), valuation prévio (FCD e múltiplos), Jurídico, investidores, próximos passos e atalhos para cada área
+- Painel de novos negócios no dossiê do investidor (N1): o que compra, região, ticket, targets da base que ele compra e lista de prospecção para o Ramper
+- Ramper: importar a lista exportada do Ramper (novos targets como prospecção, com consultas automáticas dos CNPJs) e exportar a base para as cadências; ligação direta pela API do Ramper quando houver token (segredo do Firebase, sem senha no sistema)
+- Balancete em PDF com tabela de contas legível também é aceito na importação
+
 ## v2.16 — 2026-11-15 · Busca por empresa ou CNPJ na Órbita
 - Campo de busca logo abaixo do cartão da empresa: encontra na base por nome, razão social, nome-código ou CNPJ (parcial), com os targets primeiro; ao escolher, o mapa vai até a empresa e abre o cartão (investidor abre no modo "o que ele compra")
 - CNPJ completo fora da base: oferece cadastrar na Base inicial, já com a consulta à Receita iniciada

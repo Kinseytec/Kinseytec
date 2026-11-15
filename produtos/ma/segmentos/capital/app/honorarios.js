@@ -6,8 +6,8 @@
 if (window.KT_DD) (() => {
   const D = KT_DD, {mi} = D;
   const PADRAO = {
-    venda:{retainer:25000, meses:9, abate:true, minimo:1.5e6, tail:12, parceiro:20, faixas:[[50e6, 5], [100e6, 4], [200e6, 3], [null, 2]], despesas:"Reembolso de despesas aprovadas previamente"},
-    compra:{retainer:20000, meses:6, abate:true, minimo:1e6, tail:12, parceiro:20, faixas:[[50e6, 4], [100e6, 3], [200e6, 2.5], [null, 2]], despesas:"Reembolso de despesas aprovadas previamente"}
+    venda:{retainer:0, meses:0, abate:true, minimo:0, tail:12, parceiro:20, faixas:[[null, 6]], despesas:"Reembolso de despesas aprovadas previamente", retNota:"Retainer negociável, usualmente devido após a apresentação do NDA assinado com investidor"},
+    compra:{retainer:0, meses:0, abate:true, minimo:0, tail:12, parceiro:20, faixas:[[null, 6]], despesas:"Reembolso de despesas aprovadas previamente", retNota:"Retainer negociável, usualmente devido após a apresentação do NDA assinado com o target"}
   };
   const modelo = lado => ({...PADRAO[lado], ...(S.config.fees_kinsey?.[lado] || {})});
   const oficial = () => !!S.config.fees_kinsey?.em;
