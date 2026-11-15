@@ -361,7 +361,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
   function importar(s){
     if (!s){ toast("Escolha o target."); return; }
     let lidas = null;
-    const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Due Diligence · ${esc(s.nome)}</div><h2>Importar balancete</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
+    const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Due Diligence · ${esc(s.nome)}</div><h2>Importar balancete (versão da diligência)</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
       <form class="sheet-b" id="fbal" style="display:flex;flex-direction:column;gap:12px" novalidate>
         <p class="sub" style="margin:0">Excel (.xlsx), LibreOffice (.ods), CSV ou texto colado do sistema contábil. O sistema encontra as colunas de conta, descrição e saldo final (com D/C ou sinal), usa só as contas analíticas e classifica cada conta. Confira a classificação antes de salvar.</p>
         <div class="form"><div class="fld"><label for="bl-db">Data-base</label><input id="bl-db" type="date"></div><div class="fld"><label for="bl-m">Meses acumulados no resultado</label><input id="bl-m" inputmode="numeric" value="12"></div>
@@ -383,7 +383,8 @@ if (typeof MA_MODELOS !== "undefined") (() => {
         if (!lidas){ err("Escolha um arquivo ou cole as linhas."); return; } prev(); }catch(e){ err(e.message || "Não foi possível ler o arquivo."); } };
     $("#fbal").onsubmit = e => { e.preventDefault(); const db = $("#bl-db").value; if (!db){ err("Informe a data-base do balancete."); return; } if (!lidas) return;
       const per = db.slice(0, 7);
-      up(s, {dd:{bal:{[per]:{dataBase:db, meses:+$("#bl-m").value || 12, contas:lidas, importadoEm:nowISO(), por:Store.me?.email || ""}}}}).then(() => { S.ddSel = s.id; S.ddPer = per; close(); toast("Balancete importado: procedimentos executados"); }); };
+      const ant = s.dd?.bal?.[per], orig = ant && ant.origem !== "diligencia" && !s.dd?.balOrig?.[per] ? {balOrig:{[per]:ant}} : {};
+      up(s, {dd:{...orig, bal:{[per]:{dataBase:db, meses:+$("#bl-m").value || 12, contas:lidas, importadoEm:nowISO(), por:Store.me?.email || "", origem:ant ? "diligencia" : "dd"}}}}).then(() => { S.ddSel = s.id; S.ddPer = per; close(); toast("Balancete importado: procedimentos executados"); }); };
   }
 
   /* ---------------- MINI GLOBO ---------------- */
@@ -463,9 +464,9 @@ if (typeof MA_MODELOS !== "undefined") (() => {
         const q = $("#dd-busca", host); if (q) q.oninput = () => { const v = norm(q.value); $$("[data-ddsel]", host).forEach(b => b.hidden = !!v && !b.dataset.nome.includes(v)); }; }};
   }
   const cab = (eb, tit, sub, acoes = "") => `<div class="head"><div><div class="eyebrow">${eb}</div><h2>${tit}</h2><p class="sub">${sub}</p></div>${acoes}</div>`;
-  const semBal = s => `<div class="card" style="display:flex;flex-direction:column;gap:10px;align-items:flex-start"><h3>${esc(s?.nome || "Nenhum target")}</h3><p class="sub" style="margin:0">Ainda sem balancete. Importe na Due Diligence para calcular os indicadores, os procedimentos e o valuation.</p>${s ? `<button type="button" class="btn primary" data-ddimp>Importar balancete</button>` : ""}</div>`;
+  const semBal = (s, naDD) => `<div class="card" style="display:flex;flex-direction:column;gap:10px;align-items:flex-start"><h3>${esc(s?.nome || "Nenhum target")}</h3><p class="sub" style="margin:0">${naDD ? "Ainda sem balancete. Os balanços dos últimos exercícios entram no cadastro do projeto; aqui na due diligence você também pode importar a versão revisada durante os trabalhos." : "Ainda sem balanços. Eles são importados uma única vez no cadastro do projeto (últimos 5 exercícios) e alimentam todas as áreas."}</p>${s ? (naDD ? `<div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn primary" data-ddimp>Importar balancete</button>${window.KT_PROJ ? `<button type="button" class="btn" data-ddcad>Abrir o cadastro do projeto</button>` : ""}</div>` : window.KT_PROJ ? `<button type="button" class="btn primary" data-ddcad>Importar no cadastro do projeto</button>` : `<button type="button" class="btn primary" data-ddimp>Importar balancete</button>`) : ""}</div>`;
   const selPer = (s, per) => { const P = periodos(s); return P.length > 1 ? `<div class="fld" style="min-width:160px"><label for="dd-per">Balancete</label><select id="dd-per">${P.map(p => `<option ${p === per ? "selected" : ""}>${p}</option>`).join("")}</select></div>` : `<span class="sub" style="margin:0">Balancete ${esc(per)}${s.dd.bal[per].meses != 12 ? ` · ${s.dd.bal[per].meses} meses, anualizado` : ""}</span>`; };
-  const bindComum = (host, s) => { const p = $("#dd-per", host); if (p) p.onchange = () => { S.ddPer = p.value; renderView(); }; $$("[data-ddimp]", host).forEach(b => b.onclick = () => importar(s)); };
+  const bindComum = (host, s) => { const p = $("#dd-per", host); if (p) p.onchange = () => { S.ddPer = p.value; renderView(); }; $$("[data-ddimp]", host).forEach(b => b.onclick = () => importar(s)); $$("[data-ddcad]", host).forEach(b => b.onclick = () => KT_PROJ.novoProjeto(s.id)); };
   const pick = id => { S.ddSel = id; S.ddPer = ""; renderView(); };
 
   /* ---------------- VIEW · DUE DILIGENCE (no lugar de Auditoria) ---------------- */
@@ -473,15 +474,15 @@ if (typeof MA_MODELOS !== "undefined") (() => {
   const _aud = renderAuditoria;
   renderAuditoria = function(){
     const host = $("#auditoria"); if (!host) return;
-    const tabs = `<div class="dd-tabs" style="margin-bottom:14px">${[["geral","Visão geral"], ...AREAS, ["pt","Papéis de trabalho"], ["rel","Relatório"], ["base","Base de auditoria"]].map(([k, l]) => `<button type="button" class="fbtn" data-ddtab="${k}" aria-pressed="${S.ddTab === k}">${l}</button>`).join("")}</div>`;
+    const tabs = `<div class="dd-tabs" style="margin-bottom:14px">${[["geral","Visão geral"], ...AREAS, ...(window.KT_EXP ? [["exp","Exposições"]] : []), ["pt","Papéis de trabalho"], ["rel","Relatório"], ["base","Base de auditoria"]].map(([k, l]) => `<button type="button" class="fbtn" data-ddtab="${k}" aria-pressed="${S.ddTab === k}">${l}</button>`).join("")}</div>`;
     const bindTabs = () => $$("[data-ddtab]", host).forEach(b => b.onclick = () => { S.ddTab = b.dataset.ddtab; renderAuditoria(); });
     if (S.ddTab === "base"){ _aud.apply(this, arguments); host.insertAdjacentHTML("afterbegin", cab("Due Diligence", "Base de auditoria", "Matriz de risco, testes, órgãos públicos e operações comerciais da plataforma.") + tabs); bindTabs(); return; }
     if (S.ddTab === "juridica") S.ddTab = "geral";
     const s = alvoSel(), per = s ? perSel(s) : "", b = per ? s.dd.bal[per] : null, K = b ? calc(b) : null;
     const L = targets();
     let h = cab("Due Diligence", "Due Diligence", "Procedimentos automáticos sobre o balancete e procedimentos mínimos dos consultores especialistas. Todo ajuste apurado vai para as Análises financeiras e só muda indicadores e valuation com o OK do consultor.",
-      `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end"><div class="fld" style="min-width:240px"><label for="dd-alvo">Target</label><select id="dd-alvo">${L.map(x => `<option value="${x.id}" ${x.id === s?.id ? "selected" : ""}>${esc(x.nome)}</option>`).join("")}</select></div><button type="button" class="btn primary" data-ddimp>Importar balancete</button></div>`) + tabs;
-    if (!b){ host.innerHTML = h + semBal(s); bindTabs(); bindComum(host, s); $("#dd-alvo").onchange = e => pick(e.target.value); return; }
+      `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end"><div class="fld" style="min-width:240px"><label for="dd-alvo">Target</label><select id="dd-alvo">${L.map(x => `<option value="${x.id}" ${x.id === s?.id ? "selected" : ""}>${esc(x.nome)}</option>`).join("")}</select></div><button type="button" class="btn primary" data-ddimp title="Versão revisada durante a diligência (os balanços originais vêm do cadastro do projeto)">Importar versão revisada</button></div>`) + tabs;
+    if (!b){ host.innerHTML = h + semBal(s, true); bindTabs(); bindComum(host, s); $("#dd-alvo").onchange = e => pick(e.target.value); return; }
     const R = PROCS.map(p => ({p, r:p.f(K, b, s)})), AJ = ajustes(s, per), proc = s.dd.proc || {};
     const pill = st => ({ok:`<span class="pill r-baixo">Sem achado</span>`, achado:`<span class="pill r-alto">Achado</span>`, na:`<span class="pill r-pend">Não se aplica</span>`, sd:`<span class="pill r-pend">Sem dados</span>`})[st];
     if (S.ddTab === "geral"){
@@ -492,6 +493,8 @@ if (typeof MA_MODELOS !== "undefined") (() => {
         <div class="tbl"><table><thead><tr><th>Área</th><th>Consultor responsável</th><th>Automáticos</th><th>Mínimos</th><th>Ajustes</th><th></th></tr></thead><tbody>${AREAS.map(([k, l]) => { const ra = R.filter(x => x.p.area === k), mn = MINIMOS[k], feitos = mn.filter((m, i) => ["ok","achado","na"].includes(proc[k + i]?.st)).length, aa = AJ.filter(a => a.area === k);
           return `<tr><td><b>${l}</b></td><td><input data-cons="${k}" value="${esc(s.dd.cons?.[k] || "")}" placeholder="Nome e registro" list="dd-eq" aria-label="Consultor de ${l}" ${ed() ? "" : "disabled"} style="min-width:180px">${k === "contabil" ? `<datalist id="dd-eq">${(typeof EQUIPE_KINSEY !== "undefined" ? EQUIPE_KINSEY : []).map(([n, c]) => `<option value="${esc(n)}">${esc(c)}</option>`).join("")}</datalist>` : ""}</td><td>${ra.filter(x => x.r.st === "achado").length} achado(s) de ${ra.length}</td><td>${feitos} de ${mn.length}</td><td>${aa.length ? `${aa.filter(pendFin).length} aguardando OK` : "—"}</td><td><button type="button" class="btn sm" data-ddtab="${k}">Abrir</button></td></tr>`; }).join("")}</tbody></table></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn" data-goview="financas">Ver Análises financeiras</button><button type="button" class="btn" data-goview="valuation">Ver Valuation</button></div></div>`;
+    } else if (S.ddTab === "exp"){
+      h += window.KT_EXP ? KT_EXP.view(s, per) : "";
     } else if (S.ddTab === "pt" || S.ddTab === "rel"){
       h += window.KT_REL ? (S.ddTab === "pt" ? KT_REL.ddPapeisView(s, per) : KT_REL.ddRelView(s, per)) : "";
     } else {
@@ -516,6 +519,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     const xb = $("#dd-exp", host); if (xb) xb.onclick = () => expansao(s, per);
     if (window.KT_REL && S.ddTab === "pt") KT_REL.ddPapeisBind(host, s, per);
     if (window.KT_REL && S.ddTab === "rel") KT_REL.ddRelBind(host, s, per);
+    if (window.KT_EXP && S.ddTab === "exp") KT_EXP.bind(host, s, per);
     bindAjustes(host, s, AJ);
   };
   function tabAjustes(L, ctx){

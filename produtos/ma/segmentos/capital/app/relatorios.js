@@ -122,7 +122,7 @@ if (window.KT_DD) (() => {
   /* ---------------- DUE DILIGENCE · relatório ---------------- */
   function ddRelView(s, per){
     const L = papeis(s, per), ach = L.filter(p => p.st === "achado").length, pendMin = L.filter(p => p.tipo === "Mínimo do consultor" && p.st === "pendente").length, AJ = D.ajustes(s, per), pend = AJ.filter(D.pendFin).length;
-    return `<div class="card" style="display:flex;flex-direction:column;gap:10px"><div class="head" style="margin:0"><div><h3>Relatório de Due Diligence</h3><p class="sub" style="margin:2px 0 0">Alto nível: escopo, sumário executivo, red flags por área, ajustes e efeitos nos números, indicadores, procedimentos e papéis de trabalho.</p></div><button type="button" class="btn sm" id="dd-tx">Textos-padrão</button></div>
+    return `<div class="card" style="display:flex;flex-direction:column;gap:10px"><div class="head" style="margin:0"><div><h3>Relatório de Due Diligence</h3><p class="sub" style="margin:2px 0 0">Estrutura Kinsey: carta e limitações, sumário das exposições (mínimo, máximo e qualificado), decadência, grupo econômico, balanço reclassificado, EBITDA ajustado, capital de giro, dívida líquida, aspectos tributários e trabalhistas, pontos e recomendações.</p></div><button type="button" class="btn sm" id="dd-tx">Textos-padrão</button></div>
       <div class="dd-kpis"><div class="dd-k"><span>Achados</span><b>${ach}</b><small>procedimentos com achado</small></div><div class="dd-k"><span>Mínimos pendentes</span><b>${pendMin}</b><small>dos consultores</small></div><div class="dd-k"><span>Ajustes sem OK</span><b>${pend}</b><small>nas Análises financeiras</small></div></div>
       ${pendMin || pend ? `<div class="banner">O relatório pode ser emitido como <b>versão preliminar</b>: há procedimentos mínimos pendentes ou ajustes sem OK.</div>` : ""}
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn primary" id="dd-pdf">Emitir relatório (PDF)</button><button type="button" class="btn" id="dd-ptpdf">Papéis de trabalho (PDF)</button></div></div>`;
@@ -133,6 +133,7 @@ if (window.KT_DD) (() => {
     const q = $("#dd-ptpdf", host); if (q) q.onclick = () => papeisPdf(s, per).catch(e => { console.error(e); toast("Não foi possível gerar o PDF."); });
   }
   async function ddPdf(s, per){
+    if (window.KT_EXP) return KT_EXP.ddPdf(s, per);
     const b = s.dd.bal[per], K = D.calc(b), AJ = D.ajustes(s, per), A = D.soma(AJ.filter(D.okFin)), I0 = D.indic(K), I = D.indic(K, A), L = papeis(s, per), prelim = L.some(p => p.tipo === "Mínimo do consultor" && p.st === "pendente") || AJ.some(D.pendFin);
     const P = KTPdf(); capa(P, "Relatório de Due Diligence" + (prelim ? " · versão preliminar" : ""), s.nome, [["Data-base", b.dataBase], ["Mandato", s.mandato?.codinome || "-"], ["Consultores", Object.values(s.dd.cons || {}).filter(Boolean).join(" · ") || "-"], ["Emitido em", hojeBR()]]);
     sec(P, 1, "Escopo, base normativa e limitações"); ["dd_escopo","dd_base","dd_limites"].forEach(k => { const [h, t] = txt(k, s, b.dataBase); P.h2(T(h)); par(P, t); });

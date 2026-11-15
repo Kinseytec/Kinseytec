@@ -1,5 +1,15 @@
 # Registro de versões
 
+## v2.20 — 2026-11-15 · Base dos cálculos em Excel, exposições e relatório de due diligence no padrão Kinsey
+- PPA: "Base dos cálculos (Excel)" com 15 abas (resumo, premissas, consideração, carteira de clientes ano a ano, perda de clientes, encargos contributivos, marca, tecnologia, não concorrência, força de trabalho, WARA, amortização, sensibilidade, impairment e checagens), gerada sem bibliotecas externas
+- PPA: perda de clientes calculada pela base de clientes (receita por cliente e ano), por faixa (10% maiores, 40% seguintes, 50% menores), com média ponderada pela receita usada no MPEEM
+- PPA: sensibilidade do ágio e da carteira (prêmio × perda de clientes) e teste de recuperabilidade do ágio (CPC 01), na tela, no PDF e no Excel
+- Cadastro do projeto: diligência jurídica (Kinsey, assessores do cliente ou não), período contratado contábil e financeiro (exercícios + LTM) e fiscal, trabalhista e previdenciário (padrão 5 anos); balanços dos últimos 5 exercícios importados uma única vez no cadastro
+- Análises, valuation, apresentação e PPA não pedem mais balancete: apontam para o cadastro do projeto; só a due diligence importa a versão revisada durante os trabalhos, guardando a original
+- Due diligence: aba Exposições com principal por ano do fato gerador, juros Selic, cenários mínimo (multa de 20%), máximo (75%) e qualificado (150%), avaliação de risco, decadência de 5 anos e sugestões a partir dos achados
+- Relatório de due diligence na estrutura Kinsey: mensagem a pessoas não autorizadas, carta, objetivo e limitações, índice, sumário das exposições, decadência, grupo econômico e quadro societário, balanço reclassificado, EBITDA reportado e ajustado, capital de giro, dívida líquida, aspectos tributários e trabalhistas, pontos e recomendações e equipe
+- Base de modelos aceita relatórios de due diligence, workbooks de diligência e propostas de serviços
+
 ## v2.19 — 2026-11-15 · PPA avançado, checagens Kinsey e revisão automática de laudos
 - PPA (CPC 15 / IFRS 3) refeito com as técnicas de laudo: consideração transferida com parcelas diferidas a valor presente (Kd) e earn-out a valor justo (probabilidade × VP no WACC)
 - Carteira de clientes pelo MPEEM com encargos de ativos contributivos: capital de giro (Selic LP + spread, líquido), imobilizado (Kd), força de trabalho (WACC), não concorrência e marca/tecnologia pelo royalty; vida útil calculada até 90% do valor

@@ -43,10 +43,13 @@ if (window.KT_DD) (() => {
         ${sel("pj-mst", "A Kinsey tem mandato?", opt([["", "Ainda não"], ["negociacao", "Em negociação"], ["enviado", "Enviado ao target"], ["assinado", "Sim, assinado"]], m.status))}
         <div class="fld"><label for="pj-mf">Anexar mandato (PDF ou Word)</label><input id="pj-mf" type="file" accept=".pdf,.docx,.txt"><span class="hint">vai direto ao Jurídico e preenche o mandato</span></div>
         ${f("pj-suc", "Success fee", m.success || POLITICA.success, {hint:"política Kinsey: 6%"})}${f("pj-ret", "Retainer", m.retainer || POLITICA.retainer, {hint:"negociável; usualmente após o NDA com investidor"})}
-        ${sec("4 · Due diligence")}
+        ${sec("4 · Balanços e due diligence")}
         ${sel("pj-dd", "A Kinsey fará a due diligence?", opt([["kinsey", "Sim · due diligence pela Kinsey"], ["self", "Sim · self due (o target responde e a Kinsey revisa)"], ["nao", "Não"]], P.dd || "kinsey"))}
-        ${sel("pj-ex", "Exercícios pedidos", opt([["3", `3 exercícios (${ano - 3} a ${ano - 1})`], ["2", `2 exercícios (${ano - 2} e ${ano - 1})`], ["5", `5 exercícios (${ano - 5} a ${ano - 1})`]], P.exercicios || "3"))}
-        <div class="fld full"><label for="pj-bal">Balanços ou balancetes dos exercícios (Excel, CSV ou PDF)</label><input id="pj-bal" type="file" multiple accept=".xlsx,.xlsm,.ods,.csv,.txt,.pdf"><span class="hint">o ano vem do nome do arquivo (ex.: balancete_2024.xlsx = 31/12/2024); a análise prévia roda sozinha</span></div>
+        ${sel("pj-ddj", "Haverá diligência jurídica?", opt([["kinsey", "Sim · pela Kinsey (jurídico)"], ["cliente", "Sim · assessores jurídicos do cliente"], ["nao", "Não"]], P.ddJur || "kinsey"))}
+        ${sel("pj-ex", "Balanços pedidos (exercícios)", opt([["5", `5 exercícios (${ano - 5} a ${ano - 1})`], ["3", `3 exercícios (${ano - 3} a ${ano - 1})`], ["2", `2 exercícios (${ano - 2} e ${ano - 1})`]], P.exercicios || "5"))}
+        ${sel("pj-pc", "Período contratado · contábil e financeiro", opt([["3", `3 exercícios + LTM (FY${String(ano - 3).slice(2)} a LTM)`], ["2", `2 exercícios + LTM (FY${String(ano - 2).slice(2)} a LTM)`], ["5", `5 exercícios + LTM (FY${String(ano - 5).slice(2)} a LTM)`]], String(P.periodo?.contabil || 3)))}
+        ${f("pj-pfi", "Período contratado · fiscal, trabalhista e previdenciário (de)", P.periodo?.fiscalDe || `${ano - 5}-01-01`, {type:"date", hint:"padrão 5 anos (prazo decadencial)"})}${f("pj-pff", "até", P.periodo?.fiscalAte || `${ano - 1}-12-31`, {type:"date"})}
+        <div class="fld full"><label for="pj-bal">Balanços ou balancetes dos últimos exercícios (Excel, CSV ou PDF)</label><input id="pj-bal" type="file" multiple accept=".xlsx,.xlsm,.ods,.csv,.txt,.pdf"><span class="hint">importados uma vez aqui e usados em todas as áreas (análises, valuation, apresentação, PPA). O ano vem do nome do arquivo (ex.: balancete_2024.xlsx = 31/12/2024). Na due diligence dá para trocar pela versão revisada.</span></div>
         ${sec("5 · Valuation")}
         ${sel("pj-val", "A Kinsey fará o valuation?", opt([["sim", "Sim"], ["nao", "Não"]], P.valuation === false ? "nao" : "sim"))}${f("pj-db", "Data-base do valuation", dbPadrao, {type:"date"})}
         ${f("pj-obs", "Informações iniciais importantes", P.obs, {full:1, ph:"motivo da venda, participação à venda, prazo esperado, pontos sensíveis"})}
@@ -64,7 +67,7 @@ if (window.KT_DD) (() => {
       const nid = id || "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), d = dig(v("pj-doc")), seg = v("pj-seg");
       let invs = [...$f("pj-inv").selectedOptions].map(o => o.value);
       if (v("pj-ninv")){ const iid = "pi" + Date.now().toString(36); await Store.set("suppliers", iid, {parentId:"", answers:{}, docs:{}, insp:{}, balanco:{}, invest:{}, criadoEm:nowISO(), origem:"Cadastro do projeto " + (v("pj-cod") || nome), nivel:"N1", nome:v("pj-ninv"), tipo:"Investidor estratégico", uf:"", pais:"Brasil", lat:-23.55, lng:-46.63, projeto:{socioOrigem:v("pj-sinv")}}); invs.push(iid); }
-      const proj = {socio:v("pj-socio"), socioMandato:v("pj-smand"), socioInvestidor:v("pj-sinv"), dd:v("pj-dd"), exercicios:v("pj-ex"), valuation:v("pj-val") === "sim", obs:v("pj-obs"), em:P.em || nowISO()};
+      const proj = {socio:v("pj-socio"), socioMandato:v("pj-smand"), socioInvestidor:v("pj-sinv"), dd:v("pj-dd"), ddJur:v("pj-ddj"), exercicios:v("pj-ex"), periodo:{contabil:+v("pj-pc"), fiscalDe:v("pj-pfi"), fiscalAte:v("pj-pff")}, valuation:v("pj-val") === "sim", obs:v("pj-obs"), em:P.em || nowISO()};
       const o = {nivel:"N3", nome, doc:d.length === 14 ? fmtCnpj(d) : v("pj-doc"), segmento:seg || s.segmento || "", municipio:v("pj-mun"), uf:v("pj-uf").toUpperCase().slice(0, 2), pais:"Brasil", lado:v("pj-lado"),
         parentId:v("pj-par"), investidores:invs, projeto:proj, perfil:{segmento:seg || s.perfil?.segmento || "", ...(proj.valuation ? {dataBase:v("pj-db")} : {})},
         mandato:{codinome:v("pj-cod") || m.codinome || "", success:v("pj-suc"), retainer:v("pj-ret"), ...(v("pj-mst") ? {status:v("pj-mst")} : {})}};
@@ -82,7 +85,7 @@ if (window.KT_DD) (() => {
       /* balanços ou balancetes: importa cada arquivo na Due Diligence */
       const bals = [...$f("pj-bal").files], bal = {}, falhas = [];
       for (const fb of bals){ try{ const contas = await D.lerArquivo(fb); const y = (fb.name.match(/(20\d\d)/) || [])[1] || String(ano - 1), mesN = (fb.name.match(/(?:^|[^\d])(0[1-9]|1[0-2])[-_. ]?(20\d\d)/) || [])[1];
-          const mes = mesN || "12", ult = new Date(+y, +mes, 0).getDate(); bal[`${y}-${mes}`] = {dataBase:`${y}-${mes}-${String(ult).padStart(2, "0")}`, meses:+mes, contas, importadoEm:nowISO(), por:Store.me?.email || "", arquivo:fb.name}; }
+          const mes = mesN || "12", ult = new Date(+y, +mes, 0).getDate(); bal[`${y}-${mes}`] = {dataBase:`${y}-${mes}-${String(ult).padStart(2, "0")}`, meses:+mes, contas, importadoEm:nowISO(), por:Store.me?.email || "", arquivo:fb.name, origem:"cadastro"}; }
         catch(e){ falhas.push(`${fb.name}: ${e.message || "não lido"}`); } }
       if (Object.keys(bal).length){ await Store.update("suppliers", nid, {dd:{bal}}); avisos.push(`${Object.keys(bal).length} balancete(s) importado(s): análise prévia feita`); }
       if (falhas.length) avisos.push("não lidos: " + falhas.join("; "));
