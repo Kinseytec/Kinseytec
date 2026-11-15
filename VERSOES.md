@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v2.32 — 2026-11-15 · Cadastro do projeto preenchido automaticamente
+- Ao informar o CNPJ, a Receita preenche razão social, cidade, UF e segmento (pelo CNAE da atividade principal); ao abrir um projeto com CNPJ ainda não consultado, a consulta roda sozinha
+- Novo campo no topo do cadastro: anexar o cartão CNPJ, o contrato social ou a ficha da Junta; o sistema lê e preenche CNPJ, razão social, cidade, UF e segmento na hora, e leva sócios, quotas e cláusulas para a diligência jurídica
+- Sem a Receita (prévia ou serviço fora do ar), os dados do cartão CNPJ ficam gravados no cadastro; a consulta à Receita é refeita depois
+- Segmento pelo CNAE (agro, alimentos, industrial, energia, construção, varejo, logística, tecnologia, educação, saúde, serviços) no lugar do texto do mapa quando há CNAE
+
 ## v2.31 — 2026-11-15 · Ligação investidor × target só com mesma atividade e porte compatível
 - Atividade: subsetores (plásticos e embalagens, planos de saúde e benefícios, medicamentos, hospitais, lavanderia, terceirização, química, metalurgia, papel, logística, tecnologia e outros) pelo texto do mapa, CNAE, descrição e linhas de negócio; estratégico precisa atuar no mesmo subsetor; fundo ou private equity precisa ter o subsetor, o CNAE ou o setor na tese; frases negativas da tese ("não é foco") são ignoradas
 - Porte: estratégico com faturamento ≥ 3× o do target ou capacidade ≥ 1,5× o valuation; fundo com ticket ou capacidade ≥ valuation (ou patrimônio ≥ 5×); valuation pela expectativa da administração, pelo valuation do sistema ou estimado pelo faturamento

@@ -30,6 +30,7 @@ if (window.KT_DD) (() => {
       <form class="sheet-b" id="fpj" novalidate><div class="form">
         ${sec("1 · Target (empresa vendedora)")}
         <div class="fld full"><label for="pj-doc">CNPJ</label><div style="display:flex;gap:8px"><input id="pj-doc" inputmode="numeric" value="${esc(s.doc || "")}" placeholder="00.000.000/0000-00" style="flex:1" autocomplete="off"><button type="button" class="btn sm" id="pj-rf">Consultar</button></div><span class="hint" id="pj-rfst">Com o CNPJ o sistema consulta Receita, listas oficiais, CVM, B3 e notícias e preenche o cadastro.</span></div>
+        <div class="fld full"><label for="pj-soc">Ou anexe o cartão CNPJ, o contrato social ou a ficha da Junta</label><input id="pj-soc" type="file" multiple accept=".pdf,.docx,.txt"><span class="hint" id="pj-socst">o sistema lê e preenche CNPJ, razão social, cidade, UF e segmento (pelo CNAE); sócios, quotas e cláusulas vão para a diligência jurídica</span></div>
         ${f("pj-nome", "Razão social ou nome *", s.nome, {full:1})}${f("pj-cod", "Nome-código", m.codinome, {ph:"Projeto …"})}
         ${sel("pj-seg", "Segmento", `<option value="">—</option>${opt(SEGMENTOS.map(x => [x, x]), s.perfil?.segmento || s.segmento)}`)}
         ${f("pj-mun", "Cidade", s.municipio)}${f("pj-uf", "UF", s.uf, {ph:"SP"})}
@@ -39,7 +40,6 @@ if (window.KT_DD) (() => {
         ${sel("pj-sinv", "Sócio que trouxe o investidor", eq(P.socioInvestidor))}${sel("pj-par", "Parceiro ou intermediador (N2)", `<option value="">—</option>${opt(N2.map(x => [x.id, x.nome]), s.parentId)}`)}
         ${sel("pj-inv", "Investidores (N1)", opt(N1.map(x => [x.id, x.nome]), "").replace(/<option value="([^"]+)"/g, (a, v) => (s.investidores || []).includes(v) ? `<option selected value="${v}"` : a), {full:1, multi:Math.min(6, Math.max(3, N1.length)), hint:"marque um ou mais; investidor novo pelo campo abaixo"})}
         ${f("pj-ninv", "Investidor novo (nome)", "", {full:1, ph:"cadastra como N1 ligado ao projeto"})}
-        <div class="fld full"><label for="pj-soc">Contrato social, última alteração, ficha da Junta ou cartão CNPJ</label><input id="pj-soc" type="file" multiple accept=".pdf,.docx,.txt"><span class="hint">o sistema lê sócios, quotas, capital, administração e cláusulas, consulta a Receita e já responde a diligência jurídica</span></div>
         ${sec("3 · Mandato")}
         ${sel("pj-mst", "A Kinsey tem mandato?", opt([["", "Ainda não"], ["negociacao", "Em negociação"], ["enviado", "Enviado ao target"], ["assinado", "Sim, assinado"]], m.status))}
         <div class="fld"><label for="pj-mf">Anexar mandato (PDF ou Word)</label><input id="pj-mf" type="file" accept=".pdf,.docx,.txt"><span class="hint">vai direto ao Jurídico e preenche o mandato; se já houver um, só substitui (não assinado → assinado) ou entra como aditivo</span></div>
@@ -61,8 +61,31 @@ if (window.KT_DD) (() => {
       const ja = S.suppliers.find(x => x.id !== id && dig(x.doc) === d); if (ja){ st.innerHTML = `Já cadastrado: <b>${esc(ja.nome)}</b> (${ja.nivel}). <a href="#" id="pj-abre" style="color:var(--glow)">abrir este projeto</a>`; $f("pj-abre").onclick = e => { e.preventDefault(); close(); novoProjeto(ja.id); }; return; }
       st.textContent = "Consultando a Receita Federal…";
       try{ rf = await ORG.receita(d); $f("pj-doc").value = fmtCnpj(d); if (!v("pj-nome")) $f("pj-nome").value = rf.razao || ""; if (!v("pj-mun")) $f("pj-mun").value = rf.municipio || ""; if (!v("pj-uf")) $f("pj-uf").value = rf.uf || "";
-        st.innerHTML = `<b style="color:${rf.situacao === "ATIVA" ? "var(--ok)" : "var(--bad)"}">${esc(rf.situacao)}</b> · ${esc(rf.razao)} · ${esc(rf.cnae)} ${esc(rf.cnaeDesc || "")}`; }
-      catch(e){ st.textContent = "Receita indisponível agora; a consulta é refeita automaticamente."; } };
+        const sg = segCnae(rf.cnae, rf.cnaeDesc); if (sg && SEGMENTOS.includes(sg)) $f("pj-seg").value = sg; if (rf.municipio) $f("pj-mun").value = rf.municipio; if (rf.uf) $f("pj-uf").value = rf.uf;
+        st.innerHTML = `<b style="color:${rf.situacao === "ATIVA" ? "var(--ok)" : "var(--bad)"}">${esc(rf.situacao)}</b> · ${esc(rf.razao)} · ${esc(rf.cnae)} ${esc(rf.cnaeDesc || "")} · preenchidos: razão social, cidade, UF${sg ? ", segmento " + esc(sg) : ""}`; }
+      catch(e){ st.textContent = cartao ? "Dados do cartão CNPJ aplicados; a consulta à Receita é refeita automaticamente." : "Receita indisponível agora; a consulta é refeita automaticamente ao salvar. Você pode anexar o cartão CNPJ abaixo para preencher já."; } };
+    /* ao abrir: com CNPJ e sem consulta, consulta sozinho; sem CNPJ, sugere o segmento pelo nome */
+    setTimeout(() => { if (dig(v("pj-doc")).length === 14 && !s.receita?.razao) consulta(); else if (!v("pj-doc") && window.KT_SEGDE){ const sg = KT_SEGDE(v("pj-nome") + " " + (s.mapa?.segmentoTxt || "")); if (sg && sg !== "Outros" && SEGMENTOS.includes(sg) && /industria|automac|fabric|metal|plast/i.test(v("pj-nome"))) $f("pj-seg").value = sg; $f("pj-rfst").innerHTML = "<b>Sem CNPJ.</b> Informe o CNPJ ou anexe o cartão CNPJ: o cadastro se preenche sozinho."; } }, 80);
+    const segCnae = (cnae, txt) => { const c = String(cnae || "").replace(/\D/g, "").padStart(7, "0"), d = +c.slice(0, 2);
+        if (+c){ if (d >= 1 && d <= 3) return "Agro"; if (d === 10 || d === 11) return "Alimentos"; if (d >= 5 && d <= 33) return "Industrial"; if (d === 35) return "Energia"; if (d >= 41 && d <= 43) return "Construção"; if (d >= 45 && d <= 47) return "Varejo";
+          if (d >= 49 && d <= 53) return "Logística"; if (d >= 58 && d <= 63) return "Tecnologia"; if (d === 85) return "Educação"; if (d >= 86 && d <= 88) return /^(4644|4771)/.test(c) ? "Saúde" : "Saúde"; if (/^(2121|2123)/.test(c)) return "Saúde"; return "Serviços"; }
+        return window.KT_SEGDE && txt ? KT_SEGDE(txt) : ""; };
+    const preenche = (o, fonte) => { const put = (k, v, sobre) => { const el = $f(k); if (el && v && (sobre || !el.value.trim())) el.value = v; };
+      put("pj-doc", o.cnpj ? fmtCnpj(dig(o.cnpj)) : "", false); put("pj-nome", o.razao, false); put("pj-mun", o.municipio, true); put("pj-uf", o.uf, true);
+      const sg = segCnae(o.cnae, o.cnaeDesc || o.objeto); if (sg && SEGMENTOS.includes(sg)) $f("pj-seg").value = sg;
+      return [o.razao && "razão social", o.municipio && "cidade", o.uf && "UF", sg && `segmento ${sg} (CNAE ${o.cnae || "do documento"})`].filter(Boolean); };
+    let cartao = null;
+    const lerCartao = t => { const T = String(t || ""), L = T.split(/\n/).map(x => x.trim()).filter(Boolean), at = re => { const i = L.findIndex(x => re.test(x)); return i >= 0 ? (L[i].replace(re, "").trim() || L[i + 1] || "") : ""; };
+      const o = {cnpj:(T.match(/\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}/) || [])[0] || ""};
+      o.razao = at(/^NOME EMPRESARIAL:?/i).replace(/^T[IÍ]TULO.*$/i, ""); const ca = T.match(/ATIVIDADE ECON[OÔ]MICA PRINCIPAL[\s:]*([\d.\-/]{9,12})\s*-\s*([^\n]+)/i); if (ca){ o.cnae = dig(ca[1]); o.cnaeDesc = ca[2].trim(); }
+      const mu = T.match(/MUNIC[IÍ]PIO\s+UF\s*\n\s*([^\n]+?)\s+([A-Z]{2})\s*(\n|$)/i); if (mu){ o.municipio = mu[1].trim(); o.uf = mu[2]; } else { o.municipio = at(/^MUNIC[IÍ]PIO:?/i); o.uf = (at(/^UF:?$/i).match(/^[A-Z]{2}/) || [])[0] || ""; }
+      o.situacao = (T.match(/SITUA[CÇ][AÃ]O CADASTRAL\s*\n?\s*(ATIVA|INAPTA|SUSPENSA|BAIXADA|NULA)/i) || [])[1] || ""; o.abertura = (T.match(/DATA DE ABERTURA\s*\n?\s*(\d{2}\/\d{2}\/\d{4})/i) || [])[1] || ""; return o; };
+    $f("pj-soc").onchange = async () => { const fl = $f("pj-soc").files[0], st = $f("pj-socst"); if (!fl || !window.KT_AUTO) return; st.textContent = "Lendo o documento…";
+      try{ const tx = await KT_AUTO.texto(fl), soc = window.KT_JAUTO ? KT_JAUTO.lerSocietario(tx) : {}, ca = lerCartao(tx), o = {...ca, cnpj:ca.cnpj || soc.cnpj, cnae:ca.cnae || (soc.cnaes || [])[0], objeto:soc.objeto};
+        if (!o.razao){ const r0 = (String(tx).split(/\n/).map(x => x.trim()).find(x => /\b(LTDA|S\.?\/?A\.?|EIRELI|ME|EPP)\b/i.test(x) && x.length < 120)) || ""; o.razao = r0.replace(/^(nome empresarial|raz[aã]o social)[:\s]*/i, ""); }
+        cartao = {...o, fonte:`${soc.tipo || "Documento"} (${fl.name})`}; const ok = preenche(o, fl.name); st.textContent = `${soc.tipo || "Documento"} lido: ${ok.join(", ") || "sem campos reconhecidos"}${soc.socios?.length ? ` · ${soc.socios.length} sócio(s) para a diligência jurídica` : ""}.`;
+        if (dig(v("pj-doc")).length === 14) consulta(); }
+      catch(e){ st.textContent = "Não consegui ler o documento: preencha o CNPJ."; } };
     $f("pj-rf").onclick = consulta; $f("pj-doc").onchange = () => { if (dig(v("pj-doc")).length === 14) consulta(); };
     $f("fpj").onsubmit = async e => { e.preventDefault(); const nome = v("pj-nome"); if (!nome){ $f("pj-err").textContent = "Informe a razão social ou o nome."; $f("pj-err").hidden = false; return; }
       const nid = id || "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), d = dig(v("pj-doc")), seg = v("pj-seg");
@@ -73,7 +96,7 @@ if (window.KT_DD) (() => {
         parentId:v("pj-par"), investidores:invs, projeto:proj, perfil:{segmento:seg || s.perfil?.segmento || "", ...(proj.valuation ? {dataBase:v("pj-db")} : {})},
         mandato:{codinome:v("pj-cod") || m.codinome || "", success:v("pj-suc"), retainer:v("pj-ret"), ...(v("pj-mst") ? {status:v("pj-mst")} : {})}};
       if (!id){ o.etapa = v("pj-mst") === "assinado" ? "mandato" : "abordada"; if (window.KT_MAPA?.coords){ const [lat, lng] = KT_MAPA.coords(o); o.lat = lat; o.lng = lng; } }
-      if (rf) o.receita = {...rf, em:nowISO()};
+      if (rf) o.receita = {...rf, em:nowISO()}; else if (cartao && !s.receita?.razao) o.receita = {razao:cartao.razao || "", cnae:cartao.cnae || "", cnaeDesc:cartao.cnaeDesc || "", municipio:cartao.municipio || "", uf:cartao.uf || "", situacao:(cartao.situacao || "").toUpperCase(), abertura:cartao.abertura || "", fonte:cartao.fonte, em:nowISO()};
       try{ if (id) await Store.update("suppliers", id, o); else await Store.set("suppliers", nid, {answers:{}, docs:{}, insp:{}, balanco:{}, invest:{}, criadoEm:nowISO(), origem:"Cadastro principal", ...o}); }
       catch(err){ $f("pj-err").textContent = "Não foi possível salvar: " + (err.message || "erro"); $f("pj-err").hidden = false; return; }
       const avisos = [], ss = () => supById(nid) || {...o, id:nid};
