@@ -59,10 +59,15 @@ if (window.KT_DD) (() => {
   if (_tab) EXT_TABS.ma = (s, b, r) => { _tab(s, b, r); if (s.nivel !== "N3" || !s.mandato?.status) return;
     let ev = null, ref = ""; try{ if (D.temBal(s) && window.KT_VAL){ const R = KT_VAL.resumo(s); if (R.rec){ ev = (R.rec[0] + R.rec[1]) / 2; ref = "meio da faixa moderada do valuation"; } } }catch(e){}
     const loi = S.contracts.filter(c => c.supplierId === s.id && /LOI|SPA/i.test(c.tipo || "") && num(c.volume)).sort((a, b) => String(b.criadoEm).localeCompare(a.criadoEm))[0]; if (loi){ ev = num(loi.volume) * 1e6; ref = `${loi.tipo} ${loi.numero || ""}`.trim(); }
+    if (!ev && window.KT_BASE){ const V = KT_BASE.valorAlvo(s); if (V){ ev = V.ev; ref = "valor estimado: " + V.fonte; } }
     if (!ev) return; const par = supById(s.parentId), pPar = par && par.tipo !== "Kinsey Capital" ? num(String(par.acordo?.fee || "").match(/[\d.,]+/)?.[0]) : null;
-    const c = calcula(ev, s.lado === "compra" ? "compra" : "venda", {temParceiro:pPar != null, parceiro:pPar ?? undefined});
+    let c = calcula(ev, s.lado === "compra" ? "compra" : "venda", {temParceiro:pPar != null, parceiro:pPar ?? undefined});
+    /* condição própria do mandato: percentual único sobre o valor da transação (ex.: "6% ... (3% parceiro + 3% Kinsey)"), sem retainer e sem mínimo quando o mandato diz */
+    const pm = num(String(s.mandato.success || "").match(/^\s*([\d.,]+)\s*%/)?.[1]), propria = pm != null;
+    if (propria){ const md = s.mandato, semRet = !num(String(md.retainer || "").replace(/[^\d.,]/g, "")), success = ev * pm / 100, ret = semRet ? 0 : c.ret, parc = pPar != null ? success * pPar / 100 : 0;
+      c = {...c, success, ret, liquidoSuccess:success, total:ret + success, parceiro:parc, kinsey:ret + success - parc, efetivo:pm / 100, M:{...c.M, meses:semRet ? 0 : c.M.meses}}; }
     const el = document.createElement("div"); el.className = "card"; el.style.cssText = "display:flex;flex-direction:column;gap:8px";
-    el.innerHTML = `<h3>Honorários estimados do mandato</h3><p class="sub" style="margin:0">Base: ${mi(ev)} (${esc(ref)}) · modelo Kinsey de ${s.lado === "compra" ? "compra" : "venda"}${oficial() ? "" : " (provisório)"}${s.mandato.success ? ` · condição própria do mandato: ${esc(s.mandato.success)}` : ""}</p>
+    el.innerHTML = `<h3>Honorários estimados do mandato</h3><p class="sub" style="margin:0">Base: ${mi(ev)} (${esc(ref)}) · ${propria ? `condição do mandato: ${esc(s.mandato.success)}${s.mandato.retainer ? " · " + esc(s.mandato.retainer) : ""}` : `modelo Kinsey de ${s.lado === "compra" ? "compra" : "venda"}${oficial() ? "" : " (provisório)"}${s.mandato.success ? ` · condição própria do mandato: ${esc(s.mandato.success)}` : ""}`}${s.mandato.status !== "assinado" ? " · <b>mandato não assinado</b>" : ""}</p>
       <div class="dd-kpis"><div class="dd-k"><span>Success fee</span><b>${mi(c.success, 2)}</b><small>${fmt(c.efetivo * 100, 2)}% efetivo</small></div><div class="dd-k"><span>Retainer</span><b>${mi(c.ret, 2)}</b><small>${c.M.meses} meses</small></div>
       <div class="dd-k"><span>Parceiro ${par ? esc(par.nome.replace(/^EXEMPLO /, "").slice(0, 22)) : ""}</span><b>${mi(c.parceiro, 2)}</b><small>${pPar != null ? fmt(pPar, 0) + "% do success fee" : "originação Kinsey"}</small></div><div class="dd-k"><span>Receita Kinsey</span><b>${mi(c.kinsey, 2)}</b></div></div>`;
     b.firstElementChild.appendChild(el); };
