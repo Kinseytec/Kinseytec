@@ -60,7 +60,8 @@ if (window.KT_DD) (() => {
   /* corrige segmentos importados errado (ex.: "laminados planos" lido como planos de saúde) */
   let migrado = false;
   function migrar(){ if (migrado || !Store.me?.canWrite || !window.KT_SEGDE) return; migrado = true;
-    S.suppliers.filter(s => s.mapa?.segmentoTxt && s.origem === "Mapa M&A Kinsey").forEach(s => { const novo = KT_SEGDE(s.mapa.segmentoTxt); if (novo && novo !== "Outros" && novo !== s.segmento) Store.update("suppliers", s.id, {segmento:novo, perfil:{...(s.perfil || {}), segmento:novo}}).catch(() => {}); }); }
+    const segCnae = c => { c = String(c || "").replace(/\D/g, "").padStart(7, "0"); const d = +c.slice(0, 2); if (!+c) return ""; if (/^(2121|2123|4644|4771|6550)/.test(c) || (d >= 86 && d <= 88)) return "Saúde"; if (d >= 1 && d <= 3) return "Agro"; if (d === 10 || d === 11) return "Alimentos"; if (d >= 5 && d <= 33) return "Industrial"; if (d === 35) return "Energia"; if (d >= 41 && d <= 43) return "Construção"; if (d >= 45 && d <= 47) return "Varejo"; if (d >= 49 && d <= 53) return "Logística"; if (d >= 58 && d <= 63) return "Tecnologia"; if (d === 85) return "Educação"; return "Serviços"; };
+    S.suppliers.filter(s => (s.mapa?.segmentoTxt || s.receita?.cnae) && s.origem === "Mapa M&A Kinsey").forEach(s => { const novo = segCnae(s.receita?.cnae) || KT_SEGDE(s.mapa?.segmentoTxt || ""); if (novo && novo !== "Outros" && novo !== s.segmento) Store.update("suppliers", s.id, {segmento:novo, perfil:{...(s.perfil || {}), segmento:novo}}).catch(() => {}); }); }
   const _all = renderAll; renderAll = function(){ const r = _all.apply(this, arguments); setTimeout(migrar, 1200); return r; };
   /* dossiê: porte (target e investidor) */
   const _b = renderSupBody;
