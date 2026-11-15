@@ -1,5 +1,9 @@
 # Registro de versões
 
+## v2.16 — 2026-11-15 · Busca por empresa ou CNPJ na Órbita
+- Campo de busca logo abaixo do cartão da empresa: encontra na base por nome, razão social, nome-código ou CNPJ (parcial), com os targets primeiro; ao escolher, o mapa vai até a empresa e abre o cartão (investidor abre no modo "o que ele compra")
+- CNPJ completo fora da base: oferece cadastrar na Base inicial, já com a consulta à Receita iniciada
+
 ## v2.15 — 2026-11-15 · Preenchimento automático pelos documentos
 - Balancetes preenchem sozinhos os dados do target: receita líquida, EBITDA normalizado (com os ajustes que já têm OK), dívida líquida e ano do último exercício, a data-base do valuation e o regime tributário (lucro real quando o IR e a CSLL ficam entre 20% e 45% do lucro antes dos impostos; Simples pela Receita)
 - Consulta do CNPJ preenche cidade, UF, CNAE, segmento (pelo CNAE) e ano de fundação, quando vazios

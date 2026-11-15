@@ -174,5 +174,39 @@ if (window.KT_DD) (() => {
     return _sel.apply(this, arguments); };
   const _strip = renderStrip; renderStrip = function(){ const r = _strip.apply(this, arguments); try{ painel(); }catch(e){ console.error(e); } return r; };
 
+  /* ---------------- busca por empresa ou CNPJ, logo abaixo do cartão ---------------- */
+  const cssQ = document.createElement("style");
+  cssQ.textContent = `.orb-q{pointer-events:auto;position:relative;margin:0 max(12px,env(safe-area-inset-right,0px)) 0 max(12px,env(safe-area-inset-left,0px))}
+.orb-q input{width:100%;height:36px;border-radius:11px;border:1px solid var(--line-2);background:rgba(1,31,75,.9);color:var(--fog);font:inherit;font-size:13.5px;padding:0 12px 0 34px}
+.orb-q input:focus{outline:none;border-color:var(--glow)}
+.orb-q svg{position:absolute;left:11px;top:10px;width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:1.8}
+.orb-q .res{position:absolute;left:0;right:0;bottom:42px;background:rgba(1,20,48,.98);border:1px solid var(--line-2);border-radius:12px;padding:4px;display:flex;flex-direction:column;gap:2px;max-height:46vh;overflow:auto;z-index:8;box-shadow:0 -10px 30px rgba(0,0,0,.4)}
+.orb-q .res[hidden]{display:none}
+.orb-q .res button{display:flex;gap:8px;align-items:center;text-align:left;background:transparent;border:0;border-radius:8px;padding:8px 9px;color:inherit;font:inherit;font-size:13px;cursor:pointer}
+.orb-q .res button:hover,.orb-q .res button:focus{background:rgba(79,176,245,.12)}
+.orb-q .res span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.orb-q .res small{color:var(--muted);font-size:11.5px;white-space:nowrap}`;
+  document.head.appendChild(cssQ);
+  function buscaEmpresa(){
+    const v = $("#v-orbita"), dock = v && v.querySelector(".dock"), strip = $("#strip"); if (!dock || !strip || $("#orb-q")) return;
+    const el = document.createElement("div"); el.className = "orb-q"; el.id = "orb-q";
+    el.innerHTML = `<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="orb-qi" type="search" placeholder="Buscar empresa ou CNPJ na base" autocomplete="off" aria-label="Buscar empresa ou CNPJ"><div class="res" hidden></div>`;
+    dock.insertBefore(el, strip);
+    const inp = el.querySelector("input"), res = el.querySelector(".res");
+    const fecha = () => { res.hidden = true; res.innerHTML = ""; };
+    inp.oninput = () => { const q = nrm(inp.value.trim()), d = dig(inp.value); if (q.length < 2 && d.length < 3){ fecha(); return; }
+      const L = S.suppliers.filter(s => (d.length >= 3 && dig(s.doc).includes(d)) || (q.length >= 2 && [s.nome, s.mandato?.codinome, s.receita?.razao, s.receita?.fantasia].some(x => nrm(x).includes(q))))
+        .sort((a, b) => (a.nivel === "N3" ? 0 : 1) - (b.nivel === "N3" ? 0 : 1) || (a.nome || "").localeCompare(b.nome || "")).slice(0, 8);
+      const novo = d.length === 14 && !S.suppliers.some(s => dig(s.doc) === d);
+      res.innerHTML = L.map(s => `<button type="button" data-q="${s.id}"><i style="color:${RCOL[riskOf(s).level] || "#9fb"}">${s.nivel === "N1" ? "◆" : s.nivel === "N2" ? "■" : "●"}</i><span>${esc(s.nome)}</span><small>${s.nivel} · ${esc(s.doc || s.uf || "")}</small></button>`).join("")
+        + (novo ? `<button type="button" data-qn="${d}"><i>+</i><span>CNPJ fora da base: cadastrar na Base inicial</span><small>${esc(inp.value.trim())}</small></button>` : "")
+        + (!L.length && !novo ? `<div class="sub" style="margin:0;padding:8px 9px;font-size:12.5px">Nenhuma empresa da base encontrada.</div>` : "");
+      res.hidden = false;
+      $$("[data-q]", res).forEach(b => b.onclick = () => { const s = supById(b.dataset.q); inp.value = ""; fecha(); inp.blur(); if (s.nivel === "N1") S.orb = {...VAZIO, inv:s.id}; selectSup(s.id, true); G.dirty = true; renderStrip(); });
+      $$("[data-qn]", res).forEach(b => b.onclick = () => { const doc = b.dataset.qn; inp.value = ""; fecha(); if (window.KT_BASE){ KT_BASE.cadastro("N3"); setTimeout(() => { const x = document.getElementById("bi-doc"); if (x){ x.value = doc; const c = document.getElementById("bi-rf"); if (c) c.click(); } }, 120); } }); };
+    inp.onkeydown = e => { if (e.key === "Escape"){ inp.value = ""; fecha(); inp.blur(); } if (e.key === "Enter"){ const b = res.querySelector("button"); if (b) b.click(); } };
+    document.addEventListener("click", e => { if (!el.contains(e.target)) fecha(); });
+  }
+  buscaEmpresa(); setTimeout(buscaEmpresa, 0); setTimeout(buscaEmpresa, 800);
+
   window.KT_ORBINV = {aderente, criterios, alvosDe, passa};
 })();
