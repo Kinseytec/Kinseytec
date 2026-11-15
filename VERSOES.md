@@ -1,5 +1,12 @@
 # Registro de versões
 
+## v2.36 — 2026-11-15 · Due Diligence com base no cadastro e no workbook
+- Due Diligence não importa mais balancete: os balancetes vêm do cadastro inicial; o botão do topo passa a ser "Cadastro do projeto" (proposta à parte, com informações adicionais)
+- Visão geral mostra o quadro "Cadastro do projeto" com tudo o que veio do cadastro inicial (CNPJ, razão social, CNAE, cidade/UF, segmento, regime, due diligence e diligência jurídica contratadas, períodos, data-base, sócio, mandato e balancetes com a origem)
+- Sem workbook: due diligence prévia automática sobre os balancetes do cadastro; sem balanços, aviso de aguardando e análise preliminar
+- Workbook do auditor prevalece: abas "Balancete AAAA-MM" são lidas e substituem os balancetes do cadastro (que ficam guardados), mantendo os grupos de conta; o cartão indica a base da due diligence (workbook ou balancetes do cadastro)
+- Planilha modelo já leva os balancetes do cadastro em abas próprias para o auditor revisar e devolver
+
 ## v2.35 — 2026-11-15 · Análise preliminar automática sem balanços
 - Análises financeiras, Valuation e Pós-aquisição não pedem mais para importar balancete: target sem balanços abre com a análise preliminar calculada pelo sistema (faturamento do cadastro, mapa ou Econodata; margem EBITDA e múltiplo de referência do setor pelas companhias comparáveis ou pela referência Kinsey; EBITDA estimado; enterprise value indicativo com desconto de liquidez; política; situação do pedido de balanços)
 - Botão para pedir ou reenviar os balanços ao target; a análise completa entra sozinha quando os balanços chegam pelo cadastro do projeto
