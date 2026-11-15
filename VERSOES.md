@@ -1,5 +1,13 @@
 # Registro de versões
 
+## v2.38 — 2026-11-15 · Valuation prático: FCD e Múltiplos
+- Abas curtas: Síntese, FCD, Múltiplos, Outras, Dívida líquida, Base, Relatório
+- FCD e Múltiplos funcionam também sem balanços (prévia com o faturamento do cadastro e a margem de referência do setor)
+- FCD abre com o resumo da apuração (data-base, exercícios, moderado e otimista), receita, EBITDA, margens bruta, EBITDA (e média histórica) e líquida, EV moderado e otimista, perpetuidade; WACC com "Alterar WACC", "Usar o calculado" e "Revisar cálculo do WACC" (componentes do CAPM, D/E, prêmio de tamanho)
+- Múltiplos abre com os múltiplos apurados por grupo (mesmo segmento, semelhantes e todos): EV/EBITDA, EV/Receita, P/L e margem; EV pela mediana e pela faixa; sem as fontes na tela (as fontes saem nos relatórios); referência Kinsey do setor enquanto não há comparáveis carregados
+- Confronto com o mercado: múltiplo implícito do FCD moderado, do otimista e da proposta frente à faixa de mercado, com alerta ao consultor quando o moderado está muito fora (revisar WACC, margem, crescimento, capex, giro e perpetuidade)
+- Otimista: novos negócios com a origem da informação (sócios, administração, estudo de viabilidade, contrato, operação em funcionamento) e a comprovação; margem acima da histórica exige justificativa
+
 ## v2.37 — 2026-11-15 · Declinados fora da Órbita, com consulta e retomada
 - Órbita: declinados não aparecem mais no globo nem na faixa de empresas (só se forem buscados e selecionados); a contagem da consulta considera apenas os ativos; legenda sem "Declinado"
 - Base inicial > Mandatos e standby: botão "Declinados (n)" abre a consulta com busca por nome, CNPJ, segmento ou motivo, mostrando o tipo, o motivo do declínio e o histórico de retomadas
