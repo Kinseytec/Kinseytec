@@ -1,5 +1,13 @@
 # Registro de versões
 
+## v2.44 — 2026-11-15 · Prospecção como primeiro passo e equipe M&A/SDR
+- Prospecção passa a ser o primeiro item do menu, antes da Base inicial (cadastro M&A)
+- Lead quente (reunião concluída, proposta de serviços enviada ou mandato em negociação) fica "Aguardando aprovação M&A"; só um sócio ou consultor de M&A aprova, e a empresa vai sozinha para o cadastro M&A (Base inicial, Órbita, cadastro inicial e demais áreas), com a origem e o histórico
+- Cadastro de prospecção com interesse (venda/mandato, serviços, captação), temperatura (frio, morno, quente) e observações; a temperatura sobe sozinha com reunião marcada ou lead quente
+- Equipe M&A e SDR: cadastro de novos membros (time de M&A, sócio, novos negócios, SDR) com cargo e e-mail; os membros aparecem também nos consultores da Due Diligence, no sócio do projeto e nos relatórios
+- Incluído Samuel Lima, sócio de M&A e finanças
+- Regras de mérito em tela própria
+
 ## v2.43 — 2026-11-15 · Órbita com todos os níveis
 - A consulta da Órbita abre com todos: targets (verde), investidores (losango azul) e parceiros/intermediadores (quadrado lilás); antes abria só com os targets
 - O botão da consulta mostra a contagem por tipo (ex.: 40 targets · 62 investidores · 6 parceiros); ao escolher um investidor, a consulta passa a mostrar os targets aderentes a ele
