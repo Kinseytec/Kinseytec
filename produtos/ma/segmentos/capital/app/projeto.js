@@ -170,7 +170,7 @@ if (window.KT_DD) (() => {
     baixar("KinseyTec_base_para_cadencias.csv", L.join("\n")); toast("Base exportada para cadências"); }
   async function importarRamper(){
     const i = document.createElement("input"); i.type = "file"; i.accept = ".csv,.xlsx,.txt"; i.onchange = async () => { const f = i.files[0]; if (!f) return;
-      let rows = []; try{ const buf = await f.arrayBuffer(); rows = /\.xlsx$/i.test(f.name) ? await IMP.lerXLSX(buf) : D.csv((() => { let x = new TextDecoder("utf-8").decode(buf); if (x.includes("�")) x = new TextDecoder("latin1").decode(buf); return x; })()); }catch(e){ toast("Não consegui ler o arquivo"); return; }
+      let rows = []; try{ const buf = await f.arrayBuffer(); rows = /\.xlsx$/i.test(f.name) ? await IMP.lerXLSX(buf) : D.csv((() => { let x = new TextDecoder("utf-8").decode(buf); if (x.includes("\uFFFD")) x = new TextDecoder("latin1").decode(buf); return x; })()); }catch(e){ toast("Não consegui ler o arquivo"); return; }
       const hi = rows.findIndex(r => r.some(c => /cnpj/i.test(c)) && r.some(c => /raz|empresa|nome/i.test(c))); if (hi < 0){ toast("O arquivo precisa ter as colunas CNPJ e Empresa (ou Razão social)."); return; }
       const H = rows[hi].map(c => nrm(c)), ix = re => H.findIndex(h => re.test(h));
       const cN = ix(/raz|empresa|nome fantasia|^nome/), cD = ix(/cnpj/), cC = ix(/cnae|atividade/), cF = ix(/fatur|receita/), cU = ix(/^uf$|estado/), cM = ix(/cidade|municip/), cE = ix(/e-?mail/), cT = ix(/telefone|celular|fone/), cS = ix(/site|dominio|url/), cCt = ix(/contato|decisor|responsavel/);
