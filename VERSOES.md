@@ -1,5 +1,12 @@
 # Registro de versões
 
+## v2.29 — 2026-11-15 · Mandato com entrada única, substituição e aditivos
+- O mandato entra pelo cadastro do projeto, pela aba M&A do dossiê ou pelo Jurídico: é sempre o mesmo registro, com leitura e análise automáticas
+- Sem duplicidade: o mesmo documento importado de novo é ignorado; o target tem um só mandato no Jurídico
+- Substituição: minuta não assinada → mandato assinado (ou minuta mais nova), com o histórico de versões; mandato assinado só é trocado depois do vencimento ou da rescisão; minuta não substitui mandato assinado
+- Aditivo, aditamento ou renovação: anexado ao mandato, atualiza só as condições alteradas (success fee, prazo, prazo final na renovação) e encerra o pedido de renovação
+- Jurídico mostra o mandato do target em consulta (situação, assinatura, prazo final, aditivos, versões anteriores e alerta de vencimento)
+
 ## v2.28 — 2026-11-15 · Vigência do mandato e standby de targets
 - Prazo final do mandato no dossiê (assinatura + prazo, ou data informada), com os dias restantes; a 60 dias do fim, bandeira vermelha "Mandato prestes a vencer · necessidade de renovação"; vencido, pedido de renovação (registrado em Interações); alertas também no cartão do target e na Base inicial
 - Standby: o target sai do globo, da faixa, das listas das áreas e das indicações, sem apagar nada; reativação a qualquer momento

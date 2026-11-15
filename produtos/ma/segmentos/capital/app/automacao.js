@@ -54,17 +54,59 @@ if (window.KT_DD) (() => {
     if (/\.docx$/i.test(f.name)){ const d = await IMP.lerDOCX(buf); return lin(d.linhas) + "\n" + lin(d.tabela); } if (/\.pdf$/i.test(f.name)) return lin(await IMP.lerPDF(buf)); if (/\.pptx$/i.test(f.name)){ const z = await IMP.unzip(buf), sl = Object.keys(z).filter(k => /^ppt\/slides\/slide\d+\.xml$/.test(k)).sort((x, y) => parseInt(x.match(/\d+/)) - parseInt(y.match(/\d+/))), out = [];
       for (const k of sl){ const x = await z[k].get(); out.push([...x.matchAll(/<a:t>([^<]*)<\/a:t>/g)].map(m => m[1]).join(" ")); } return out.join("\n"); } return new TextDecoder().decode(buf); };
   const escolher = (accept, fn) => { const i = document.createElement("input"); i.type = "file"; i.accept = accept; i.onchange = () => i.files[0] && fn(i.files[0]); i.click(); };
-  const ROT = {status:"Situação", success:"Success fee", retainer:"Retainer", exclusividade:"Exclusividade", prazo:"Prazo (meses)", tail:"Cauda", minimo:"Mínimo", participacao:"Participação", assinadoEm:"Assinado em", incentivo:"Bônus de incentivo", tributos:"Tributos", confirmar:"Atenção"};
+  const ROT = {fim:"Prazo final", renovacao:"Renovação", status:"Situação", success:"Success fee", retainer:"Retainer", exclusividade:"Exclusividade", prazo:"Prazo (meses)", tail:"Cauda", minimo:"Mínimo", participacao:"Participação", assinadoEm:"Assinado em", incentivo:"Bônus de incentivo", tributos:"Tributos", confirmar:"Atenção"};
   const STN = {assinado:"Assinado", negociacao:"Em negociação", enviado:"Enviado ao target", minuta:"Minuta em preparação"};
 
+  /* ---------------- MANDATO: entrada única (cadastro, M&A e Jurídico), sem duplicidade ----------------
+     Um target tem um só mandato. Nova importação: (a) aditivo, aditamento ou renovação → anexado ao mandato, atualiza
+     só os campos que mudaram; (b) mandato não assinado → substituído pelo assinado (ou por minuta mais nova), com o
+     histórico de versões; (c) mandato assinado só é trocado por outro se o atual venceu ou foi rescindido; (d) o mesmo
+     documento importado de novo é ignorado. Toda importação passa pela leitura automática. */
+  const hashTxt = t => { let h = 0; const x = String(t || "").replace(/\s+/g, " ").trim(); for (let i = 0; i < x.length; i++) h = (h * 31 + x.charCodeAt(i)) | 0; return String(h); };
+  const ehAditivo = (t, nome) => /\b(termo )?aditivo|aditamento|renova[cç][aã]o (do|de) (contrato|mandato)|prorroga[cç][aã]o/i.test(String(nome || "") + " " + String(t || "").slice(0, 2500));
+  function decidir(s, r, t, nome){
+    const atual = s.mandato || {}, temDoc = !!atual.doc && S.contracts.some(c => c.id === atual.doc), h = hashTxt(t);
+    const dup = temDoc && (S.contracts.find(c => c.id === atual.doc)?.hash === h || (atual.aditivos || []).some(a => a.hash === h));
+    if (dup) return {acao:"duplicado", msg:"Este documento já foi importado para este target."};
+    if (!temDoc) return {acao:"novo", msg:"Primeiro mandato do target: será registrado no Jurídico e no dossiê."};
+    if (ehAditivo(t, nome)) return {acao:"aditivo", msg:"Aditivo ou renovação: será anexado ao mandato atual e só os campos alterados serão atualizados."};
+    const v = window.KT_SB ? KT_SB.vigencia(s) : {st:atual.status === "assinado" ? "vigente" : "sem"};
+    if (atual.status !== "assinado") return {acao:"substituir", msg:r.m.status === "assinado" ? "O mandato não assinado será substituído pelo assinado (a versão anterior fica no histórico)." : "A minuta será substituída pela versão mais nova (a anterior fica no histórico)."};
+    if (r.m.status !== "assinado") return {acao:"bloqueado", msg:"Já existe mandato assinado: uma minuta não assinada não o substitui. Para mudar condições, importe o aditivo assinado."};
+    if (v.st === "vencido" || v.st === "rescindido") return {acao:"substituir", msg:`O mandato anterior ${v.st === "vencido" ? "venceu" : "foi rescindido"}: o novo mandato assinado o substitui (o anterior fica no histórico).`};
+    return {acao:"bloqueado", msg:"Já existe mandato assinado e vigente: só pode ser alterado por aditivo, ou substituído depois da rescisão ou do vencimento."};
+  }
+  async function aplicarMandato(s, f, t, r, D0){
+    const atual = s.mandato || {}, agora = nowISO(), por = Store.me?.email || "", h = hashTxt(t), co = r.co || [];
+    const campos = Object.fromEntries(Object.entries(r.m).filter(([k, v]) => v !== "" && v != null));
+    if (D0.acao === "aditivo"){ const id = "ct" + Date.now().toString(36);
+      await Store.set("contracts", id, {supplierId:s.id, tipo:"Aditivo ao mandato de assessoria", mandatoId:atual.doc, numero:"", contraparte:s.nome, inicio:r.m.assinadoEm || "", fim:"", volume:"", preco:"", obs:`Importado de ${f.name}. Campos lidos: ${r.achou.join(", ")}.`, texto:t.slice(0, 60000), arquivo:f.name, hash:h, file:null, criadoEm:agora});
+      const mud = Object.fromEntries(Object.entries(campos).filter(([k, v]) => !["status", "confirmar"].includes(k) && String(atual[k] ?? "") !== String(v)));
+      const renov = /renova|prorroga/i.test(f.name + " " + t.slice(0, 2500)) && campos.prazo;
+      if (renov){ const ini = campos.assinadoEm || new Date().toISOString().slice(0, 10), d = new Date(ini + "T12:00"); d.setMonth(d.getMonth() + (parseInt(String(campos.prazo).replace(/\D/g, "")) || 0)); mud.fim = d.toISOString().slice(0, 10); mud.renovacao = null; delete mud.assinadoEm; }
+      await Store.update("suppliers", s.id, {mandato:{...mud, aditivos:[...(atual.aditivos || []), {doc:id, arquivo:f.name, em:agora, por, hash:h, campos:Object.keys(mud), renovacao:!!renov}]}});
+      return `Aditivo anexado ao mandato${Object.keys(mud).length ? `: ${Object.keys(mud).map(k => ROT[k] || k).join(", ")} atualizados` : " (sem alteração de condições)"}`; }
+    const tipo = `Mandato de assessoria${r.m.status === "assinado" ? "" : " (não assinado)"}`, base = {supplierId:s.id, tipo, numero:"", contraparte:s.nome, inicio:r.m.assinadoEm || "", fim:"", volume:"", preco:"", obs:`Importado de ${f.name}. Campos lidos: ${r.achou.join(", ")}.${co.length ? " Partes: " + co.join("; ") + "." : ""}`, texto:t.slice(0, 60000), arquivo:f.name, hash:h, file:null};
+    let id = atual.doc;
+    if (D0.acao === "substituir" && id){ const c = S.contracts.find(x => x.id === id) || {}; await Store.update("contracts", id, {...base, versoes:[...(c.versoes || []), {tipo:c.tipo, arquivo:c.arquivo, inicio:c.inicio, em:c.atualizadoEm || c.criadoEm, hash:c.hash || ""}], atualizadoEm:agora}); }
+    else { id = "ct" + Date.now().toString(36); await Store.set("contracts", id, {...base, criadoEm:agora}); }
+    const hist = D0.acao === "substituir" ? [...(atual.historico || []), {status:atual.status || "", assinadoEm:atual.assinadoEm || "", prazo:atual.prazo || "", fim:atual.fim || "", em:agora}] : atual.historico || [];
+    const patch = {mandato:{...campos, fonte:"documento", doc:id, codinome:atual.codinome || "", historico:hist, ...(r.m.status !== "assinado" ? {assinadoEm:""} : {}), ...(D0.acao === "substituir" ? {fim:"", rescisao:null, renovacao:null} : {})}};
+    if (r.m.status === "assinado") patch.etapa = s.etapa && FUNIL_I(s.etapa) > FUNIL_I("mandato") ? s.etapa : "mandato";
+    await Store.update("suppliers", s.id, patch);
+    return D0.acao === "substituir" ? (r.m.status === "assinado" ? "Mandato substituído pelo assinado" : "Minuta substituída pela versão nova") : "Mandato registrado no Jurídico e no dossiê";
+  }
+  /* entrada única: f = arquivo; confirmar = mostra a análise antes de gravar */
+  async function registrarMandato(s, f, confirmar = true){
+    let t = ""; try{ t = await texto(f); }catch(e){} if (!t || t.trim().length < 50) throw new Error("Não consegui ler o texto do documento.");
+    const r = lerMandato(t, s), D0 = decidir(s, r, t, f.name);
+    const resumo = `<b>${esc(f.name)}</b> · ${ehAditivo(t, f.name) ? "aditivo / renovação" : STN[r.m.status] || r.m.status}<dl class="kv" style="margin-top:8px">${Object.entries(r.m).map(([k, v]) => `<dt>${ROT[k] || k}</dt><dd>${esc(k === "status" ? STN[v] || v : v)}</dd>`).join("")}</dl><div class="banner" style="margin-top:8px;${D0.acao === "bloqueado" || D0.acao === "duplicado" ? "border-color:var(--bad)" : ""}">${esc(D0.msg)}</div>`;
+    if (D0.acao === "bloqueado" || D0.acao === "duplicado"){ if (confirmar) IMP.confirma(resumo, () => {}); return {ok:false, msg:D0.msg}; }
+    if (!confirmar){ const msg = await aplicarMandato(s, f, t, r, D0); return {ok:true, msg}; }
+    return new Promise(res => IMP.confirma(resumo, async () => { const msg = await aplicarMandato(supById(s.id) || s, f, t, r, D0); toast(msg); res({ok:true, msg}); }));
+  }
   async function importarMandato(s){
-    escolher(".pdf,.docx,.txt", async f => { let t = ""; try{ t = await texto(f); }catch(e){} if (!t || t.trim().length < 50){ toast("Não consegui ler o texto do documento."); return; }
-      const {m, achou, co} = lerMandato(t, s);
-      IMP.confirma(`<b>Mandato lido: ${esc(f.name)}</b><dl class="kv" style="margin-top:8px">${Object.entries(m).map(([k, v]) => `<dt>${ROT[k] || k}</dt><dd>${esc(k === "status" ? STN[v] || v : v)}</dd>`).join("")}${co.length ? `<dt>Partes citadas</dt><dd>${esc(co.join("; "))}</dd>` : ""}</dl><p class="sub" style="margin:8px 0 0">Os campos lidos preenchem o mandato e o documento entra no Jurídico (Contratos e pareceres) para o parecer. Confira antes de assinar.</p>`, "Preencher mandato", "", async () => {
-        const id = "ct" + Date.now().toString(36);
-        await Store.set("contracts", id, {supplierId:s.id, tipo:`Mandato de assessoria${m.status === "assinado" ? "" : " (não assinado)"}`, numero:"", contraparte:s.nome, inicio:m.assinadoEm || "", fim:"", volume:"", preco:"", obs:`Importado de ${f.name}. Campos lidos: ${achou.join(", ")}.${co.length ? " Partes citadas: " + co.join("; ") + "." : ""}`, texto:t.slice(0, 60000), arquivo:f.name, file:null, criadoEm:nowISO()});
-        const patch = {mandato:{...m, fonte:"documento", doc:id, codinome:s.mandato?.codinome || "", ...(m.status !== "assinado" ? {assinadoEm:""} : {})}}; if (m.status === "assinado") patch.etapa = s.etapa && FUNIL_I(s.etapa) > FUNIL_I("mandato") ? s.etapa : "mandato";
-        await Store.update("suppliers", s.id, patch); toast("Mandato preenchido e enviado ao Jurídico"); }); });
+    escolher(".pdf,.docx,.txt", async f => { try{ const r = await registrarMandato(s, f, true); if (!r.ok) toast(r.msg); }catch(e){ toast(e.message || "Não foi possível ler o mandato."); } });
   }
   async function importarNda(s){
     escolher(".pdf,.docx,.txt", async f => { let t = ""; try{ t = await texto(f); }catch(e){} const r = lerNda(t);
@@ -78,7 +120,7 @@ if (window.KT_DD) (() => {
   if (_ma) EXT_TABS.ma = (s, b, r) => { _ma(s, b, r); if (s.nivel !== "N3") return; const f = b.querySelector("#ma-m"); if (!f || f.querySelector("[data-imp-m]")) return;
     const bar = document.createElement("div"); bar.style.cssText = "display:flex;gap:8px;flex-wrap:wrap;align-items:center";
     const m = s.mandato || {};
-    bar.innerHTML = `<button type="button" class="btn sm primary" data-imp-m>Importar mandato (PDF ou Word)</button><button type="button" class="btn sm" data-imp-n>Importar NDA</button><span class="sub" style="margin:0;font-size:12px">${m.fonte === "documento" ? "Preenchido pelo documento importado; edite se precisar." : "O sistema lê o documento e preenche os campos."}${m.tail ? " · Cauda: " + esc(m.tail) : ""}${m.minimo ? " · " + esc(m.minimo) : ""}</span>`;
+    bar.innerHTML = `<button type="button" class="btn sm primary" data-imp-m>${m.doc ? "Substituir mandato ou incluir aditivo" : "Importar mandato (PDF ou Word)"}</button><button type="button" class="btn sm" data-imp-n>Importar NDA</button><span class="sub" style="margin:0;font-size:12px">${m.fonte === "documento" ? "Preenchido pelo documento importado; edite se precisar." : "O sistema lê o documento e preenche os campos."}${m.tail ? " · Cauda: " + esc(m.tail) : ""}${m.minimo ? " · " + esc(m.minimo) : ""}</span>`;
     f.insertBefore(bar, f.children[1] || null);
     bar.querySelector("[data-imp-m]").onclick = () => importarMandato(s); bar.querySelector("[data-imp-n]").onclick = () => importarNda(s); };
 
@@ -118,5 +160,14 @@ if (window.KT_DD) (() => {
   const _upd = Store.update.bind(Store);
   document.addEventListener("submit", e => { const id = e.target?.id; if (id === "ma-m" || id === "ma-f"){ const s = supById(S.openSup); if (!s) return; setTimeout(() => _upd("suppliers", s.id, id === "ma-m" ? {mandato:{fonte:"manual"}} : {fin:{manual:true}}).catch(() => {}), 300); } }, true);
 
-  window.KT_AUTO = {lerMandato, lerNda, patchDe, sincronizar, texto};
+  /* Jurídico: o mesmo mandato do dossiê, com aditivos e histórico (entrada única) */
+  if (window.KT_JDD){ const J = KT_JDD, _h = J.html, _bd = J.bind;
+    const card = s => { const m = s.mandato || {}, c = S.contracts.find(x => x.id === m.doc), v = window.KT_SB ? KT_SB.vigencia(s) : {}, f = window.KT_SB ? KT_SB.flag(v) : "";
+      return `<div class="card" data-jmand style="display:flex;flex-direction:column;gap:6px;${f ? "border-color:var(--bad)" : ""}"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><h3 style="margin:0">Mandato</h3>${D.ed() ? `<button type="button" class="btn sm primary" data-jimp>${c ? "Substituir ou incluir aditivo" : "Importar mandato"}</button>` : ""}</div><div style="font-size:13px">${c ? `${esc(STN[m.status] || m.status || "")} · ${esc(c.arquivo || "")}${m.assinadoEm ? ` · assinado em ${new Date(m.assinadoEm + "T12:00").toLocaleDateString("pt-BR")}` : ""}${v.fim ? ` · prazo final ${new Date(v.fim + "T12:00").toLocaleDateString("pt-BR")}` : ""}` : "Nenhum mandato importado. Importe aqui ou no cadastro do projeto: é o mesmo registro."}</div>
+        ${f ? `<div style="color:var(--bad);font-weight:700;font-size:13px">● ${esc(f)}</div>` : ""}
+        ${(m.aditivos || []).length ? `<div style="font-size:12.5px">Aditivos: ${m.aditivos.map(a => `${esc(a.arquivo)} (${dt(a.em)}${a.campos?.length ? ": " + a.campos.map(k => ROT[k] || k).join(", ") : ""})`).join("; ")}</div>` : ""}
+        ${(m.historico || []).length ? `<div class="sub" style="font-size:12px;margin:0">Versões anteriores: ${m.historico.map(h => `${STN[h.status] || h.status || "—"}${h.assinadoEm ? " " + h.assinadoEm : ""} (substituída em ${dt(h.em)})`).join("; ")}</div>` : ""}</div>`; };
+    J.html = function(s){ return card(s) + _h.apply(this, arguments); };
+    J.bind = function(host, s){ const r = _bd.apply(this, arguments); const b = host.querySelector("[data-jimp]"); if (b) b.onclick = () => importarMandato(supById(s.id) || s); return r; }; }
+  window.KT_AUTO = {lerMandato, lerNda, patchDe, sincronizar, texto, registrarMandato, importarMandato, decidir};
 })();

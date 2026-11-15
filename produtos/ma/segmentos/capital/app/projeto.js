@@ -42,7 +42,7 @@ if (window.KT_DD) (() => {
         <div class="fld full"><label for="pj-soc">Contrato social, última alteração, ficha da Junta ou cartão CNPJ</label><input id="pj-soc" type="file" multiple accept=".pdf,.docx,.txt"><span class="hint">o sistema lê sócios, quotas, capital, administração e cláusulas, consulta a Receita e já responde a diligência jurídica</span></div>
         ${sec("3 · Mandato")}
         ${sel("pj-mst", "A Kinsey tem mandato?", opt([["", "Ainda não"], ["negociacao", "Em negociação"], ["enviado", "Enviado ao target"], ["assinado", "Sim, assinado"]], m.status))}
-        <div class="fld"><label for="pj-mf">Anexar mandato (PDF ou Word)</label><input id="pj-mf" type="file" accept=".pdf,.docx,.txt"><span class="hint">vai direto ao Jurídico e preenche o mandato</span></div>
+        <div class="fld"><label for="pj-mf">Anexar mandato (PDF ou Word)</label><input id="pj-mf" type="file" accept=".pdf,.docx,.txt"><span class="hint">vai direto ao Jurídico e preenche o mandato; se já houver um, só substitui (não assinado → assinado) ou entra como aditivo</span></div>
         ${f("pj-suc", "Success fee", m.success || POLITICA.success, {hint:"política Kinsey: 6%"})}${f("pj-ret", "Retainer", m.retainer || POLITICA.retainer, {hint:"negociável; usualmente após o NDA com investidor"})}
         ${sec("4 · Balanços e due diligence")}
         ${sel("pj-dd", "A Kinsey fará a due diligence?", opt([["kinsey", "Sim · due diligence pela Kinsey"], ["self", "Sim · self due (o target responde e a Kinsey revisa)"], ["nao", "Não"]], P.dd || "kinsey"))}
@@ -79,9 +79,7 @@ if (window.KT_DD) (() => {
       const avisos = [], ss = () => supById(nid) || {...o, id:nid};
       /* mandato anexado: lê, preenche e registra no Jurídico */
       const mf = $f("pj-mf").files[0];
-      if (mf && window.KT_AUTO){ try{ const t = await KT_AUTO.texto(mf); const r = KT_AUTO.lerMandato(t, ss()); const cid = "ct" + Date.now().toString(36);
-          await Store.set("contracts", cid, {supplierId:nid, tipo:`Mandato de assessoria${r.m.status === "assinado" ? "" : " (não assinado)"}`, numero:"", contraparte:nome, inicio:r.m.assinadoEm || "", fim:"", volume:"", preco:"", obs:`Anexado no cadastro do projeto (${mf.name}). Campos lidos: ${r.achou.join(", ")}.`, texto:t.slice(0, 60000), arquivo:mf.name, file:null, criadoEm:nowISO()});
-          const mm = {...r.m, fonte:"documento", doc:cid}; if (!v("pj-mst")) mm.status = r.m.status; await Store.update("suppliers", nid, {mandato:mm}); avisos.push("mandato lido e enviado ao Jurídico"); }
+      if (mf && window.KT_AUTO){ try{ const r = await KT_AUTO.registrarMandato(ss(), mf, false); avisos.push(r.ok ? r.msg.toLowerCase() : "mandato não registrado: " + r.msg); }
         catch(e){ avisos.push("mandato anexado sem leitura do texto"); } }
       /* documentos societários: leitura e diligência jurídica automática */
       for (const fs of [...($f("pj-soc")?.files || [])]){ if (!window.KT_JAUTO) break; try{ const x = await KT_JAUTO.importar(ss(), fs); avisos.push(`${x.tipo} lido`); }catch(e){ avisos.push(`${fs.name}: não lido`); } }
