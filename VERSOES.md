@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v2.33 — 2026-11-15 · Órbita com nomes curtos e legenda por tipo
+- Rótulos da Órbita e da faixa de empresas sem o nível (N1, N2, N3) e só com o nome fantasia ou o primeiro nome (ex.: Ruplast, Agrolave, Fiedler, All Care, Ivory Serviços); o nome completo fica no dossiê
+- Tipo pela cor e pelo formato: target (círculo verde), investidor (losango azul), intermediador (quadrado roxo), declinado (cinza); legenda compacta visível também no celular
+- Núcleo: gancho ORB_ROTULO para o rótulo dos pontos e da faixa; a faixa usa a cor do tipo (ORB_COR)
+
 ## v2.32 — 2026-11-15 · Cadastro do projeto preenchido automaticamente
 - Ao informar o CNPJ, a Receita preenche razão social, cidade, UF e segmento (pelo CNAE da atividade principal); ao abrir um projeto com CNPJ ainda não consultado, a consulta roda sozinha
 - Novo campo no topo do cadastro: anexar o cartão CNPJ, o contrato social ou a ficha da Junta; o sistema lê e preenche CNPJ, razão social, cidade, UF e segmento na hora, e leva sócios, quotas e cláusulas para a diligência jurídica

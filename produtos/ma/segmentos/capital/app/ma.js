@@ -19,6 +19,23 @@ if (typeof MA_MODELOS !== "undefined") (() => {
   /* ---------------- ÓRBITA ---------------- */
   S.orbCor = "nivel";
   window.ORB_COR = s => S.orbCor === "risco" && s.nivel === "N3" ? null : (s.etapa === "descartada" ? CINZA : LVC[s.nivel]);
+  /* rótulo curto na Órbita e na faixa: nome fantasia ou primeiro nome (o dossiê mostra o nome completo) */
+  const GENERICO = /^(grupo|rede|cia|companhia|industria|indústria|comercio|comércio|laboratorio|laboratório|hospital|clinica|clínica|distribuidora|fazenda|fazendas|banco|fundo|instituto|associacao|associação|cooperativa|exemplo|the|de|do|da|e)$/i;
+  const SUFIXO = /\b(ltda|s\.?\/?a\.?|sa|eireli|me|epp|s\/s|ltd|inc|llc|holding|participacoes|participações|administradora|servicos|serviços|empresariais|comercial|industrial)\b\.?/gi;
+  const titulo = t => t.length <= 4 && t === t.toUpperCase() ? t : t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
+  window.ORB_ROTULO = s => { const nome = String(s.nome || ""), fan = String(s.receita?.fantasia || "").trim(), linha = nome.includes(" · ") ? nome.split(" · ")[1].split(" ")[0] : "";
+    const base = (fan && !/^[\W\d]*$/.test(fan) ? fan : nome.split(" · ")[0]).replace(/\(.*?\)/g, " ").replace(/\s[-–,].*$/, " ").replace(SUFIXO, " ").replace(/\s+/g, " ").trim();
+    const W = base.split(" ").filter(Boolean).map(w => /^([A-Za-z]\.){2,}$/.test(w) ? w.replace(/\./g, "") : w); if (!W.length) return nome.slice(0, 14);
+    let out = W[0]; const curto = W[0].replace(/\W/g, "").length <= 4;
+    if (W.length === 2 && base.length <= 16) out = W.join(" "); else if ((GENERICO.test(W[0]) || curto) && W[1]) out = /^(de|do|da)$/i.test(W[1]) && W[2] ? W[0] + " " + W[2] : W[0] + " " + W[1];
+    if (linha) out += " " + linha;
+    return out.split(" ").map(titulo).join(" ").slice(0, 20); };
+  /* legenda compacta (também no celular) */
+  setTimeout(() => { const v = $("#v-orbita"); if (!v || $("#orb-leg")) return; const el = document.createElement("div"); el.id = "orb-leg";
+    el.innerHTML = `<span><i style="background:${LVC.N3};border-radius:50%"></i>Target</span><span><i style="background:${LVC.N1};transform:rotate(45deg)"></i>Investidor</span><span><i style="background:${LVC.N2}"></i>Intermediador</span><span><i style="background:${CINZA};border-radius:50%"></i>Declinado</span>`;
+    v.appendChild(el); const st = document.createElement("style"); st.textContent = `#orb-leg{position:absolute;left:12px;top:64px;z-index:6;display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--fog);background:rgba(1,20,48,.72);border:1px solid var(--line-2);border-radius:10px;padding:5px 9px;pointer-events:none}
+#orb-leg span{display:inline-flex;align-items:center;gap:5px}#orb-leg i{display:inline-block;width:8px;height:8px}
+@media (min-width:761px){#orb-leg{top:auto;bottom:118px}}`; document.head.appendChild(st); }, 300);
   const lvlUi = () => {
     const g = $(".lvl"); if (!g || g.dataset.ma) return; g.dataset.ma = "1";
     const st = document.createElement("style"); st.textContent = ".lvl button{width:auto;white-space:nowrap;display:flex;flex-direction:row;align-items:center;gap:6px;justify-content:flex-start}#ma-cor{opacity:1}"; document.head.appendChild(st);

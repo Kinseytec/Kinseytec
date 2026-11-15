@@ -283,7 +283,7 @@ function draw(now){
     else if (s.nivel==="N2") ctx.rect(x-sz, y-sz, sz*2, sz*2); else ctx.arc(x, y, sz, 0, 7);
     ctx.fill(); ctx.restore(); ctx.stroke();
     G.hits.push({id:s.id, x, y});
-    if (G.k > 7 && S.sel !== s.id){ const txt = `${s.nivel} ${(s.nome||"").slice(0,22)}`, bw = txt.length * 6.2;
+    if (G.k > 7 && S.sel !== s.id){ const txt = window.ORB_ROTULO ? window.ORB_ROTULO(s) : `${s.nivel} ${(s.nome||"").slice(0,22)}`, bw = txt.length * 6.2;
       if (!rotulos.some(b => x + 10 < b[0] + b[2] && b[0] < x + 10 + bw && Math.abs(b[1] - y) < 13)){ rotulos.push([x + 10, y, bw]); ctx.font = "500 10px 'IBM Plex Mono', monospace"; ctx.textAlign = "left"; ctx.fillStyle = "rgba(230,232,236,.8)"; ctx.fillText(txt, x+10, y+3); } }
   });
   // fotos geolocalizadas do alvo
@@ -318,7 +318,7 @@ function renderStrip(){
   const list = S.suppliers.filter(s => S.lv[s.nivel] && (!window.ORB_FILTRO || window.ORB_FILTRO(s))).sort((a,b) => a.nivel.localeCompare(b.nivel) || (a.nome||"").localeCompare(b.nome||""));
   $("#h-n").textContent = S.suppliers.length;
   $("#h-hi").textContent = S.suppliers.filter(s => riskOf(s).level==="alto").length;
-  $("#strip").innerHTML = list.length ? list.map(s => { const r = riskOf(s); return `<button type="button" class="chip" data-sel="${s.id}" aria-pressed="${S.sel===s.id}"><span style="color:${RCOL[r.level]}">${s.nivel==="N1"?"◆":s.nivel==="N2"?"■":"●"}</span>${esc((s.nome||"").slice(0,30))}<span class="lv">${esc(s.uf||s.pais||"")}</span></button>`; }).join("")
+  $("#strip").innerHTML = list.length ? list.map(s => { const r = riskOf(s); return `<button type="button" class="chip" data-sel="${s.id}" aria-pressed="${S.sel===s.id}"><span style="color:${(window.ORB_COR && window.ORB_COR(s)) || RCOL[r.level]}">${s.nivel==="N1"?"◆":s.nivel==="N2"?"■":"●"}</span>${esc(window.ORB_ROTULO ? window.ORB_ROTULO(s) : (s.nome||"").slice(0,30))}<span class="lv">${esc(s.uf||s.pais||"")}</span></button>`; }).join("")
     : `<button type="button" class="chip" data-go-to="cadeia">+ Cadastrar o primeiro fornecedor</button>`;
   $$("#strip [data-sel]").forEach(b => b.onclick = () => selectSup(b.dataset.sel, true));
   $$("#strip [data-go-to]").forEach(b => b.onclick = () => { go("cadeia"); openSupplierForm(); });
