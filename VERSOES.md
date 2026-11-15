@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v2.35 — 2026-11-15 · Análise preliminar automática sem balanços
+- Análises financeiras, Valuation e Pós-aquisição não pedem mais para importar balancete: target sem balanços abre com a análise preliminar calculada pelo sistema (faturamento do cadastro, mapa ou Econodata; margem EBITDA e múltiplo de referência do setor pelas companhias comparáveis ou pela referência Kinsey; EBITDA estimado; enterprise value indicativo com desconto de liquidez; política; situação do pedido de balanços)
+- Botão para pedir ou reenviar os balanços ao target; a análise completa entra sozinha quando os balanços chegam pelo cadastro do projeto
+- A Due Diligence segue com a importação da versão revisada durante os trabalhos
+
 ## v2.34 — 2026-11-15 · Planilha modelo do workbook de Due Diligence
 - Due Diligence > Visão geral: "Exportar planilha modelo" ao lado de "Importar workbook"; o Excel já vem com o cadastro do cliente (razão social, CNPJ, CNAE, cidade, segmento, regime, data-base, períodos contratados, diligência jurídica, sócio, consultores e sócios da Receita), o resumo dos balancetes, os procedimentos do sistema com o resultado automático e as sugestões de ajustes e achados
 - Abas de preenchimento (Ajustes, Contingências, Conferências, Pontos) com os cabeçalhos que a importação reconhece; abas informativas não são importadas, sem duplicar o que o sistema já tem
