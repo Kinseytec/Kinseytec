@@ -83,14 +83,15 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
   }
 
   /* ---------------- WACC / CAPM ---------------- */
+  const LIM_WACC = .03; /* ajuste máximo do consultor: 3 p.p. para cima ou para baixo do WACC automático */
   function wacc(s, Bs, vl){
-    const P = Bs.P, seg = s.perfil?.segmento || s.segmento || "Outros", [bu, deSet] = Bs.betas[seg] || Bs.betas.Outros;
-    const de = vl.de ?? deSet, t = P.ir.v / 100, bl = bu * (1 + (1 - t) * de);
-    const size = vl.size ?? P.size.v, keUSD = (P.rf.v + bl * P.erp.v + P.crp.v + size) / 100;
-    const ke = (1 + keUSD) * (1 + P.infBR.v / 100) / (1 + P.infUS.v / 100) - 1;
-    const sel = Object.values(Bs.focus.selic || {}), selicLP = sel.length ? sel.reduce((a, b) => a + b, 0) / sel.length : P.selic.v;
-    const kd = (selicLP + P.spread.v) / 100, wd = de / (1 + de), we = 1 - wd, w = we * ke + wd * kd * (1 - t);
-    return {seg, bu, de, bl, size, keUSD, ke, kd, kdLiq:kd * (1 - t), wd, we, wacc:vl.waccManual != null ? vl.waccManual / 100 : w, waccCalc:w, selicLP, t};
+    const P = Bs.P, seg = s.perfil?.segmento || s.segmento || "Outros", [bu, deSet] = Bs.betas[seg] || Bs.betas.Outros, t = P.ir.v / 100;
+    const sel = Object.values(Bs.focus.selic || {}), selicLP = sel.length ? sel.reduce((a, b) => a + b, 0) / sel.length : P.selic.v, kd = (selicLP + P.spread.v) / 100;
+    const calc = (de, size) => { const bl = bu * (1 + (1 - t) * de), keUSD = (P.rf.v + bl * P.erp.v + P.crp.v + size) / 100, ke = (1 + keUSD) * (1 + P.infBR.v / 100) / (1 + P.infUS.v / 100) - 1, wd = de / (1 + de), we = 1 - wd;
+      return {de, size, bl, keUSD, ke, wd, we, w:we * ke + wd * kd * (1 - t)}; };
+    const A = calc(deSet, P.size.v), C = calc(vl.de ?? deSet, vl.size ?? P.size.v), alvo = vl.waccManual != null ? vl.waccManual / 100 : C.w;
+    const w = Math.min(A.w + LIM_WACC, Math.max(A.w - LIM_WACC, alvo)), ajustado = vl.waccManual != null || vl.de != null || vl.size != null;
+    return {seg, bu, de:C.de, bl:C.bl, size:C.size, keUSD:C.keUSD, ke:C.ke, kd, kdLiq:kd * (1 - t), wd:C.wd, we:C.we, wacc:w, waccCalc:A.w, waccAuto:A.w, waccComp:C.w, ajustado, limitado:Math.abs(w - alvo) > 1e-9, lim:[A.w - LIM_WACC, A.w + LIM_WACC], just:vl.waccJust, selicLP, t};
   }
 
   /* ---------------- DÍVIDA LÍQUIDA: DO ENTERPRISE VALUE AO EQUITY VALUE ----------------
@@ -231,6 +232,7 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
   /* ---------------- ALERTAS ---------------- */
   function alertas(s, X){
     const out = [], vl = X.vl, P = X.Bs.P, just = vl.just || {}, add = (nivel, txt, key) => out.push({nivel, txt, key, ok:key ? !!just[key]?.texto : false});
+    if (X.W.ajustado && !vl.waccJust?.texto) add("bloqueio", `WACC ajustado pelo consultor (${pc(X.W.wacc)} contra ${pc(X.W.waccAuto)} automático) sem justificativa.`);
     const f = perfilFalta(s); if (f.length) add("bloqueio", `Cadastro para valuation incompleto: ${f.join(", ")}.`);
     if (X.H.anuais.length < 2) add("bloqueio", `Histórico com ${X.H.anuais.length} exercício(s) completo(s). O mínimo é 2 (ideal 3): importe os balancetes de dezembro na Due Diligence.`);
     else if (X.H.anuais.length < 3) add("aviso", "Histórico com 2 exercícios. O ideal são 3 para medir o crescimento.");
@@ -287,24 +289,40 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
       ["Prêmio de mercado (ERP)", pc(P.erp.v / 100)], ["Risco-país", pc(P.crp.v / 100)], ["Prêmio de tamanho", pc(W.size / 100)], ["Custo do capital próprio (R$)", pc(W.ke)], ["Custo da dívida após IR", pc(W.kdLiq)],
       ["Estrutura de capital (próprio / dívida)", `${pc(W.we, 0)} / ${pc(W.wd, 0)}`], ["WACC calculado", pc(W.waccCalc)], ["<b>WACC usado</b>", `<b>${pc(W.wacc)}</b>${vl.waccManual != null ? " (consultor)" : ""}`]]; }
   function revisarWacc(s){
-    const Bs = base(), vl = s.dd?.vl || {}, W = wacc(s, Bs, vl), e2 = ed() ? "" : "disabled";
-    const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">${esc(s.nome)} · ${esc(W.seg)}</div><h2>Revisar cálculo do WACC</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
+    const Bs = base(), vl = s.dd?.vl || {}, W = wacc(s, Bs, vl), e2 = ed() ? "" : "disabled", J = vl.waccJust || {};
+    const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">${esc(s.nome)} · ${esc(W.seg)}</div><h2>WACC pelo CAPM</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
       <form class="sheet-b" id="frw" style="display:flex;flex-direction:column;gap:12px" novalidate>${tbl(["Componente", "Valor"], waccRows(W, Bs, vl).map(r => tr(r)))}
-        <p class="sub" style="margin:0">CAPM em dólar convertido para reais pela diferença de inflação. Taxas de mercado na aba Base.</p>
-        <div class="form"><div class="fld"><label for="rw-de">Dívida / patrimônio</label><input id="rw-de" inputmode="decimal" value="${fmt(W.de, 2)}" ${e2}></div><div class="fld"><label for="rw-sz">Prêmio de tamanho (%)</label><input id="rw-sz" inputmode="decimal" value="${fmt(W.size, 1)}" ${e2}></div>
-          <div class="fld"><label for="rw-wm">WACC definido pelo consultor (%)</label><input id="rw-wm" inputmode="decimal" value="${vl.waccManual != null ? fmt(vl.waccManual, 2) : ""}" placeholder="vazio = calculado" ${e2}></div></div>
-        ${ed() ? `<div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="btn ghost" data-x>Cancelar</button><button type="submit" class="btn primary">Salvar e recalcular</button></div>` : ""}</form>`);
-    $("#frw").onsubmit = e => { e.preventDefault(); up(s, {dd:{vl:{de:n($("#rw-de").value), size:n($("#rw-sz").value), waccManual:n($("#rw-wm").value)}}}).then(() => { close(); toast("WACC recalculado"); }); };
+        <div class="banner" style="font-size:13px"><b>WACC automático ${pc(W.waccAuto)}.</b> O consultor pode ajustar os componentes ou a taxa, com justificativa, até 3 p.p. para cima ou para baixo: de ${pc(W.lim[0])} a ${pc(W.lim[1])}.</div>
+        ${ed() ? `<div class="form"><div class="fld"><label for="rw-de">Dívida / patrimônio</label><input id="rw-de" inputmode="decimal" value="${vl.de != null ? fmt(vl.de, 2) : ""}" placeholder="${fmt(Bs.betas[W.seg]?.[1] ?? W.de, 2)} (setorial)"></div><div class="fld"><label for="rw-sz">Prêmio de tamanho (%)</label><input id="rw-sz" inputmode="decimal" value="${vl.size != null ? fmt(vl.size, 1) : ""}" placeholder="${fmt(Bs.P.size.v, 1)} (base)"></div>
+          <div class="fld"><label for="rw-wm">WACC definido pelo consultor (%)</label><input id="rw-wm" inputmode="decimal" value="${vl.waccManual != null ? fmt(vl.waccManual, 2) : ""}" placeholder="vazio = pelos componentes"></div>
+          <div class="fld"><label for="rw-t">Fundamento</label><select id="rw-t">${["Risco específico da empresa", "Estrutura de capital-alvo", "Porte e liquidez", "Concentração de clientes ou fornecedores", "Governança e dependência dos sócios", "Condições de mercado do setor", "Outro"].map(x => `<option ${x === J.tipo ? "selected" : ""}>${x}</option>`).join("")}</select></div>
+          <div class="fld full"><label for="rw-j">Justificativa do ajuste (obrigatória)</label><textarea id="rw-j" rows="4" placeholder="ex.: 60% da receita em dois clientes; acrescentado 1,5 p.p. de risco específico">${esc(J.texto || "")}</textarea></div></div>
+        <div id="rw-prev" class="sub" style="margin:0"></div><p class="err" id="rw-err" hidden></p>
+        <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap"><button type="button" class="btn ghost" data-x>Cancelar</button>${W.ajustado ? `<button type="button" class="btn" id="rw-auto">Voltar ao automático</button>` : ""}<button type="submit" class="btn primary">Salvar ajuste</button></div>` : ""}</form>`);
+    if (!ed()) return;
+    const novo = () => ({de:n($("#rw-de").value), size:n($("#rw-sz").value), waccManual:n($("#rw-wm").value)});
+    const calcula = () => { const v = novo(), W2 = wacc(s, Bs, v), alvo = v.waccManual != null ? v.waccManual / 100 : W2.waccComp, fora = alvo < W2.lim[0] - 1e-9 || alvo > W2.lim[1] + 1e-9;
+      $("#rw-prev").innerHTML = `WACC resultante: <b>${pc(alvo)}</b> (automático ${pc(W2.waccAuto)}, diferença ${fmt((alvo - W2.waccAuto) * 100, 2)} p.p.)${fora ? ` · <b style="color:var(--bad)">fora do limite de ±3 p.p.</b>` : ""}`; return {v, fora, alvo}; };
+    ["rw-de", "rw-sz", "rw-wm"].forEach(id => $("#" + id).oninput = calcula); calcula();
+    const a = $("#rw-auto"); if (a) a.onclick = () => up(s, {dd:{vl:{de:null, size:null, waccManual:null, waccJust:null}}}).then(() => { close(); toast("WACC automático restabelecido"); });
+    $("#frw").onsubmit = e => { e.preventDefault(); const {v, fora} = calcula(), j = $("#rw-j").value.trim(), err = t => { $("#rw-err").textContent = t; $("#rw-err").hidden = false; };
+      const mudou = v.de != null || v.size != null || v.waccManual != null;
+      if (!mudou){ up(s, {dd:{vl:{de:null, size:null, waccManual:null, waccJust:null}}}).then(() => { close(); toast("WACC automático"); }); return; }
+      if (fora) return err(`O ajuste passa do limite: o WACC deve ficar entre ${pc(W.lim[0])} e ${pc(W.lim[1])} (automático ±3 p.p.).`);
+      if (j.length < 30) return err("Escreva a justificativa do ajuste (mínimo de 30 caracteres).");
+      up(s, {dd:{vl:{...v, waccJust:{tipo:$("#rw-t").value, texto:j, por:Store.me?.email || "", em:nowISO(), auto:W.waccAuto}}}}).then(() => { close(); toast("Ajuste do WACC registrado com justificativa"); }); };
   }
   function bindTopo(host, s){
     const ok = $("#vw-ok", host), c = $("#vw-calc", host), r = $("#vw-rev", host), m = $("#vw-mg", host);
-    if (ok) ok.onclick = () => { const v = n($("#vw-w", host).value); up(s, {dd:{vl:{waccManual:v}}}).then(() => toast(v == null ? "WACC calculado" : `WACC de ${fmt(v, 2)}% aplicado`)); };
-    if (c) c.onclick = () => up(s, {dd:{vl:{waccManual:null}}}).then(() => toast("Voltou ao WACC calculado"));
+    if (ok) ok.onclick = () => revisarWacc(s);
+    if (c) c.onclick = () => up(s, {dd:{vl:{de:null, size:null, waccManual:null, waccJust:null}}}).then(() => toast("WACC automático restabelecido"));
     if (r) r.onclick = () => revisarWacc(s);
     if (m) m.onchange = () => up(s, {dd:{vl:{mgPrev:n(m.value)}}});
   }
-  const waccBox = (W, vl) => `<div class="card" style="display:flex;flex-direction:column;gap:8px;padding:12px"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><div><b>WACC ${pc(W.wacc)}</b> <span class="sub" style="font-size:12px">${vl.waccManual != null ? `definido pelo consultor · calculado ${pc(W.waccCalc)}` : "calculado pelo CAPM"}</span></div><button type="button" class="btn sm" id="vw-rev">Revisar cálculo do WACC</button></div>
-    ${ed() ? `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><input id="vw-w" inputmode="decimal" value="${fmt(W.wacc * 100, 2)}" aria-label="WACC em %" style="width:90px;text-align:right"><span class="sub">%</span><button type="button" class="btn sm primary" id="vw-ok">Alterar WACC</button>${vl.waccManual != null ? `<button type="button" class="btn sm ghost" id="vw-calc">Usar o calculado</button>` : ""}</div>` : ""}</div>`;
+  const waccBox = (W, vl) => `<div class="card" style="display:flex;flex-direction:column;gap:8px;padding:12px"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center">
+      <div><b>WACC ${pc(W.wacc)}</b> <span class="sub" style="font-size:12px">${W.ajustado ? `ajustado pelo consultor · automático ${pc(W.waccAuto)} (${(W.wacc - W.waccAuto) >= 0 ? "+" : ""}${fmt((W.wacc - W.waccAuto) * 100, 2)} p.p.)` : "automático pelo CAPM"} · ajuste permitido de ${pc(W.lim[0])} a ${pc(W.lim[1])}</span></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn sm" id="vw-rev">Revisar cálculo</button>${ed() ? `<button type="button" class="btn sm primary" id="vw-ok">Ajustar com justificativa</button>${W.ajustado ? `<button type="button" class="btn sm ghost" id="vw-calc">Voltar ao automático</button>` : ""}` : ""}</div></div>
+    ${W.ajustado ? (W.just?.texto ? `<div class="sub" style="margin:0;font-size:12px"><b>Justificativa (${esc(W.just.tipo || "")}):</b> ${esc(W.just.texto)}</div>` : `<div class="banner" style="border-color:var(--bad);font-size:13px"><b>WACC ajustado sem justificativa.</b> Justifique para emitir o valuation.</div>`) : ""}${W.limitado ? `<div class="sub" style="margin:0;font-size:12px;color:var(--bad)">Ajuste limitado a ±3 p.p. do automático.</div>` : ""}</div>`;
   /* múltiplos apurados por grupo: mesmo segmento, semelhantes e todos */
   function grupos(C){ const G = (rot, sub, L) => L.length ? {rot, sub, n:L.length, eb:stats(L.map(c => c.evEb)), rec:stats(L.map(c => c.evRec)), pl:stats(L.filter(c => c.pl > 0 && c.pl < 60).map(c => c.pl)), mg:stats(L.map(c => c.mg))} : null;
     return [G("Mesmo segmento", C.seg || "—", C.ok.filter(c => c.mesmo)), G("Segmentos semelhantes", C.sim.join(", ") || "—", C.ok.filter(c => !c.mesmo)), G("Todos (usados no valuation)", "", C.ok)].filter(Boolean); }
@@ -423,7 +441,7 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
     const P = Bs.P, wr = [["Taxa livre de risco (USD)", pc(P.rf.v / 100), P.rf.fonte], ["Beta desalavancado · " + W.seg, fmt(W.bu, 2), "base setorial"], ["Dívida / patrimônio", fmt(W.de, 2), vl.de != null ? "informado pelo consultor" : "setorial"], ["Beta realavancado", fmt(W.bl, 2), "βu × (1 + (1 − t) × D/E)"],
       ["Prêmio de mercado (ERP)", pc(P.erp.v / 100), P.erp.fonte], ["Risco-país", pc(P.crp.v / 100), P.crp.fonte], ["Prêmio de tamanho", pc(W.size / 100), P.size.fonte], ["Custo do capital próprio (USD)", pc(W.keUSD), "CAPM"],
       ["Custo do capital próprio (R$)", pc(W.ke), `inflação ${fmt(P.infBR.v, 1)}% Brasil / ${fmt(P.infUS.v, 1)}% EUA`], ["Custo da dívida (antes do IR)", pc(W.kd), `Selic média Focus ${fmt(W.selicLP, 2)}% + spread ${fmt(P.spread.v, 1)} p.p.`], ["Custo da dívida (após IR)", pc(W.kdLiq), `IR/CS ${fmt(P.ir.v, 0)}%`],
-      ["Estrutura de capital", `${pc(W.we, 0)} / ${pc(W.wd, 0)}`, "capital próprio / dívida"], ["<b>WACC</b>", `<b>${pc(W.wacc)}</b>`, vl.waccManual != null ? "definido pelo consultor" : "calculado"]];
+      ["Estrutura de capital", `${pc(W.we, 0)} / ${pc(W.wd, 0)}`, "capital próprio / dívida"], ["<b>WACC</b>", `<b>${pc(W.wacc)}</b>`, W.ajustado ? `ajustado pelo consultor (automático ${pc(W.waccAuto)})` : "automático"]];
     return fcdTopo(s, R) + `<div class="card" style="display:flex;flex-direction:column;gap:10px"><h3>Histórico</h3>${histT}<h3 style="margin-top:6px">Por linha de negócio (receita bruta)</h3>${linT}
         <p class="sub" style="margin:0">Crescimento real descontado o IPCA de cada ano (Banco Central). Contas de receita ligadas às linhas pelo nome; ajuste em "Contas de receita" abaixo.</p>
         <details><summary class="sub">Contas de receita por linha de negócio</summary>${tbl(["Conta", "Linha"], [...new Set(H.P.flatMap(p => D.C(p.b).filter(c => c[3] === "recBruta").map(c => c[1])))].map(d => `<tr><td>${esc(d)}</td><td><select data-map="${esc(d)}" aria-label="Linha de ${esc(d)}" ${ed2}>${[...new Set([...linhasDe(s), "Outras receitas"])].map(l => `<option ${l === linhaConta(s, d) ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></td></tr>`))}</details></div>
@@ -432,8 +450,7 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
         <p class="sub" style="margin:0">Crescimento real por linha na tabela acima. Cenário moderado: crescimento real histórico de cada linha e margem média histórica.</p><div class="form">
         <div class="fld"><label for="pr-mg">Margem EBITDA otimista (%)</label><input id="pr-mg" inputmode="decimal" value="${vl.margemOt != null ? fmt(vl.margemOt, 1) : ""}" placeholder="${fmt(div(X.bp.eb, X.bp.rl) * 100, 1)}" ${ed2}></div>
         <div class="fld"><label for="pr-cx">Capex (% da receita)</label><input id="pr-cx" inputmode="decimal" value="${fmt(X.capex * 100, 1)}" ${ed2}></div><div class="fld"><label for="pr-nc">Capital de giro (% da receita)</label><input id="pr-nc" inputmode="decimal" value="${fmt(X.ncgp * 100, 1)}" ${ed2}></div>
-        <div class="fld"><label for="pr-de">Dívida / patrimônio alvo</label><input id="pr-de" inputmode="decimal" value="${fmt(W.de, 2)}" ${ed2}></div><div class="fld"><label for="pr-sz">Prêmio de tamanho (%)</label><input id="pr-sz" inputmode="decimal" value="${fmt(W.size, 1)}" ${ed2}></div>
-        <div class="fld"><label for="pr-wm">WACC definido pelo consultor (%, opcional)</label><input id="pr-wm" inputmode="decimal" value="${vl.waccManual != null ? fmt(vl.waccManual, 2) : ""}" ${ed2}></div></div>
+</div><p class="sub" style="margin:0;font-size:12px">WACC: automático pelo CAPM; ajustes só em "Ajustar com justificativa" (limite de ±3 p.p.).</p>
         <h3 style="font-size:14px">Novos negócios e mercados (só no otimista, com justificativa)</h3><p class="sub" style="margin:0">Informações dos sócios ou da administração sobre novos negócios já em funcionamento ou com estudos que comprovem. Margem acima do histórico (${pc(X.mgMax)}) exige justificativa.</p>
         ${Object.entries(vl.novos || {}).filter(([, v]) => v).map(([id, v]) => `<div class="sub" style="margin:0">${esc(v.nome)}${v.fonte ? ` · fonte: ${esc(v.fonte)}` : ""}${v.comprova ? ` · ${esc(v.comprova)}` : ""} · receita no ano ${esc(v.inicio)}: R$ ${fmt(+v.rec1, 1)} mi · crescimento real ${fmt(+v.cresc, 1)}% · margem ${fmt(+v.margem, 1)}% ${ed() ? `<button type="button" class="btn sm ghost" data-rmnb="${id}">Remover</button>` : ""}</div>`).join("") || `<p class="sub" style="margin:0">Nenhum.</p>`}
         ${ed() ? `<div class="form"><div class="fld"><label for="nb-n">Novo negócio</label><input id="nb-n" placeholder="ex.: exportação para o Chile"></div><div class="fld"><label for="nb-i">Ano de início (1 a 5)</label><input id="nb-i" inputmode="numeric" value="1"></div><div class="fld"><label for="nb-r">Receita no 1º ano (R$ mi)</label><input id="nb-r" inputmode="decimal"></div><div class="fld"><label for="nb-c">Crescimento real a.a. (%)</label><input id="nb-c" inputmode="decimal" value="0"></div><div class="fld"><label for="nb-m">Margem EBITDA (%)</label><input id="nb-m" inputmode="decimal"></div><div class="fld"><label for="nb-f">Informação vinda de</label><select id="nb-f">${["Sócios", "Administração", "Estudo de viabilidade", "Contrato assinado", "Operação já em funcionamento"].map(x => `<option>${x}</option>`).join("")}</select></div><div class="fld full"><label for="nb-p">Comprovação (estudo, contrato, resultados já obtidos)</label><input id="nb-p" placeholder="ex.: estudo de mercado da consultoria X; operação piloto faturou R$ 1,2 mi em 2026"></div></div>
@@ -446,7 +463,7 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
   function bindFcd(host, s, R){
     const f = $("#fprem", host); if (!f) return; const vlp = s.dd?.vl || {};
     f.onsubmit = e => { e.preventDefault(); const prem = {}; $$("[data-prem]", host).forEach(i => { const x = n(i.value); prem[i.dataset.prem] = {real:x}; });
-      const g = id => n($("#" + id).value); up(s, {dd:{vl:{prem, margemOt:g("pr-mg"), capex:g("pr-cx"), ncgp:g("pr-nc"), de:g("pr-de"), size:g("pr-sz"), waccManual:g("pr-wm")}}}).then(() => toast("Premissas salvas")); };
+      const g = id => n($("#" + id).value); up(s, {dd:{vl:{prem, margemOt:g("pr-mg"), capex:g("pr-cx"), ncgp:g("pr-nc")}}}).then(() => toast("Premissas salvas")); };
     const a = $("#nb-add", host); if (a) a.onclick = () => { const nome = $("#nb-n").value.trim(), r1 = n($("#nb-r").value); if (!nome || !r1){ toast("Informe o nome e a receita do novo negócio."); return; }
       up(s, {dd:{vl:{novos:{["n" + Date.now().toString(36)]:{nome, inicio:cl(n($("#nb-i").value) || 1, 1, 5), rec1:r1, cresc:n($("#nb-c").value) || 0, margem:n($("#nb-m").value) || 0, fonte:$("#nb-f").value, comprova:$("#nb-p").value.trim()}}}}}).then(() => toast("Novo negócio incluído: justifique para emitir")); };
     $$("[data-rmnb]", host).forEach(b => b.onclick = () => up(s, {dd:{vl:{novos:{[b.dataset.rmnb]:null}}}}));

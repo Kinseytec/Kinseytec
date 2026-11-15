@@ -1,5 +1,12 @@
 # Registro de versões
 
+## v2.39 — 2026-11-15 · WACC automático com ajuste limitado e justificado
+- O WACC vem sempre calculado automaticamente pelo CAPM (beta e estrutura de capital do setor, prêmio de tamanho da base)
+- O consultor pode ajustar os componentes (dívida/patrimônio, prêmio de tamanho) ou a taxa, com fundamento e justificativa obrigatória, até 3 p.p. acima ou abaixo do automático; fora disso o sistema não salva
+- A tela mostra o WACC usado, o automático, a diferença em p.p., a faixa permitida e a justificativa; "Voltar ao automático" desfaz o ajuste
+- WACC ajustado sem justificativa bloqueia a emissão do valuation; o relatório traz o WACC automático e o ajuste com a justificativa
+- Campos de WACC saíram das premissas do otimista (o ajuste fica só na folha com justificativa)
+
 ## v2.38 — 2026-11-15 · Valuation prático: FCD e Múltiplos
 - Abas curtas: Síntese, FCD, Múltiplos, Outras, Dívida líquida, Base, Relatório
 - FCD e Múltiplos funcionam também sem balanços (prévia com o faturamento do cadastro e a margem de referência do setor)
