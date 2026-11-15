@@ -1,5 +1,9 @@
 # Registro de versões
 
+## v2.41 — 2026-11-15 · Relatório de análises financeiras e ajustes nos relatórios
+- Novo relatório de Análises financeiras (resumo e completo), com o botão "Emitir relatório" na tela: sumário executivo com leitura automática, evolução histórica, ponte do EBITDA, ajustes da Due Diligence e situação do OK, DRE reportada × ajustada, balanço e endividamento, capital de giro e prazos médios, indicadores e limitações
+- Valuation completo: sem companhias comparáveis carregadas, traz a referência Kinsey de múltiplos do setor aplicada ao EBITDA ajustado e o confronto do FCD moderado e otimista com o mercado; títulos das projeções não ficam soltos no fim da página
+
 ## v2.40 — 2026-11-15 · Cores Kinsey nas telas de trabalho
 - Fundo navy Kinsey (gradiente) em todas as telas de trabalho (Base inicial, Due Diligence, Análises, Valuation, Apresentação, Jurídico, Pós-aquisição); o fundo escuro do espaço fica só na Órbita
 - Cartões, indicadores e campos em tons de azul Kinsey, com contraste para leitura, também no celular
