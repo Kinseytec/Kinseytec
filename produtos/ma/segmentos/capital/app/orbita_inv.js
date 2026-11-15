@@ -115,7 +115,7 @@ if (window.KT_DD) (() => {
   const TIPOS = [["N3", "Targets"], ["N1", "Investidores"], ["N2", "Parceiros"], ["todos", "Todos"]];
   const rotTipo = {N3:"target(s)", N1:"investidor(es)", N2:"intermediador(es)", todos:"empresa(s)"};
   function resumo(){
-    const F = S.orb, inv = F.inv && supById(F.inv), n = S.suppliers.filter(s => passa(s) && (!inv || s.id !== inv.id)).length;
+    const F = S.orb, inv = F.inv && supById(F.inv), n = S.suppliers.filter(s => passa(s) && (!inv || s.id !== inv.id) && !(window.KT_DECL && KT_DECL.dec(s)) && (!s.standby?.ativo || S.orb?.standby)).length;
     const partes = [inv && F.tipo === "N3" ? `que ${inv.nome} compra` : "", F.seg, F.cnae ? "CNAE " + F.cnae : "", F.cid ? S.suppliers.find(s => nrm(s.municipio) === F.cid)?.municipio : "", F.uf, F.reg, F.temp].filter(Boolean);
     return {n, txt:`${n} ${rotTipo[F.tipo]}${partes.length ? " · " + partes.join(" · ") : ""}`};
   }

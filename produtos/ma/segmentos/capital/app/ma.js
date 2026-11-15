@@ -32,7 +32,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     return out.split(" ").map(titulo).join(" ").slice(0, 20); };
   /* legenda compacta (também no celular) */
   setTimeout(() => { const v = $("#v-orbita"); if (!v || $("#orb-leg")) return; const el = document.createElement("div"); el.id = "orb-leg";
-    el.innerHTML = `<span><i style="background:${LVC.N3};border-radius:50%"></i>Target</span><span><i style="background:${LVC.N1};transform:rotate(45deg)"></i>Investidor</span><span><i style="background:${LVC.N2}"></i>Intermediador</span><span><i style="background:${CINZA};border-radius:50%"></i>Declinado</span>`;
+    el.innerHTML = `<span><i style="background:${LVC.N3};border-radius:50%"></i>Target</span><span><i style="background:${LVC.N1};transform:rotate(45deg)"></i>Investidor</span><span><i style="background:${LVC.N2}"></i>Intermediador</span>`;
     v.appendChild(el); const st = document.createElement("style"); st.textContent = `#orb-leg{position:absolute;left:12px;top:64px;z-index:6;display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--fog);background:rgba(1,20,48,.72);border:1px solid var(--line-2);border-radius:10px;padding:5px 9px;pointer-events:none}
 #orb-leg span{display:inline-flex;align-items:center;gap:5px}#orb-leg i{display:inline-block;width:8px;height:8px}
 @media (min-width:761px){#orb-leg{top:auto;bottom:118px}}`; document.head.appendChild(st); }, 300);

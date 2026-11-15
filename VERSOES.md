@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v2.37 — 2026-11-15 · Declinados fora da Órbita, com consulta e retomada
+- Órbita: declinados não aparecem mais no globo nem na faixa de empresas (só se forem buscados e selecionados); a contagem da consulta considera apenas os ativos; legenda sem "Declinado"
+- Base inicial > Mandatos e standby: botão "Declinados (n)" abre a consulta com busca por nome, CNPJ, segmento ou motivo, mostrando o tipo, o motivo do declínio e o histórico de retomadas
+- Retomar: escolhe etapa (mapeada, abordada, reunião ou NDA), temperatura e o motivo da retomada; a empresa volta como target ativo e o declínio anterior fica no histórico
+- Dossiê de empresa declinada mostra o aviso com o motivo e o botão Retomar
+
 ## v2.36 — 2026-11-15 · Due Diligence com base no cadastro e no workbook
 - Due Diligence não importa mais balancete: os balancetes vêm do cadastro inicial; o botão do topo passa a ser "Cadastro do projeto" (proposta à parte, com informações adicionais)
 - Visão geral mostra o quadro "Cadastro do projeto" com tudo o que veio do cadastro inicial (CNPJ, razão social, CNAE, cidade/UF, segmento, regime, due diligence e diligência jurídica contratadas, períodos, data-base, sócio, mandato e balancetes com a origem)
