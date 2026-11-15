@@ -54,7 +54,7 @@ if (window.KT_DD) (() => {
   /* ---------------- filtro do globo e da faixa de empresas ----------------
      Padrão: só os targets (N3). A consulta (botão no canto, painel lateral) filtra por tipo (N1, N2, N3 ou todos),
      investidor (o que ele compra), segmento, CNAE cadastrado, estado, região, cidade e temperatura do mapa. */
-  const VAZIO = {tipo:"N3", inv:"", seg:"", cnae:"", uf:"", reg:"", cid:"", temp:"", pol:""};
+  const VAZIO = {tipo:"todos", inv:"", seg:"", cnae:"", uf:"", reg:"", cid:"", temp:"", pol:""};
   S.orb = {...VAZIO, ...(S.orb || {})};
   Object.defineProperty(S, "orbInv", {get:() => S.orb.inv, set:v => { S.orb.inv = v || ""; if (v) S.orb.tipo = "N3"; }, configurable:true});
   Object.assign(S.lv, {N1:true, N2:true, N3:true, rotas:false});
@@ -117,13 +117,15 @@ if (window.KT_DD) (() => {
   function resumo(){
     const F = S.orb, inv = F.inv && supById(F.inv), n = S.suppliers.filter(s => passa(s) && (!inv || s.id !== inv.id) && !(window.KT_DECL && KT_DECL.dec(s)) && (!s.standby?.ativo || S.orb?.standby)).length;
     const partes = [inv && F.tipo === "N3" ? `que ${inv.nome} compra` : "", F.seg, F.cnae ? "CNAE " + F.cnae : "", F.cid ? S.suppliers.find(s => nrm(s.municipio) === F.cid)?.municipio : "", F.uf, F.reg, F.temp].filter(Boolean);
+    if (F.tipo === "todos" && !inv){ const c = l => S.suppliers.filter(s => s.nivel === l && passa(s) && !(window.KT_DECL && KT_DECL.dec(s)) && (!s.standby?.ativo || S.orb?.standby)).length;
+      return {n, txt:`${n} ${c("N3")} targets · ${c("N1")} investidores · ${c("N2")} parceiros${partes.length ? " · " + partes.join(" · ") : ""}`}; }
     return {n, txt:`${n} ${rotTipo[F.tipo]}${partes.length ? " · " + partes.join(" · ") : ""}`};
   }
   function botao(){
     const v = $("#v-orbita"); if (!v) return; let b = $("#orb-cbtn");
     if (!b){ b = document.createElement("button"); b.type = "button"; b.className = "orb-cbtn"; b.id = "orb-cbtn"; v.appendChild(b); b.onclick = () => { S.orbCons = !S.orbCons; painel(); }; }
     const R = resumo(), k = ativos();
-    b.innerHTML = `${ICON}<span>Consulta · <b>${R.n}</b> ${esc(R.txt.replace(/^\d+ /, ""))}</span>${k ? `<i class="n">${k}</i>` : ""}`;
+    b.innerHTML = `${ICON}<span>${S.orb.tipo === "todos" && !S.orb.inv ? esc(R.txt.replace(/^\d+ /, "")).replace(/(\d+) /g, "<b>$1</b> ") : `Consulta · <b>${R.n}</b> ${esc(R.txt.replace(/^\d+ /, ""))}`}</span>${k ? `<i class="n">${k}</i>` : ""}`;
     b.setAttribute("aria-expanded", !!S.orbCons);
     const old = $("#orb-inv"); if (old) old.remove();
   }
@@ -172,7 +174,7 @@ if (window.KT_DD) (() => {
     flyTo((Math.max(...lo) + Math.min(...lo)) / 2, (Math.max(...la) + Math.min(...la)) / 2, Math.max(1.2, Math.min(8, 22 / span))); }
   /* "Ver na órbita" de um investidor abre o mapa no modo desse investidor; de um N2, mostra os parceiros */
   const _sel = selectSup; selectSup = function(id){ const s = id && supById(id);
-    if (s && s.nivel === "N1" && S.orb.inv !== id && S.orb.tipo === "N3"){ S.orb = {...VAZIO, inv:id}; }
+    if (s && s.nivel === "N1" && S.orb.inv !== id && ["N3", "todos"].includes(S.orb.tipo)){ S.orb = {...VAZIO, tipo:"N3", inv:id}; }
     return _sel.apply(this, arguments); };
   const _strip = renderStrip; renderStrip = function(){ const r = _strip.apply(this, arguments); try{ painel(); }catch(e){ console.error(e); } return r; };
 
@@ -203,7 +205,7 @@ if (window.KT_DD) (() => {
         + (novo ? `<button type="button" data-qn="${d}"><i>+</i><span>CNPJ fora da base: cadastrar na Base inicial</span><small>${esc(inp.value.trim())}</small></button>` : "")
         + (!L.length && !novo ? `<div class="sub" style="margin:0;padding:8px 9px;font-size:12.5px">Nenhuma empresa da base encontrada.</div>` : "");
       res.hidden = false;
-      $$("[data-q]", res).forEach(b => b.onclick = () => { const s = supById(b.dataset.q); inp.value = ""; fecha(); inp.blur(); if (s.nivel === "N1") S.orb = {...VAZIO, inv:s.id}; selectSup(s.id, true); G.dirty = true; renderStrip(); });
+      $$("[data-q]", res).forEach(b => b.onclick = () => { const s = supById(b.dataset.q); inp.value = ""; fecha(); inp.blur(); if (s.nivel === "N1") S.orb = {...VAZIO, tipo:"N3", inv:s.id}; selectSup(s.id, true); G.dirty = true; renderStrip(); });
       $$("[data-qn]", res).forEach(b => b.onclick = () => { const doc = b.dataset.qn; inp.value = ""; fecha(); if (window.KT_BASE){ KT_BASE.cadastro("N3"); setTimeout(() => { const x = document.getElementById("bi-doc"); if (x){ x.value = doc; const c = document.getElementById("bi-rf"); if (c) c.click(); } }, 120); } }); };
     inp.onkeydown = e => { if (e.key === "Escape"){ inp.value = ""; fecha(); inp.blur(); } if (e.key === "Enter"){ const b = res.querySelector("button"); if (b) b.click(); } };
     document.addEventListener("click", e => { if (!el.contains(e.target)) fecha(); });

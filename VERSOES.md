@@ -1,5 +1,9 @@
 # Registro de versões
 
+## v2.43 — 2026-11-15 · Órbita com todos os níveis
+- A consulta da Órbita abre com todos: targets (verde), investidores (losango azul) e parceiros/intermediadores (quadrado lilás); antes abria só com os targets
+- O botão da consulta mostra a contagem por tipo (ex.: 40 targets · 62 investidores · 6 parceiros); ao escolher um investidor, a consulta passa a mostrar os targets aderentes a ele
+
 ## v2.42 — 2026-11-15 · Prospecção (contato frio) e mérito
 - Nova área Prospecção no menu, depois da Base inicial: antessala do cadastro inicial para o SDR, a área de novos negócios e as listas do Econodata, do Lemitti e do Ramper; coleção própria, fora da Base inicial, da Órbita, das indicações e das análises
 - Importação de listas (CSV ou Excel) com origem e responsável; prospect manual; duplicidade conferida por CNPJ e nome contra a prospecção e a base
