@@ -56,7 +56,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     if (S1 === "2"){
       if (h(/capital social|capital subscrito|capital integraliz|reserva|lucros? acumulad|prejuizos? acumulad|patrimonio|ajuste de avaliacao|tesouraria|lucros a destinar|resultado do exercicio/)) return "pl";
       if (h(/parcelament|refis|\bpert\b|transacao tribut/)) return "parcTrib";
-      if (h(/emprestim|financiament|debentur|capital de giro|leasing|cedula|\bccb\b|bndes|finame|nota promissoria/)) return sb === "2.2" || h(/longo prazo|\blp\b/) ? "empLP" : "empCP";
+      if (h(/emprestim|financiament|debentur|capital (de )?giro|leasing|cedula|\bccb\b|bndes|finame|nota promissoria/)) return sb === "2.2" || h(/longo prazo|\blp\b/) ? "empLP" : "empCP";
       if (h(/fornecedor/)) return "fornecedores";
       if (h(/conting|processo|provis.*(trabalh|civel|fiscal|tribut)/)) return "provisoes";
       if (h(/mutuo|socio|partes relacionadas/)) return sb === "2.1" ? "outrosPC" : "mutuoPassivo";
@@ -66,7 +66,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
       return sb === "2.1" ? "outrosPC" : sb === "2.2" ? "outrosPNC" : "pl";
     }
     if (h(/deduc|devoluc|abatiment|cancelament|(impostos?|tributos?) (sobre|incidentes)|\b(icms|pis|cofins|iss|ipi|simples nacional)\b.*(venda|fatur|servic|receita)|^\(-\)\s*(icms|pis|cofins|iss|ipi|simples)\b/)) return "deducoes";
-    if (h(/(receita|rendimento|ganho)s?.*(financeir|aplicac)|juros (ativos|recebidos)|variacao cambial ativa|descontos obtidos/)) return "recFin";
+    if (h(/(receita|rendimento|ganho)s?.*(financeir|aplicac)|juros (ativos|recebidos)|juros.{0,12}ativ|variacao cambial ativa|descontos obtidos/)) return "recFin";
     if (h(/irpj|csll|imposto de renda|contribuicao social sobre o lucro/)) return "ir";
     if (h(/venda de (imobiliz|ativo)|alienacao|ganho de capital|indeniza|baixa de imobiliz|nao recorrent|eventua|extraordinar/)) return "naoRec";
     if (h(/outras (receitas|despesas)/)) return "outrasOp";
@@ -74,7 +74,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     if (h(/custo|\bcpv\b|\bcmv\b|\bcsp\b/)) return "cpv";
     if (h(/deprecia|amortiza|exaust/)) return "da";
     if (h(/financeir|juros|\biof\b|tarifa banc|variacao cambial passiva|descontos concedidos/)) return "despFin";
-    if (h(/pro.labore|retirada.*socio|honorarios? da diretoria|remuneracao.*(socio|administrador)/)) return "prolabore";
+    if (h(/pro\W{0,3}labore|retirada.*socio|honorarios? da diretoria|remuneracao.*(socio|administrador)/)) return "prolabore";
     if (h(/aluguel|alugueis|locacao|arrendamento/)) return "aluguel";
     if (h(/salari|pessoal|encargo|ferias|13|inss|fgts|beneficio|vale.(transporte|refeicao|alimentacao)|\bplr\b|ordenado|folha/)) return "pessoal";
     if (h(/venda|comerci|frete|comiss|marketing|publicidade|propaganda/)) return "vendas";
@@ -188,7 +188,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
   const contas = (b, re, gs) => C(b).filter(([c, d, v, g]) => (!gs || gs.includes(g)) && (!re || re.test(norm(d))));
   const PROCS = [
     {id:"c_fech", area:"contabil", t:"Balancete fecha (débitos = créditos)", n:"NBC TG Estrutura Conceitual", f:(K) => K.fecha ? {st:"ok", txt:"Débitos e créditos conferem."} : {st:"achado", txt:`Diferença de ${mi(K.soma, 2)} entre débitos e créditos. Peça o balancete fechado.`}},
-    {id:"c_trans", area:"contabil", t:"Contas transitórias ou a classificar", n:"NBC TG 26 (CPC 26)", f:(K, b) => { const L = contas(b, /classificar|transit|diversos|pendente|a identificar/).filter(c => Math.abs(c[2]) > Math.abs(K.AT) * .005);
+    {id:"c_trans", area:"contabil", t:"Contas transitórias ou a classificar", n:"NBC TG 26 (CPC 26)", f:(K, b) => { const L = contas(b, /classificar|transit|diversos|pendente|a identificar/).filter(c => !/client|fornecedor|despesas diversas|receitas diversas/.test(norm(c[1])) && Math.abs(c[2]) > Math.abs(K.AT) * .005);
       return L.length ? {st:"achado", txt:`${L.length} conta(s) relevante(s): ${L.map(c => `${c[1]} (${mi(Math.abs(c[2]))})`).join("; ")}. Pedir a composição e reclassificar.`} : {st:"ok", txt:"Sem saldos relevantes em contas transitórias."}; }},
     {id:"c_inv", area:"contabil", t:"Saldos com natureza invertida", n:"NBC TG 26 (CPC 26)", f:(K, b) => { const L = C(b).filter(([c, d, v, g]) => !["deprec","pdd","deducoes","naoRec","outrasOp","pl"].includes(g) && !/^\(-\)/.test(d) && natural(g, v) < -Math.max(1000, Math.abs(K.AT) * .001));
       return L.length ? {st:"achado", txt:`${L.length} conta(s) com saldo contrário à natureza: ${L.slice(0, 4).map(c => c[1]).join("; ")}${L.length > 4 ? "…" : ""}.`} : {st:"ok", txt:"Nenhum saldo invertido relevante."}; }},
@@ -203,8 +203,35 @@ if (typeof MA_MODELOS !== "undefined") (() => {
       return {st:"ok", txt:`Prazo médio de estocagem de ${dias(K.pme)}. Inventário físico na data-base é procedimento mínimo.`}; }},
     {id:"c_arr", area:"contabil", t:"Aluguéis e arrendamentos", n:"CPC 06 (IFRS 16)", f:(K) => { const a = K.G.aluguel * K.f; if (!a) return {st:"na", txt:"Sem despesas de aluguel."};
       return {st:"achado", txt:`Aluguéis de ${mi(a)} por ano tratados como despesa. Pelo CPC 06 saem do EBITDA e viram passivo de arrendamento (estimado em 3 anos de aluguel).`, aj:{titulo:"Arrendamentos pelo CPC 06", tipo:"Reclassificação (EBITDA e dívida)", v:{ebitda:a, divida:a * 3}}}; }},
+    /* pré-ajustes pelos pronunciamentos técnicos (CPC): o sistema aponta e estima; o auditor avalia e decide */
+    {id:"c_cpc27", area:"contabil", t:"Gastos com natureza de investimento lançados no resultado", n:"CPC 27, itens 7, 12, 16 e 17; CPC 23 (retificação de erro)", f:(K, b) => {
+      const desp = ["adm","outrasOp","vendas","cpv","naoRec","pessoal"], lim = Math.max(10000, K.recLiq * .0005) / K.f;
+      const CAP = /obra|reforma|construc|instalac|montag|benfeitor|equipament|maquina|mobili|imobiliz|implanta|ampliac|adequac|layout|galpao|predio|projeto (arquitet|execut|eletric)/;
+      const NAO = /deprecia|amortiza|locac|alug|manutenc|reparo|conserv|seguro|combust|bens de pequeno|perda|ganho|venda|baixa|alienac|resultado na|mao de obra|custo d[ao]s? (servic|mercador|produt)|\bcmv\b|\bcpv\b/;
+      const cap = contas(b, CAP, desp).filter(c => !NAO.test(norm(c[1])) && c[2] > lim), man = contas(b, /manutenc|reparo|conserv|bens de pequeno valor/, desp).filter(c => c[2] > lim);
+      if (!cap.length && !man.length) return {st:"ok", txt:"Nenhuma despesa relevante com natureza de investimento (obras, instalações, equipamentos)."};
+      const tot = cap.reduce((t, c) => t + c[2], 0) * K.f, liq = tot * .9 * (1 - .34);
+      const txt = [cap.length ? `Contas com natureza de imobilizado no resultado: ${cap.map(c => `${c[1]} (${mi(c[2])})`).join("; ")}. Pelo CPC 27 (itens 7, 16 e 17), custos diretamente atribuíveis a colocar o ativo em condição de uso (obras, instalação, montagem, equipamentos) são ativados e depreciados.` : "",
+        man.length ? `Verificar: ${man.map(c => `${c[1]} (${mi(c[2])})`).join("; ")}. Manutenção do dia a dia é despesa (item 12); reforma que aumenta a vida útil ou a capacidade é ativada (itens 13 e 14).` : ""].filter(Boolean).join(" ");
+      return cap.length ? {st:"achado", txt:txt + " Estimativa automática para avaliação do auditor; confirmar com notas fiscais e contratos.", aj:{titulo:"Capitalização de gastos com natureza de imobilizado (CPC 27)", tipo:"Retificação (CPC 23) · imobilizado", v:{ebitda:tot, lucro:liq, pl:liq}}} : {st:"achado", txt}; }},
+    {id:"f_preop", area:"financeira", t:"Gastos de implantação de nova unidade (pré-operacionais)", n:"CPC 27, item 19; CPC 04, item 69; normalização do EBITDA", f:(K, b, s) => {
+      const L = contas(b, /pre.?operac|implantac|abertura de (unidade|filial|loja)|nova (unidade|filial|loja|planta|distribuidora|fabrica)|filial|inaugura|mudanca de (sede|endereco)|start.?up/, ["adm","outrasOp","vendas","pessoal","naoRec","cpv"]);
+      const E = Object.values(s?.dd?.expansao || {}).filter(Boolean);
+      if (!L.length && !E.length) return {st:"ok", txt:"Nenhuma conta de implantação de nova unidade. Se houve abertura de filial, registre o projeto de expansão para separar os gastos."};
+      const tot = L.reduce((t, c) => t + c[2], 0) * K.f;
+      const txt = [L.length ? `Contas de implantação: ${L.map(c => `${c[1]} (${mi(c[2])})`).join("; ")}.` : "", E.length ? `Projetos de expansão registrados: ${E.map(e => e.nome).join("; ")}.` : "",
+        "Gastos de abertura de nova instalação não são ativados (CPC 27, item 19; CPC 04, item 69), mas por não serem recorrentes saem do EBITDA normalizado usado no valuation."].filter(Boolean).join(" ");
+      return L.length ? {st:"achado", txt, aj:{titulo:"Normalização de gastos pré-operacionais", tipo:"Normalização do EBITDA", v:{ebitda:tot}}} : {st:"achado", txt}; }},
+    {id:"f_salto", area:"financeira", t:"Despesas que cresceram acima da receita", n:"Revisão analítica (NBC TA 520) e normalização", f:(K, b, s) => {
+      if (!s?.dd?.bal) return {st:"na", txt:"Sem balancete anterior para comparar."};
+      const per = Object.keys(s.dd.bal).find(k => s.dd.bal[k] === b), ant = periodos(s).filter(p => p < per && +(s.dd.bal[p].meses || 12) === 12).sort().pop();
+      if (!ant) return {st:"na", txt:"Sem exercício anterior completo para comparar."};
+      const K0 = calc(s.dd.bal[ant]), gR = div(K.recLiq, K0.recLiq) - 1, G = ["adm","vendas","outrasOp","aluguel","pessoal"], NOME = {adm:"despesas administrativas", vendas:"despesas com vendas", outrasOp:"outras despesas operacionais", aluguel:"aluguéis", pessoal:"pessoal"};
+      const L = G.map(g => ({g, a:(K0.G[g] || 0) * K0.f, n:(K.G[g] || 0) * K.f})).filter(x => x.n > K.recLiq * .005 && x.n > x.a * (1 + Math.max(0, gR)) * 1.2);
+      if (!L.length) return {st:"ok", txt:`Despesas acompanham a receita (${pc(gR)} frente a ${ant}).`};
+      return {st:"achado", txt:`Frente a ${ant} (receita ${pc(gR)}, valores anualizados): ${L.map(x => `${NOME[x.g]} de ${mi(x.a)} para ${mi(x.n)} (${pc(div(x.n, x.a) - 1)})`).join("; ")}. Verificar se há gastos de nova unidade, não recorrentes ou com natureza de investimento (CPC 27) antes de usar o EBITDA no valuation.`}; }},
     {id:"f_nrec", area:"financeira", t:"Itens não recorrentes (normalização do EBITDA)", n:"Normalização", f:(K, b) => { const v = K.G.naoRec * K.f; if (!v) return {st:"ok", txt:"Nenhum item não recorrente identificado nas contas."};
-      return {st:"achado", txt:`${contas(b, null, ["naoRec"]).map(c => c[1]).join("; ")}: ${mi(-v)} no EBITDA. Retirar do EBITDA recorrente.`, aj:{titulo:"Normalização de itens não recorrentes", tipo:"Normalização do EBITDA", v:{ebitda:v}}}; }},
+      return {st:"achado", txt:`${contas(b, null, ["naoRec"]).map(c => c[1]).join("; ")}: ${mi(-v)} no EBITDA. Retirar do EBITDA recorrente.`, aj:{titulo:"Normalização de itens não recorrentes", tipo:"Normalização do EBITDA e do lucro", v:{ebitda:v, lucro:v * (1 - .34)}}}; }},
     {id:"f_prol", area:"financeira", t:"Remuneração dos sócios a valor de mercado", n:"Normalização", f:(K) => K.G.prolabore ? {st:"ok", txt:`Pró-labore de ${mi(K.G.prolabore * K.f)} por ano. Comparar com o custo de um executivo de mercado.`} : {st:"achado", txt:"Sem pró-labore registrado. Se os sócios trabalham na empresa, o EBITDA está superestimado: incluir ajuste manual com o custo de mercado."}},
     {id:"f_mut", area:"financeira", t:"Mútuos e partes relacionadas", n:"CPC 05", f:(K) => { const m = K.G.mutuoAtivo; if (!m) return {st:"ok", txt:"Sem mútuos com sócios ou partes relacionadas no ativo."};
       return {st:"achado", txt:`Mútuo a receber de sócios ou partes relacionadas: ${mi(m)}. Tratar como item não operacional, a liquidar antes do fechamento.`, aj:{titulo:"Mútuo com sócios fora do patrimônio ajustado", tipo:"Item não operacional", v:{pl:-m}}}; }},
@@ -219,7 +246,11 @@ if (typeof MA_MODELOS !== "undefined") (() => {
       if (mes && enc > mes * 2){ const ex = enc - mes; return {st:"achado", txt:`Encargos a recolher de ${mi(enc)}, cerca de ${fmt(enc / mes, 1)} meses de encargos. O excedente indica atraso.`, aj:{titulo:"Encargos trabalhistas em atraso", tipo:"Dívida equivalente", v:{divida:ex}}}; }
       return {st:"ok", txt:`Encargos a recolher compatíveis com um mês de folha (${mi(enc)}).`}; }},
     {id:"t_proc", area:"trabalhista", t:"Processos trabalhistas", n:"CPC 25", f:(K, b, s) => s.invest?.proc_trab?.v === "sim" ? {st:"achado", txt:`${s.invest.proc_trab.n || "Processos trabalhistas relevantes na investigação."} Classificar provável, possível e remota; provável entra como ajuste manual de dívida.`} : {st:"ok", txt:"Sem apontamento de processos trabalhistas relevantes na investigação."}},
-    {id:"t_pj", area:"trabalhista", t:"Terceirização e pejotização", n:"CLT, arts. 2º e 3º", f:(K, b, s) => s.answers?.n3_10?.v === "sim" ? {st:"achado", txt:`${s.answers.n3_10.n || "Uso relevante de PJ ou terceirização."} Estimar o risco de vínculo e incluir ajuste manual se provável.`} : {st:"ok", txt:"Sem indicação de pejotização relevante no questionário."}},
+    {id:"t_pj", area:"trabalhista", t:"Terceirização e pejotização", n:"CLT, arts. 2º, 3º e 9º; Lei 6.019/1974", f:(K, b, s) => {
+      const sv = contas(b, /servicos? (tomados|prestados por|de terceiros|pj)|prestadores|terceiriz|pessoa juridica|comiss|representac|ajuda de custo/, ["adm","vendas","outrasOp","cpv"]).filter(c => c[2] > 0), tot = sv.reduce((t, c) => t + c[2], 0) * K.f, folha = (K.G.pessoal || 0) * K.f;
+      const q = s.answers?.n3_10?.v === "sim" ? (s.answers.n3_10.n || "Uso relevante de PJ ou terceirização (questionário).") + " " : "";
+      if (tot > Math.max(folha * 3, K.recLiq * .01)) return {st:"achado", txt:`${q}Serviços de terceiros, comissões e ajudas de custo de ${mi(tot)} por ano, ${folha ? fmt(tot / folha, 1) + " vezes a folha (" + mi(folha) + ")" : "sem folha relevante"}: ${sv.slice(0, 4).map(c => c[1]).join("; ")}. Verificar subordinação, pessoalidade e habitualidade (risco de vínculo e de INSS); estimar a contingência com o advogado.`};
+      return q ? {st:"achado", txt:q + "Estimar o risco de vínculo e incluir ajuste manual se provável."} : {st:"ok", txt:"Serviços de terceiros compatíveis com a folha e sem indicação no questionário."}; }},
     {id:"x_parc", area:"tributaria", t:"Parcelamentos tributários", n:"Prática de mercado (dívida equivalente)", f:(K) => { const p = K.G.parcTrib; if (!p) return {st:"ok", txt:"Sem parcelamentos tributários."};
       return {st:"achado", txt:`Parcelamentos de ${mi(p)}. Entram na dívida líquida para o preço.`, aj:{titulo:"Parcelamentos tributários como dívida", tipo:"Dívida equivalente", v:{divida:p}}}; }},
     {id:"x_atraso", area:"tributaria", t:"Tributos a recolher em atraso", n:"CTN", f:(K) => { const t = K.G.tribCP, mes = K.deducoes / 12 + K.ir / 12; if (!t) return {st:"ok", txt:"Sem tributos a recolher."};
@@ -272,7 +303,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
         ${extra || ""}
         ${fase === "fin" ? `<div class="eyebrow">Efeitos anuais (R$ mil) · ajuste se necessário</div><div class="form">${EF.map(([k, l]) => `<div class="fld"><label for="ap-${k}">${l}</label><input id="ap-${k}" inputmode="decimal" value="${a.v[k] ? fmt(a.v[k] / 1e3, 0) : ""}"></div>`).join("")}</div>`
           : `<div class="sub" style="margin:0">Efeitos aprovados nas Análises financeiras: ${esc(efeitoTxt(a))}</div>`}
-        <div class="form"><div class="fld"><label for="ap-cons">Consultor responsável (${esc(areaNome(a.area))})</label><input id="ap-cons" value="${esc(cons)}" placeholder="Nome e registro (CRC, OAB…)"></div>
+        <div class="form"><div class="fld"><label for="ap-cons">Consultor responsável (${esc(areaNome(a.area))})</label><input id="ap-cons" value="${esc(cons)}" placeholder="Nome e registro (CRC, OAB…)" list="ap-eq"><datalist id="ap-eq">${(typeof EQUIPE_KINSEY !== "undefined" ? EQUIPE_KINSEY : []).map(([n, c]) => `<option value="${esc(n)}">${esc(c)}</option>`).join("")}</datalist></div>
         <div class="fld full"><label for="ap-obs">Fundamento do OK ou da recusa</label><textarea id="ap-obs"></textarea></div></div>
         <p class="err" id="ap-err" hidden></p>
         <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap"><button type="button" class="btn ghost" id="ap-rec">Recusar ajuste</button><button type="submit" class="btn primary">${fase === "fin" ? "Aprovar para as análises financeiras" : "Aprovar no valuation"}</button></div></form>`);
@@ -286,6 +317,26 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     $("#ap-rec").onclick = () => grava("recusado");
   }
   function reabrir(s, a){ up(s, {dd:{aj:{[a.id]:{fin:null, val:null}}}}).then(() => toast("Ajuste reaberto para nova análise")); }
+  /* projeto de expansão (ex.: nova distribuidora): o consultor informa quanto foi lançado no resultado e como separar */
+  function expansao(s, per){
+    if (!per){ toast("Importe um balancete antes."); return; }
+    const b = s.dd.bal[per], f = 12 / (+b.meses || 12);
+    const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Pré-ajuste · balancete ${esc(per)}</div><h2>Projeto de expansão (nova unidade)</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
+      <form class="sheet-b" id="fex" novalidate><p class="sub" style="margin:0 0 10px">Gastos de uma nova unidade (filial, distribuidora, fábrica) lançados como despesa. O sistema separa a parte ativável pelo CPC 27 (obras, instalações, equipamentos e custos diretamente atribuíveis, itens 16 e 17), que vira imobilizado e depreciação, e a parte pré-operacional (aluguel, pessoal e despesas antes da operação), que não é ativada (CPC 27, item 19; CPC 04, item 69) mas sai do EBITDA normalizado. Valores do período do balancete (${esc(b.meses || 12)} meses); o sistema anualiza. Os dois ajustes seguem para o OK do auditor.</p>
+      <div class="form"><div class="fld full"><label for="ex-n">Projeto</label><input id="ex-n" placeholder="ex.: Nova distribuidora em Santa Catarina"></div>
+        <div class="fld"><label for="ex-cap">Parte ativável · CPC 27 (R$)</label><input id="ex-cap" inputmode="decimal" placeholder="0,00"></div><div class="fld"><label for="ex-vu">Vida útil (anos)</label><input id="ex-vu" inputmode="decimal" value="10"></div>
+        <div class="fld"><label for="ex-pre">Parte pré-operacional (R$)</label><input id="ex-pre" inputmode="decimal" placeholder="0,00"></div><div class="fld"><label for="ex-ini">Início da operação</label><input id="ex-ini" placeholder="mm/aaaa"></div>
+        <div class="fld full"><label for="ex-c">Contas e documentos de suporte</label><textarea id="ex-c" placeholder="contas do balancete, notas fiscais, contratos de obra e de locação"></textarea></div></div>
+      <p class="err" id="ex-err" hidden></p><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button type="button" class="btn ghost" data-x>Cancelar</button><button type="submit" class="btn primary">Gerar pré-ajustes</button></div></form>`);
+    $("#fex").onsubmit = e => { e.preventDefault(); const v = id => num($(id).value) || 0, nome = $("#ex-n").value.trim(), cap = v("#ex-cap"), pre = v("#ex-pre"), vu = v("#ex-vu") || 10, sup = $("#ex-c").value.trim();
+      if (!nome || (!cap && !pre)){ $("#ex-err").textContent = "Informe o projeto e ao menos um valor."; $("#ex-err").hidden = false; return; }
+      const id = "x" + Date.now().toString(36), capA = cap * f, preA = pre * f, liq = (capA - cap / vu) * (1 - .34), aj = {};
+      if (cap) aj[id + "c"] = {manual:true, per, area:"contabil", titulo:`Capitalização · ${nome} (CPC 27)`, norma:"CPC 27, itens 7, 16 e 17; CPC 23 (retificação de erro)", tipo:"Retificação (CPC 23) · imobilizado",
+        v:{ebitda:capA, lucro:liq, pl:liq}, desc:`Gastos de ${mi(cap)} com natureza de imobilizado lançados no resultado (${sup || "suporte a anexar"}). Ativar e depreciar em ${fmt(vu, 0)} anos (${mi(cap / vu)} por ano). Lucro e PL líquidos de 34% de IR e CSLL. Pré-ajuste para avaliação do auditor.`, criadoEm:nowISO(), por:Store.me?.email || ""};
+      if (pre) aj[id + "p"] = {manual:true, per, area:"financeira", titulo:`Gastos pré-operacionais · ${nome}`, norma:"CPC 27, item 19; CPC 04, item 69; normalização do EBITDA", tipo:"Normalização do EBITDA",
+        v:{ebitda:preA}, desc:`Gastos de implantação de ${mi(pre)} antes do início da operação${$("#ex-ini").value ? " (" + $("#ex-ini").value + ")" : ""}. Não ativáveis, mas não recorrentes: saem do EBITDA normalizado. ${sup}`, criadoEm:nowISO(), por:Store.me?.email || ""};
+      up(s, {dd:{aj, expansao:{[id]:{nome, cap, pre, vu, ini:$("#ex-ini").value, sup, per, em:nowISO()}}}}).then(() => { close(); toast("Pré-ajustes gerados: seguem para o OK do auditor"); }); };
+  }
   function ajusteManual(s, per, area){
     if (!per){ toast("Importe um balancete antes de lançar ajustes."); return; }
     const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Ajuste do consultor · balancete ${esc(per)}</div><h2>Novo ajuste de Due Diligence</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
@@ -438,7 +489,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
         <div class="dd-k"><span>Achados automáticos</span><b>${R.filter(x => x.r.st === "achado").length}</b><small>de ${R.length} procedimentos</small></div><div class="dd-k"><span>Ajustes</span><b>${AJ.length}</b><small>${AJ.filter(okFin).length} com OK nas análises · ${AJ.filter(okVal).length} no valuation</small></div></div></div>
         <div class="card" style="display:flex;flex-direction:column;gap:10px"><h3>Áreas e consultores responsáveis</h3>
         <div class="tbl"><table><thead><tr><th>Área</th><th>Consultor responsável</th><th>Automáticos</th><th>Mínimos</th><th>Ajustes</th><th></th></tr></thead><tbody>${AREAS.map(([k, l]) => { const ra = R.filter(x => x.p.area === k), mn = MINIMOS[k], feitos = mn.filter((m, i) => ["ok","achado","na"].includes(proc[k + i]?.st)).length, aa = AJ.filter(a => a.area === k);
-          return `<tr><td><b>${l}</b></td><td><input data-cons="${k}" value="${esc(s.dd.cons?.[k] || "")}" placeholder="Nome e registro" aria-label="Consultor de ${l}" ${ed() ? "" : "disabled"} style="min-width:180px"></td><td>${ra.filter(x => x.r.st === "achado").length} achado(s) de ${ra.length}</td><td>${feitos} de ${mn.length}</td><td>${aa.length ? `${aa.filter(pendFin).length} aguardando OK` : "—"}</td><td><button type="button" class="btn sm" data-ddtab="${k}">Abrir</button></td></tr>`; }).join("")}</tbody></table></div>
+          return `<tr><td><b>${l}</b></td><td><input data-cons="${k}" value="${esc(s.dd.cons?.[k] || "")}" placeholder="Nome e registro" list="dd-eq" aria-label="Consultor de ${l}" ${ed() ? "" : "disabled"} style="min-width:180px">${k === "contabil" ? `<datalist id="dd-eq">${(typeof EQUIPE_KINSEY !== "undefined" ? EQUIPE_KINSEY : []).map(([n, c]) => `<option value="${esc(n)}">${esc(c)}</option>`).join("")}</datalist>` : ""}</td><td>${ra.filter(x => x.r.st === "achado").length} achado(s) de ${ra.length}</td><td>${feitos} de ${mn.length}</td><td>${aa.length ? `${aa.filter(pendFin).length} aguardando OK` : "—"}</td><td><button type="button" class="btn sm" data-ddtab="${k}">Abrir</button></td></tr>`; }).join("")}</tbody></table></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn" data-goview="financas">Ver Análises financeiras</button><button type="button" class="btn" data-goview="valuation">Ver Valuation</button></div></div>`;
     } else if (S.ddTab === "pt" || S.ddTab === "rel"){
       h += window.KT_REL ? (S.ddTab === "pt" ? KT_REL.ddPapeisView(s, per) : KT_REL.ddRelView(s, per)) : "";
@@ -451,7 +502,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
         <div class="card" style="display:flex;flex-direction:column;gap:6px"><h3>Procedimentos mínimos dos consultores</h3><p class="sub" style="margin:0">Feitos pelo especialista da área, com a conclusão registrada.</p>
         ${mn.map((m, i) => { const id = area + i, o = proc[id] || {}; return `<div class="dd-proc"><div style="min-width:0"><b>${esc(m)}</b><input data-pobs="${id}" value="${esc(o.obs || "")}" placeholder="Conclusão, documento analisado, responsável" aria-label="Conclusão: ${esc(m)}" style="width:100%;margin-top:4px" ${ed() ? "" : "disabled"}>${o.em ? `<div class="sub" style="margin:2px 0 0;font-size:11.5px">${esc(o.por || "")} · ${dt(o.em)}</div>` : ""}</div>
           <div><select data-pst="${id}" aria-label="Situação: ${esc(m)}" ${ed() ? "" : "disabled"}>${[["","Pendente"],["ok","Sem achado"],["achado","Achado"],["na","Não se aplica"]].map(([k, l]) => `<option value="${k}" ${(o.st || "") === k ? "selected" : ""}>${l}</option>`).join("")}</select></div></div>`; }).join("")}</div>
-        <div class="card" style="display:flex;flex-direction:column;gap:10px"><div class="head" style="margin:0"><div><h3>Ajustes da área ${esc(areaNome(area))}</h3><p class="sub" style="margin:2px 0 0">Vão para as Análises financeiras aguardando o OK do consultor.</p></div>${ed() ? `<button type="button" class="btn sm primary" id="dd-man">+ Ajuste do consultor</button>` : ""}</div>
+        <div class="card" style="display:flex;flex-direction:column;gap:10px"><div class="head" style="margin:0"><div><h3>Ajustes da área ${esc(areaNome(area))}</h3><p class="sub" style="margin:2px 0 0">Vão para as Análises financeiras aguardando o OK do consultor.</p></div>${ed() ? `<button type="button" class="btn sm primary" id="dd-man">+ Ajuste do consultor</button><button type="button" class="btn sm" id="dd-exp" title="Nova unidade, filial ou distribuidora: separa a parte ativável (CPC 27) e a pré-operacional">+ Projeto de expansão</button>` : ""}</div>
         ${tabAjustes(AJ.filter(a => a.area === area), "dd")}</div>`;
     }
     host.innerHTML = h; bindTabs(); bindComum(host, s);
@@ -461,6 +512,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     $$("[data-pst]", host).forEach(x => x.onchange = () => up(s, {dd:{proc:{[x.dataset.pst]:{st:x.value, por:s.dd.cons?.[x.dataset.pst.replace(/\d+$/, "")] || Store.me?.email || "", em:nowISO()}}}}));
     $$("[data-pobs]", host).forEach(x => x.onchange = () => up(s, {dd:{proc:{[x.dataset.pobs]:{obs:x.value.trim(), em:nowISO()}}}}));
     const mb = $("#dd-man", host); if (mb) mb.onclick = () => ajusteManual(s, per, S.ddTab);
+    const xb = $("#dd-exp", host); if (xb) xb.onclick = () => expansao(s, per);
     if (window.KT_REL && S.ddTab === "pt") KT_REL.ddPapeisBind(host, s, per);
     if (window.KT_REL && S.ddTab === "rel") KT_REL.ddRelBind(host, s, per);
     bindAjustes(host, s, AJ);

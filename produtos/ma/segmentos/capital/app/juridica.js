@@ -147,7 +147,7 @@ if (window.KT_DD) (() => {
       ${evs.length ? `<div><div class="eyebrow" style="margin-bottom:6px">Arquivos do target (${evs.length})</div><div class="grid-ev">${evs.map(evCard).join("")}</div></div>` : ""}`; }
     else { const R = recomendacoes(s);
       corpo = `<p class="sub" style="margin:0">Visão da Kinsey como <b>${s.lado === "compra" ? "assessora do comprador (buy-side)" : "assessora do vendedor (sell-side)"}</b>. Altere o lado na aba M&A do dossiê do target.</p>
-      <div class="form"><div class="fld"><label for="j-adv">Advogado responsável (nome e OAB)</label><input id="j-adv" value="${esc(j.adv || "")}" ${ed}></div></div>
+      <div class="form"><div class="fld"><label for="j-adv">Advogado responsável (nome e OAB)</label><input id="j-adv" value="${esc(j.adv || "")}" ${ed} list="j-eq"><datalist id="j-eq">${(typeof EQUIPE_KINSEY !== "undefined" ? EQUIPE_KINSEY : []).map(([n, c]) => `<option value="${esc(n)}">${esc(c)}</option>`).join("")}</datalist></div></div>
       <h3 style="font-size:14px">Recomendações para o contrato</h3>${R.length ? `<ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px">${R.map(x => `<li style="font-size:13.5px">${esc(x)}</li>`).join("")}</ol>` : `<p class="sub" style="margin:0">Sem recomendações ainda: responda o questionário e registre contratos e processos.</p>`}
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn primary" id="j-pdf">Relatório de diligência jurídica (PDF)</button></div>`; }
     return `<div class="card" id="jdd" style="display:flex;flex-direction:column;gap:12px;border-color:rgba(195,155,255,.45)"><div class="head" style="margin:0"><div><div class="eyebrow">Diligência jurídica</div><h3>${esc(s.nome)}</h3>

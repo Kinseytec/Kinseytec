@@ -1,5 +1,14 @@
 # Registro de versões
 
+## v2.13 — 2026-11-15 · Pré-due diligence pelos pronunciamentos do CPC e equipe Kinsey
+- Pré-ajustes automáticos para avaliação do auditor: gastos com natureza de imobilizado lançados no resultado (CPC 27, itens 7, 12, 16 e 17; CPC 23), com estimativa de ativação e alerta para manutenção que pode ser reforma; gastos de implantação de nova unidade (CPC 27, item 19; CPC 04, item 69: não ativáveis, mas fora do EBITDA normalizado); despesas que cresceram acima da receita frente ao exercício anterior (revisão analítica)
+- Projeto de expansão na Due Diligence (ex.: nova distribuidora): o consultor informa a parte ativável e a pré-operacional e o sistema gera os dois pré-ajustes (ativação e depreciação, normalização do EBITDA), que seguem para o OK do auditor
+- Terceirização e pejotização: serviços tomados, comissões e ajudas de custo comparados com a folha
+- Itens não recorrentes passam a ajustar também o lucro (líquido de 34%), o que corrige o método P/L
+- Classificação do balancete: pró-labore com hífen ou espaços, "capital giro" sem "de", juros e multas ativas como receita financeira; "clientes diversos" e "fornecedores diversos" deixam de ser tratados como contas transitórias; perdas e ganhos na venda de imobilizado e mão de obra não são lidos como investimento
+- Importador do mapa da Kinsey aceita a aba "Investidores" (no lugar de "Compradoras") e a coluna Econodata
+- Equipe de M&A da Kinsey (Newton KA Oliveira, Juçara Haverot, Monica Flissak e Camilla Pazzini) como opções nos responsáveis pelas áreas da diligência, nos OKs dos ajustes e no advogado da diligência jurídica
+
 ## v2.12 — 2026-11-15 · Honorários pela condição própria do mandato
 - Quando o mandato traz um percentual único sobre o valor da transação (ex.: 6%, dividido entre parceiro e Kinsey), a estimativa de honorários usa essa condição, sem retainer e sem mínimo quando o mandato diz, e reparte o success fee com o parceiro (N2) pelo acordo dele
 - Mandato não assinado aparece indicado na estimativa

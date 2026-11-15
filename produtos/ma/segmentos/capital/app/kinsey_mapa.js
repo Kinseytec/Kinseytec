@@ -1,7 +1,7 @@
 /* ================= KINSEY CAPITAL · MAPA M&A DA KINSEY (EXCEL) =================
    Lê a planilha de trabalho da Kinsey com várias abas:
    - "Vendedoras" (sell side) → targets N3; linhas "Parceria X" viram targets trazidos pelo parceiro X (N2)
-   - "Compradoras" (buy side) → investidores N1 (empresas e fundos); "Advisory" → parceiro N2
+   - "Compradoras" ou "Investidores" (buy side) → investidores N1 (empresas e fundos); "Advisory" → parceiro N2
    - "M&A" e "Planilha4" → blocos comprador × vendedores (separados por linha em branco); "Planilha3" → teses
    - "Fazendas_Maranhão" → carteira de fazendas à venda (um target); "To Do" → próximos passos; "Fichas" → anotações
    - links da Econodata → CNPJ, conferido na Receita Federal antes de usar (link na linha errada é corrigido ou descartado)
@@ -42,7 +42,7 @@ if (window.KT_DD) (() => {
       out[sh.getAttribute("name")] = Array.from(rows, r => r || []); }
     return out;
   }
-  const ehKinsey = P => Object.keys(P).some(n => /^vendedor/i.test(n)) && Object.keys(P).some(n => /^comprador/i.test(n));
+  const ehKinsey = P => Object.keys(P).some(n => /^vendedor/i.test(n)) && Object.keys(P).some(n => /^comprador|^investidor/i.test(n));
 
   /* ---------------- montagem das empresas e ligações ---------------- */
   function montar(P){
@@ -63,8 +63,8 @@ if (window.KT_DD) (() => {
         mandato:/^ok/.test(mm) ? "assinado" : /vencido/.test(mm) ? "encerrado" : /pendente/.test(mm) ? "negociacao" : "", parent:parc ? parceiro(parc) : kinsey});
       if (/elis/.test(mm)) e.querEl = "ELIS"; if (data(r[cU])) e.inter.push({data:data(r[cU]), tipo:"Contato", resumo:"Último contato registrado no mapa M&A"}); });
     /* Compradoras → N1 (Advisory → N2) */
-    const C = aba(/^comprador/i), hc = (C.find(r => r.some(c => /^empresa$/i.test(c))) || []), ic = k => hc.findIndex(c => k.test(nrm(c)));
-    const dN = ic(/^empresa/), dT = ic(/^tipo/), dS = ic(/^segmento/), dTe = ic(/tese/), dTo = ic(/^to do/), dSt = ic(/^status/), dL = ic(/localiza/), dE = ic(/e-?mail/), dC = ic(/celular/), dF = ic(/^ficha/), dLk = ic(/^link/);
+    const C = aba(/^comprador|^investidor/i), hc = (C.find(r => r.some(c => /^empresa$/i.test(c))) || []), ic = k => hc.findIndex(c => k.test(nrm(c)));
+    const dN = ic(/^empresa/), dT = ic(/^tipo/), dS = ic(/^segmento/), dTe = ic(/tese/), dTo = ic(/^to do/), dSt = ic(/^status/), dL = ic(/localiza/), dE = ic(/e-?mail/), dC = ic(/celular/), dF = ic(/^ficha/), dLk = ic(/^link|econodata/);
     C.slice(C.indexOf(hc) + 1).forEach(r => { const nome = r[dN]; if (!nome) return; const tipo0 = nrm(r[dT]), seg = r[dS] || "", tese = r[dTe] || "", doc = econodata(r[dLk]) || econodata(r[dF]);
       const ja = E.find(e => e.nivel !== "N3" && nn(e.nome) === nn(nome)); if (ja){ ja.obs = [ja.obs, tese].filter(Boolean).join(" · "); return; }
       if (/advisory/.test(tipo0)){ novo({nivel:"N2", nome, tipo:"Assessor financeiro", segmento:seg, obs:tese, ...local(r[dL]), temperatura:r[dSt], contato:[r[dE], r[dC]].filter(Boolean).join(" · "), docLink:doc, fonte:"Compradoras"}); return; }
