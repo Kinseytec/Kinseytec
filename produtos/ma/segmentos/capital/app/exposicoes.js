@@ -64,7 +64,7 @@ if (window.KT_DD) (() => {
     const cliente = (s.investidores || []).map(i => supById(i)?.nome).filter(Boolean)[0] || "Cliente", cod = s.mandato?.codinome || s.nome, nRel = `${String(Date.now()).slice(-4)}-${new Date().getFullYear()}`;
     const br = d => d ? String(d).slice(0, 10).split("-").reverse().join("/") : "—", n2 = (v, x = 1e3) => v == null ? "—" : fmt(Math.round(v / x) || 0, 0);
     let ns = 0; const sec = t => { ns++; P.page(); P.h1(ns, T(t)); }, sub = t => { P.ensure(90); P.h2(T(t)); };
-    capa(P, "Serviços de Due Diligence" + (prelim ? " · versão preliminar" : ""), s.nome, [["Cliente", cliente], ["Projeto", cod], ["Data-base", br(b.dataBase)], ["Relatório", `nº ${nRel}`], ["Emitido em", new Date().toLocaleDateString("pt-BR")]]);
+    capa(P, "Serviços de Due Diligence" + (s.dd?.wb ? " · completa" : " · prévia (balancetes e sistema)") + (prelim ? " · versão preliminar" : ""), s.nome, [["Cliente", cliente], ["Projeto", cod], ["Data-base", br(b.dataBase)], ["Relatório", `nº ${nRel}`], ["Emitido em", new Date().toLocaleDateString("pt-BR")]]);
     const G = window.KT_GRAF, EXg = lista(s).map(e => ({e, c:calc(e, ate)})), porArea = {}; EXg.forEach(({e, c}) => { porArea[AREA[e.area] || e.area] = (porArea[AREA[e.area] || e.area] || 0) + (c.max || 0); });
     const pontePer = q => [{l:"EBITDA reportado", v:q.k.ebitda, tipo:"base"}, ...q.ok.filter(a => Math.abs(D.soma([a]).ebitda) > 1).map(a => ({l:a.titulo, v:D.soma([a]).ebitda, tipo:"delta"})), {l:"EBITDA ajustado", v:q.k.ebitda + q.a.ebitda, tipo:"total"}];
     const graf = Q => { if (!G) return;
@@ -79,6 +79,7 @@ if (window.KT_DD) (() => {
       kpisPdf(P, [["Exposição mínima", `MR$ ${n2(tt0("min"))}`, `${EXg.length} itens`], ["Exposição máxima", `MR$ ${n2(tt0("max"))}`, "multa de ofício 75%"], ["EBITDA ajustado", mi(I.ebitda), `reportado ${mi(K.ebitda)}`], ["Dívida líquida ajustada", mi(I.dl), `reportada ${mi(K.dl)}`]]);
       graf(Q0);
       if (G) G.colunas(P, "EBITDA reportado × ajustado e margem ajustada", Q0.map(q => q.rot), [{n:"Reportado", v:Q0.map(q => q.k.ebitda), c:G.CINZA}, {n:"Ajustado", v:Q0.map(q => q.k.ebitda + q.a.ebitda), c:G.ACC}], v => mi(v, 1), {n:"Margem ajustada", v:Q0.map(q => (q.k.ebitda + q.a.ebitda) / (q.k.recLiq || 1))});
+      if (window.KT_DDWB) KT_DDWB.impacto(P, s, per, {sec});
       sec("Principais pontos e recomendações");
       tab(P, ["Riscos e contingências (MR$)", "Mínimo", "Máximo", "Avaliação"], EXg.map(({e, c}, i) => [`${i + 1}. ${e.titulo}`, fmtMil(c.min), fmtMil(c.max), AVAL[e.aval] || "NQ"]), [.58, .14, .14, .14]);
       const ach0 = L.filter(p => p.st === "achado").slice(0, 10); if (ach0.length){ P.h2("Achados dos procedimentos"); ach0.forEach(p => par(P, `• ${D.areaNome(p.area)} · ${p.titulo}: ${p.resultado}`, {size:9})); }
@@ -93,7 +94,8 @@ if (window.KT_DD) (() => {
     sub("Objetivo e limitações");
     par(P, "Os procedimentos não constituem: (a) auditoria, revisão ou compilação das demonstrações financeiras; (b) exame de informação financeira prospectiva; (c) avaliação da empresa ou de seus ativos e passivos; (d) exame dos controles internos; e (e) trabalho destinado a detectar erros, fraudes ou atos ilícitos. Não expressamos opinião ou outra forma de garantia. A decisão de consumar a transação cabe somente ao Cliente.", {size:9.5});
     par(P, "Não foram realizados procedimentos significativos sobre seguros, avaliação de mercado e capacidade operacional, informações prospectivas, interpretação jurídica, testes informatizados e meio ambiente, salvo quando indicado. Os trabalhos limitaram-se aos dados e às informações da administração; quanto a litígios, a entendimentos gerais e às respostas dos consultores jurídicos.", {size:9.5});
-    sec("Índice"); ["Sumário executivo das potenciais exposições", "Decadência dos riscos", "Informações sobre o grupo econômico", "Aspectos contábeis e financeiros", "Performance do negócio (EBITDA, capital de giro e dívida líquida)", "Aspectos tributários", "Aspectos trabalhistas e previdenciários", "Pontos e recomendações", "Limitações de escopo e equipe"].forEach((t, i) => par(P, `${i + 4}. ${t}`));
+    sec("Índice"); [...(window.KT_DDWB ? ["Painel executivo e red flags"] : []), "Sumário executivo das potenciais exposições", "Decadência dos riscos", "Informações sobre o grupo econômico", "Aspectos contábeis e financeiros", "Performance do negócio (EBITDA, capital de giro e dívida líquida)", "Aspectos tributários", "Aspectos trabalhistas e previdenciários", ...(window.KT_DDWB ? ["Impacto na negociação"] : []), "Pontos e recomendações", "Limitações de escopo e equipe"].forEach((t, i) => par(P, `${i + 4}. ${t}`));
+    if (window.KT_DDWB) KT_DDWB.painel(P, s, per, {sec});
     /* sumário das exposições */
     const EX = lista(s).map(e => ({e, c:calc(e, ate)})), tt = k => EX.reduce((a, x) => a + (x.c[k] || 0), 0);
     sec("Sumário executivo das potenciais exposições");
@@ -131,9 +133,11 @@ if (window.KT_DD) (() => {
       if (area === "tributaria") par(P, `Sucessão de direitos e deveres: o adquirente de fundo de comércio ou de participação responde pelos tributos devidos até a data do ato (CTN, arts. 132 e 133). Regime do target: ${s.perfil?.regime || "não informado"}.`, {size:9.5});
       const ex = EX.filter(x => ars.includes(x.e.area)); if (ex.length){ sub("Exposições"); ex.forEach(({e, c}) => { P.ensure(70); P.h2(T(`${e.titulo} · ${AVAL[e.aval] || "NQ"}`)); par(P, e.obs || "", {size:9.5}); par(P, `Principal MR$ ${e.principal ? n2(+e.principal) : "NQ"} · mínimo ${fmtMil(c.min)} · máximo ${fmtMil(c.max)} · qualificado ${fmtMil(c.qual)} (MR$)`, {size:9, color:[90,101,120]}); }); }
       sub("Procedimentos executados"); tab(P, ["Código", "Procedimento", "Resultado"], L.filter(p => p.area === area && p.tipo !== "Ajuste").map(p => [p.cod, p.titulo, `${p.st === "achado" ? "Achado" : p.st === "ok" ? "Sem achado" : p.st}: ${p.resultado}`]), [.12, .33, .55]); });
+    if (window.KT_DDWB) KT_DDWB.impacto(P, s, per, {sec});
     sec("Pontos e recomendações");
     const ach = L.filter(p => p.st === "achado"); tab(P, ["Item", "Área", "Descrição e recomendação"], ach.map((p, i) => [String(i + 1), D.areaNome(p.area), `${p.titulo}: ${p.resultado}`]), [.08, .14, .78]);
     if (!ach.length) par(P, "Sem pontos de recomendação registrados.");
+    if (window.KT_DDWB) KT_DDWB.anexos(P, s, {sec});
     sec("Limitações de escopo e equipe");
     par(P, `${prelim ? "Versão preliminar: há procedimentos mínimos pendentes ou ajustes sem o OK do consultor. " : ""}Os ajustes com OK do consultor foram incorporados às Análises financeiras${AJ.some(D.okVal) ? " e ao valuation" : ""}. Os papéis de trabalho que suportam cada ponto estão em documento separado.`);
     sub("Executivos envolvidos no projeto"); tab(P, ["Nome", "Função"], [...(typeof EQUIPE_KINSEY !== "undefined" ? EQUIPE_KINSEY : []).map(([n, f]) => [n, f]), ...Object.entries(s.dd.cons || {}).filter(([, v]) => v).map(([a, v]) => [v, "Consultor · " + D.areaNome(a)])], [.45, .55]);

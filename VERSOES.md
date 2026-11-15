@@ -1,5 +1,12 @@
 # Registro de versões
 
+## v2.30 — 2026-11-15 · Workbooks de diligência e relatório de DD com impacto na negociação
+- Workbook de Due Diligence (Excel do auditor): leitura de todas as abas pelos cabeçalhos (ajustes de EBITDA, dívida, capital de giro, PL e lucro; exposições com mínimo, máximo e avaliação; conferências; pontos e recomendações); ajustes vão para as Análises, exposições para a aba Exposições; reimportar substitui a versão anterior
+- Due diligence prévia (balancetes e informações do sistema) até o workbook; depois, relatório completo identificado com o arquivo do auditor
+- Relatório completo de DD: painel executivo, mapa de risco por área, red flags por gravidade, impacto na negociação (equity pelo EBITDA reportado → ajuste × múltiplo, itens de dívida, retenção, indenização, capital de giro de referência) com gráfico, proteções recomendadas para o SPA e anexos de conferências e pontos do workbook; o resumo também traz o impacto na negociação
+- Diligência jurídica por setor: biblioteca de riscos setoriais (saúde, terceirização de mão de obra, indústria, alimentos, varejo, tecnologia, logística, construção, agro, educação, energia, financeiro); perguntas do setor no questionário; workbook jurídico gerado pelo sistema (questionário, documentos, contratos, processos e matriz de riscos) e importado de volta; matriz de riscos do setor no relatório jurídico (resumo e completo)
+- Gráficos: sinal negativo correto nos valores
+
 ## v2.29 — 2026-11-15 · Mandato com entrada única, substituição e aditivos
 - O mandato entra pelo cadastro do projeto, pela aba M&A do dossiê ou pelo Jurídico: é sempre o mesmo registro, com leitura e análise automáticas
 - Sem duplicidade: o mesmo documento importado de novo é ignorado; o target tem um só mandato no Jurídico
