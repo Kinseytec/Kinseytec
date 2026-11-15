@@ -51,61 +51,128 @@ if (window.KT_DD) (() => {
   }
   const alvosDe = inv => S.suppliers.filter(t => aderente(inv, t));
 
-  /* ---------------- filtro do globo e da faixa de empresas ---------------- */
-  S.orbInv = S.orbInv || ""; S.orbSeg = ""; S.orbUf = "";
+  /* ---------------- filtro do globo e da faixa de empresas ----------------
+     Padrão: só os targets (N3). A consulta (botão no canto, painel lateral) filtra por tipo (N1, N2, N3 ou todos),
+     investidor (o que ele compra), segmento, CNAE cadastrado, estado, região, cidade e temperatura do mapa. */
+  const VAZIO = {tipo:"N3", inv:"", seg:"", cnae:"", uf:"", reg:"", cid:"", temp:""};
+  S.orb = {...VAZIO, ...(S.orb || {})};
+  Object.defineProperty(S, "orbInv", {get:() => S.orb.inv, set:v => { S.orb.inv = v || ""; if (v) S.orb.tipo = "N3"; }, configurable:true});
   Object.assign(S.lv, {N1:true, N2:true, N3:true, rotas:false});
   const segDe = t => t.perfil?.segmento || t.segmento || "";
-  const fora = id => { const s = supById(id); if (!s) return true; const k = S.sel; S.sel = null; const ok = window.ORB_FILTRO(s); S.sel = k; return !ok; };
-  window.ORB_FILTRO = s => {
-    if (S.sel === s.id) return true;
-    const inv = S.orbInv && supById(S.orbInv);
-    if (inv) return s.id === inv.id || !!aderente(inv, s);
-    return s.nivel === "N3" && (!S.orbSeg || segDe(s) === S.orbSeg) && (!S.orbUf || s.uf === S.orbUf);
-  };
+  const REGN = {Norte:REG.norte, Nordeste:REG.nordeste, "Centro-Oeste":REG["centro-oeste"], Sudeste:REG.sudeste, Sul:REG.sul};
+  const regDe = uf => Object.keys(REGN).find(r => REGN[r].includes(uf)) || "";
+  const cnaeDe = s => { const c = dig(s.receita?.cnae || s.cnae); return c ? c.padStart(7, "0") : ""; };
+  const fmtCnae = c => c.length === 7 ? `${c.slice(0, 4)}-${c.slice(4, 5)}/${c.slice(5)}` : c;
+  const tempDe = s => s.mapa?.temperatura || "";
+  function passa(s, F = S.orb){
+    const inv = F.inv && supById(F.inv);
+    if (inv && F.tipo === "N3"){ if (s.id === inv.id) return true; if (!aderente(inv, s)) return false; }
+    else if (F.tipo !== "todos" && s.nivel !== F.tipo) return false;
+    if (F.seg && segDe(s) !== F.seg) return false;
+    if (F.cnae && !cnaeDe(s).startsWith(F.cnae)) return false;
+    if (F.uf && s.uf !== F.uf) return false;
+    if (F.reg && regDe(s.uf) !== F.reg) return false;
+    if (F.cid && nrm(s.municipio) !== F.cid) return false;
+    if (F.temp && tempDe(s) !== F.temp) return false;
+    return true;
+  }
+  const fora = id => { const s = supById(id); return !s || !passa(s); };
+  window.ORB_FILTRO = s => S.sel === s.id || passa(s);
+  const ativos = () => Object.keys(VAZIO).filter(k => S.orb[k] !== VAZIO[k]).length;
   /* linhas do investidor escolhido até cada target que ele compra */
-  EXT_ORB.push((ctx, now, list) => { const inv = S.orbInv && supById(S.orbInv); if (!inv || inv.lat == null) return;
+  EXT_ORB.push((ctx, now, list) => { const inv = S.orb.inv && S.orb.tipo === "N3" && supById(S.orb.inv); if (!inv || inv.lat == null) return;
     ctx.setLineDash([3, 5]); ctx.lineDashOffset = G.reduce ? 0 : now / 80;
     list.filter(t => t.nivel === "N3" && t.lat != null).forEach(t => { const on = S.sel === t.id; ctx.beginPath(); G.path({type:"LineString", coordinates:[[inv.lng, inv.lat], [t.lng, t.lat]]});
       ctx.strokeStyle = on ? "rgba(242,193,78,.95)" : "rgba(242,193,78,.45)"; ctx.lineWidth = on ? 2 : 1.1; ctx.stroke(); });
     ctx.setLineDash([]); });
 
-  /* ---------------- painel de escolha na Órbita ---------------- */
+  /* ---------------- botão e painel lateral de consulta ---------------- */
   const css = document.createElement("style");
   css.textContent = `#v-orbita .lvl{display:none!important}
-.orb-inv{position:absolute;top:10px;left:max(12px,env(safe-area-inset-left,0px));z-index:4;display:flex;flex-direction:column;gap:6px;max-width:min(430px,calc(100% - 70px));pointer-events:auto}
-.orb-inv .row{display:flex;gap:6px;flex-wrap:wrap}
-.orb-inv select{height:36px;border-radius:10px;border:1px solid var(--line-2);background:rgba(1,31,75,.88);color:var(--fog);font:inherit;font-size:13px;padding:0 8px;max-width:100%}
-.orb-inv #oi-inv{min-width:240px;flex:1}
-.orb-inv .info{font-size:12px;color:var(--fog);background:rgba(1,31,75,.78);border:1px solid var(--line);border-radius:10px;padding:5px 9px;line-height:1.35}
-.orb-inv .info b{color:#F2C14E}
-@media (max-width:760px){.orb-inv{top:8px;left:10px;right:54px;max-width:none}.orb-inv #oi-inv{min-width:0;width:100%}.orb-inv select{height:34px;font-size:12.5px}.orb-inv .info{font-size:11.5px}}`;
+.orb-cbtn{position:absolute;top:10px;left:max(12px,env(safe-area-inset-left,0px));z-index:4;display:flex;align-items:center;gap:8px;height:38px;max-width:calc(100% - 80px);border-radius:12px;border:1px solid var(--line-2);background:rgba(1,31,75,.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:var(--fog);font:inherit;font-size:13px;padding:0 12px;cursor:pointer}
+.orb-cbtn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;flex:none}
+.orb-cbtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.orb-cbtn b{color:#F2C14E}
+.orb-cbtn .n{background:var(--glow);color:#00122e;border-radius:9px;font-size:11px;font-weight:700;padding:1px 7px}
+.orb-cons{position:absolute;top:0;left:0;bottom:0;z-index:7;width:min(340px,88%);background:linear-gradient(180deg,rgba(6,35,79,.97),rgba(1,20,48,.98));border-right:1px solid var(--line-2);box-shadow:12px 0 40px rgba(0,0,0,.45);display:flex;flex-direction:column;pointer-events:auto}
+.orb-cons[hidden]{display:none}
+.orb-cons .ch{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line)}
+.orb-cons .ch h3{font-size:15px;margin:0}
+.orb-cons .cb{flex:1;overflow:auto;padding:10px 14px;display:flex;flex-direction:column;gap:9px}
+.orb-cons label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:3px}
+.orb-cons select{width:100%;height:36px;border-radius:10px;border:1px solid var(--line-2);background:rgba(1,31,75,.9);color:var(--fog);font:inherit;font-size:13px;padding:0 8px}
+.orb-cons .tipos{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.orb-cons .tipos button{height:34px;border-radius:9px;border:1px solid var(--line-2);background:transparent;color:var(--fog);font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.orb-cons .tipos button[aria-pressed="true"]{background:var(--glow);color:#00122e;border-color:var(--glow)}
+.orb-cons .res{font-size:12.5px;color:var(--fog);border:1px solid var(--line);border-radius:10px;padding:7px 9px;line-height:1.4}.orb-cons .res b{color:#F2C14E}
+.orb-cons .lst{display:flex;flex-direction:column;gap:3px}
+.orb-cons .lst button{display:flex;gap:7px;align-items:center;text-align:left;background:transparent;border:1px solid var(--line);border-radius:8px;padding:6px 9px;color:inherit;font:inherit;font-size:12.5px;cursor:pointer}
+.orb-cons .lst button span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.orb-cons .lst small{color:var(--muted)}
+.orb-cons .cf{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--line)}.orb-cons .cf .btn{flex:1}
+@media (max-width:760px){.orb-cbtn{top:8px;left:10px;height:36px;font-size:12.5px}.orb-cons{width:88%}}`;
   document.head.appendChild(css);
+  const ICON = `<svg viewBox="0 0 24 24"><path d="M4 5h16M7 12h10M10 19h4"/></svg>`;
+  const TIPOS = [["N3", "Targets"], ["N1", "Investidores"], ["N2", "Parceiros"], ["todos", "Todos"]];
+  const rotTipo = {N3:"target(s)", N1:"investidor(es)", N2:"intermediador(es)", todos:"empresa(s)"};
+  function resumo(){
+    const F = S.orb, inv = F.inv && supById(F.inv), n = S.suppliers.filter(s => passa(s) && (!inv || s.id !== inv.id)).length;
+    const partes = [inv && F.tipo === "N3" ? `que ${inv.nome} compra` : "", F.seg, F.cnae ? "CNAE " + F.cnae : "", F.cid ? S.suppliers.find(s => nrm(s.municipio) === F.cid)?.municipio : "", F.uf, F.reg, F.temp].filter(Boolean);
+    return {n, txt:`${n} ${rotTipo[F.tipo]}${partes.length ? " · " + partes.join(" · ") : ""}`};
+  }
+  function botao(){
+    const v = $("#v-orbita"); if (!v) return; let b = $("#orb-cbtn");
+    if (!b){ b = document.createElement("button"); b.type = "button"; b.className = "orb-cbtn"; b.id = "orb-cbtn"; v.appendChild(b); b.onclick = () => { S.orbCons = !S.orbCons; painel(); }; }
+    const R = resumo(), k = ativos();
+    b.innerHTML = `${ICON}<span>Consulta · <b>${R.n}</b> ${esc(R.txt.replace(/^\d+ /, ""))}</span>${k ? `<i class="n">${k}</i>` : ""}`;
+    b.setAttribute("aria-expanded", !!S.orbCons);
+    const old = $("#orb-inv"); if (old) old.remove();
+  }
   function painel(){
-    const v = $("#v-orbita"); if (!v) return; let el = $("#orb-inv");
-    if (!el){ el = document.createElement("div"); el.className = "orb-inv"; el.id = "orb-inv"; v.appendChild(el); }
-    const N1 = S.suppliers.filter(s => s.nivel === "N1").sort((a, b) => (a.nome || "").localeCompare(b.nome || "")), N3 = S.suppliers.filter(s => s.nivel === "N3");
-    if (S.orbInv && !supById(S.orbInv)) S.orbInv = "";
-    const inv = S.orbInv && supById(S.orbInv), alvos = inv ? alvosDe(inv) : [], C = inv ? criterios(inv) : null;
-    const segs = [...new Set(N3.map(segDe).filter(Boolean))].sort(), ufs = [...new Set(N3.map(s => s.uf).filter(Boolean))].sort();
-    const oq = C ? [C.atv.map(l => l.join(" ")).join(", "), C.cnaes.length ? "CNAE " + C.cnaes.join(", ") : "", !C.atv.length && !C.cnaes.length ? C.amplos.join(", ") : ""].filter(Boolean).join(" · ") : "";
-    const onde = C ? [...C.ufs, ...C.cidades, ...C.regioes].join(", ") : "";
-    el.innerHTML = `<div class="row"><select id="oi-inv" aria-label="Investidor"><option value="">Consulta · todos os targets (N3)</option><optgroup label="Investidores (N1): ver o que cada um compra">${N1.map(s => `<option value="${s.id}" ${s.id === S.orbInv ? "selected" : ""}>${esc(s.nome)}</option>`).join("")}</optgroup></select></div>
-      ${inv ? `<div class="info"><b>${alvos.length}</b> target(s) que ${esc(inv.nome)} compra${oq ? ` · ${esc(oq)}` : ""}${onde ? ` · ${esc(onde)}` : ""}${!oq && !alvos.length ? ". Informe no cadastro do investidor o que ele compra (atividades, CNAEs) e onde." : ""}</div>`
-        : `<div class="row"><select id="oi-seg" aria-label="Segmento"><option value="">Todos os segmentos</option>${segs.map(x => `<option ${x === S.orbSeg ? "selected" : ""}>${esc(x)}</option>`).join("")}</select><select id="oi-uf" aria-label="Estado"><option value="">Todos os estados</option>${ufs.map(x => `<option ${x === S.orbUf ? "selected" : ""}>${x}</option>`).join("")}</select></div>
-          <div class="info"><b>${N3.filter(window.ORB_FILTRO).length}</b> target(s) no mapa · escolha um investidor para ver só o que ele compra</div>`}`;
-    const atualiza = () => { G.dirty = true; renderStrip(); painel(); };
-    $("#oi-inv", el).onchange = e => { S.orbInv = e.target.value; const i = S.orbInv && supById(S.orbInv);
-      if (i){ selectSup(i.id, false); enquadra(i); } else if (S.sel && fora(S.sel)) selectSup(null); atualiza(); };
-    const sg = $("#oi-seg", el); if (sg) sg.onchange = e => { S.orbSeg = e.target.value; atualiza(); };
-    const uf = $("#oi-uf", el); if (uf) uf.onchange = e => { S.orbUf = e.target.value; atualiza(); };
+    botao(); const v = $("#v-orbita"); if (!v) return; let el = $("#orb-cons");
+    if (!el){ el = document.createElement("div"); el.className = "orb-cons"; el.id = "orb-cons"; v.appendChild(el); }
+    el.hidden = !S.orbCons; if (!S.orbCons) return;
+    const F = S.orb, base = S.suppliers.filter(s => F.tipo === "todos" || s.nivel === F.tipo || (F.inv && F.tipo === "N3"));
+    if (F.inv && !supById(F.inv)) F.inv = "";
+    const conta = (arr, fn) => { const m = new Map(); arr.forEach(s => { const k = fn(s); if (k) m.set(k, (m.get(k) || 0) + 1); }); return [...m.entries()].sort((a, b) => String(a[0]).localeCompare(String(b[0]))); };
+    const pool = S.suppliers.filter(s => F.tipo === "todos" || s.nivel === F.tipo);
+    const segs = conta(pool, segDe), ufs = conta(pool, s => s.uf), regs = conta(pool, s => regDe(s.uf)), temps = conta(pool, tempDe);
+    const cid = conta(pool.filter(s => !F.uf || s.uf === F.uf), s => s.municipio ? nrm(s.municipio) : ""), nomeCid = k => (pool.find(s => nrm(s.municipio) === k) || {}).municipio || k;
+    const cn = conta(pool, cnaeDe), descCnae = c => (pool.find(s => cnaeDe(s) === c)?.receita?.cnaeDesc || "");
+    const div2 = conta(pool, s => cnaeDe(s).slice(0, 2));
+    const opt = (L, val, rot = x => x, todos = "Todos") => `<option value="">${todos}</option>${L.map(([k, n]) => `<option value="${esc(k)}" ${k === val ? "selected" : ""}>${esc(rot(k))} (${n})</option>`).join("")}`;
+    const N1 = S.suppliers.filter(s => s.nivel === "N1").sort((a, b) => (a.nome || "").localeCompare(b.nome || ""));
+    const R = resumo(), lista = S.suppliers.filter(s => passa(s) && !(F.inv && s.id === F.inv)).sort((a, b) => (a.nome || "").localeCompare(b.nome || ""));
+    el.innerHTML = `<div class="ch"><h3>Consulta</h3><button type="button" class="btn sm ghost" data-cx aria-label="Fechar">×</button></div>
+      <div class="cb">
+        <div><label>Tipo</label><div class="tipos">${TIPOS.map(([k, l]) => `<button type="button" data-tp="${k}" aria-pressed="${F.tipo === k}">${l}</button>`).join("")}</div></div>
+        ${F.tipo === "N3" ? `<div><label for="oc-inv">O que o investidor compra</label><select id="oc-inv"><option value="">Todos os targets</option>${N1.map(s => `<option value="${s.id}" ${s.id === F.inv ? "selected" : ""}>${esc(s.nome)}</option>`).join("")}</select></div>` : ""}
+        <div><label for="oc-seg">Segmento</label><select id="oc-seg">${opt(segs, F.seg)}</select></div>
+        <div><label for="oc-cnae">CNAE cadastrado</label><select id="oc-cnae"><option value="">Todos</option>${div2.length ? `<optgroup label="Divisão (2 dígitos)">${div2.map(([k, n]) => `<option value="${k}" ${k === F.cnae ? "selected" : ""}>${k} · divisão (${n})</option>`).join("")}</optgroup>` : ""}<optgroup label="Atividade">${cn.map(([k, n]) => `<option value="${k}" ${k === F.cnae ? "selected" : ""}>${fmtCnae(k)} ${esc(descCnae(k).slice(0, 40))} (${n})</option>`).join("")}</optgroup></select></div>
+        <div><label for="oc-reg">Região</label><select id="oc-reg">${opt(regs, F.reg, x => x, "Todas")}</select></div>
+        <div><label for="oc-uf">Estado</label><select id="oc-uf">${opt(ufs, F.uf)}</select></div>
+        <div><label for="oc-cid">Cidade</label><select id="oc-cid">${opt(cid, F.cid, nomeCid, "Todas")}</select></div>
+        ${temps.length ? `<div><label for="oc-temp">Temperatura no mapa</label><select id="oc-temp">${opt(temps, F.temp, x => x, "Todas")}</select></div>` : ""}
+        <div class="res"><b>${R.n}</b> ${esc(R.txt.replace(/^\d+ /, ""))}</div>
+        <div class="lst">${lista.slice(0, 60).map(s => `<button type="button" data-ocs="${s.id}"><i style="color:${RCOL[riskOf(s).level] || "#9fb"}">${s.nivel === "N1" ? "◆" : s.nivel === "N2" ? "■" : "●"}</i><span>${esc(s.nome)}</span><small>${esc(s.uf || s.pais || "")}</small></button>`).join("")}${lista.length > 60 ? `<p class="sub" style="margin:4px 0 0;font-size:11.5px">e mais ${lista.length - 60}</p>` : ""}</div>
+      </div>
+      <div class="cf"><button type="button" class="btn sm" id="oc-limpa">Limpar</button><button type="button" class="btn sm primary" data-cx>Ver no mapa</button></div>`;
+    const atualiza = () => { G.dirty = true; if (S.sel && fora(S.sel)) selectSup(null); renderStrip(); };
+    $$("[data-cx]", el).forEach(b => b.onclick = () => { S.orbCons = false; painel(); });
+    $$("[data-tp]", el).forEach(b => b.onclick = () => { S.orb = {...VAZIO, tipo:b.dataset.tp}; atualiza(); });
+    const set = (id, k, extra) => { const x = $(id, el); if (x) x.onchange = () => { S.orb[k] = x.value; if (extra) extra(x.value); atualiza(); }; };
+    set("#oc-inv", "inv", v => { const i = v && supById(v); if (i){ selectSup(i.id, false); enquadra(i); } });
+    set("#oc-seg", "seg"); set("#oc-cnae", "cnae"); set("#oc-reg", "reg", () => { S.orb.uf = ""; S.orb.cid = ""; }); set("#oc-uf", "uf", () => { S.orb.cid = ""; }); set("#oc-cid", "cid"); set("#oc-temp", "temp");
+    $("#oc-limpa", el).onclick = () => { S.orb = {...VAZIO}; atualiza(); };
+    $$("[data-ocs]", el).forEach(b => b.onclick = () => { if (window.matchMedia("(max-width:760px)").matches) S.orbCons = false; selectSup(b.dataset.ocs, true); painel(); });
   }
   /* mostra o investidor e todos os targets dele na tela */
   function enquadra(inv){ const P = [inv, ...alvosDe(inv)].filter(x => x.lat != null); if (!P.length) return;
     const la = P.map(x => x.lat), lo = P.map(x => x.lng), span = Math.max(Math.max(...la) - Math.min(...la), (Math.max(...lo) - Math.min(...lo)) * .8, 2);
     flyTo((Math.max(...lo) + Math.min(...lo)) / 2, (Math.max(...la) + Math.min(...la)) / 2, Math.max(1.2, Math.min(8, 22 / span))); }
-  /* "Ver na órbita" de um investidor abre o mapa no modo desse investidor */
-  const _sel = selectSup; selectSup = function(id){ const s = id && supById(id); if (s && s.nivel === "N1" && S.orbInv !== id){ S.orbInv = id; } return _sel.apply(this, arguments); };
-  const _strip = renderStrip; renderStrip = function(){ const r = _strip.apply(this, arguments); try{ painel(); }catch(e){} return r; };
+  /* "Ver na órbita" de um investidor abre o mapa no modo desse investidor; de um N2, mostra os parceiros */
+  const _sel = selectSup; selectSup = function(id){ const s = id && supById(id);
+    if (s && s.nivel === "N1" && S.orb.inv !== id && S.orb.tipo === "N3"){ S.orb = {...VAZIO, inv:id}; }
+    return _sel.apply(this, arguments); };
+  const _strip = renderStrip; renderStrip = function(){ const r = _strip.apply(this, arguments); try{ painel(); }catch(e){ console.error(e); } return r; };
 
-  window.KT_ORBINV = {aderente, criterios, alvosDe};
+  window.KT_ORBINV = {aderente, criterios, alvosDe, passa};
 })();

@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v2.11 — 2026-11-15 · Órbita: consulta no painel lateral
+- O globo fica livre: no lugar dos seletores, um botão discreto "Consulta" no canto mostra o que está no mapa (ex.: "7 targets · que Alsco Uniformes compra") e quantos filtros estão ativos
+- Ao tocar, abre um painel lateral com a consulta: tipo (targets N3, investidores N1, intermediadores e parceiros N2 ou todos), o que o investidor compra, segmento, CNAE cadastrado (divisão ou atividade), região, estado, cidade e temperatura do mapa, com a contagem de cada opção, o total e a lista das empresas encontradas (tocar leva ao ponto no mapa)
+- "Limpar" volta ao padrão (só os targets); "Ver no mapa" fecha o painel
+
 ## v2.10 — 2026-11-15 · Pastas de análise recolhidas
 - Due Diligence, Análises financeiras, Valuation, Apresentação, Pós-aquisição e Jurídico: a pasta de análise fica recolhida, mostrando só o target escolhido; a lista de targets abre ao tocar em "Trocar" (com filtro quando a lista é longa) e fecha ao escolher
 - O conteúdo da análise passa a ocupar a largura toda, no computador e no celular
