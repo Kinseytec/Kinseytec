@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v2.23 — 2026-11-15 · Investigação do target preenchida automaticamente
+- A aba Investigação abre respondida pelo sistema, sem clique: situação na Receita, listas oficiais (CEIS/CNEP, MTE, IBAMA), mídia negativa nas notícias, CND e tributos ou encargos em atraso da due diligence, exposições registradas e processos da diligência jurídica, sempre com fonte e data
+- As respostas entram pelo motor automático do núcleo (gancho EXT_RESPINV): só substituem o que estava inconclusivo e o que o analista marca à mão prevalece
+- Target sem CNPJ (comum no mapa): campo na própria aba para informar e consultar na hora; itens sem fonte automática mostram o link da consulta manual (protestos, PEP, sanções, tribunais)
+
 ## v2.22 — 2026-11-15 · Política de abordagem: faturamento de R$ 15 milhões a R$ 10 bilhões
 - Política Kinsey passa a ser uma faixa: faturamento anual de R$ 15 mi a R$ 10 bi (e valuation a partir de R$ 15 mi); acima de R$ 10 bi o target fica fora da política, com o motivo
 - Vale para o cartão e o dossiê do target, o filtro da Órbita, as importações do Econodata, Lemitti e Ramper, as indicações e os critérios de prospecção

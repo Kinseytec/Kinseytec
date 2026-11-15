@@ -614,6 +614,8 @@ const VISAO = (() => {
     R.midia = {v: "nc", n: "Pesquisa de notícias não é automática: use \"Notícias sobre a empresa\" na cadeia (Auditoria) e registre o resultado."};
     ["proc_crim", "prisao", "crimeorg", "fachada", "recep", "rcarga"].forEach(k => R[k] = {v: "nc", n: MANUAL});
     INV.forEach(([id]) => { if (!R[id]) R[id] = {v: "nc", n: SEM_FONTE}; });
+    /* extensões do produto (ex.: M&A): respostas de outras fontes do sistema; só substituem o que ficou inconclusivo ("nc") ou apontam risco */
+    (window.EXT_RESPINV || []).forEach(f => { try{ Object.entries(f(s, R) || {}).forEach(([id, r]) => { if (r && (!R[id] || R[id].v === "nc" || !R[id].v || r.v === "sim")) R[id] = r; }); }catch(e){} });
     return R;
   }
   /* ---------- questionário: respostas automáticas (documentos, Receita, listas, pagamentos, NDA) ---------- */
