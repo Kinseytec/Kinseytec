@@ -54,7 +54,7 @@ if (window.KT_DD) (() => {
   /* ---------------- filtro do globo e da faixa de empresas ----------------
      Padrão: só os targets (N3). A consulta (botão no canto, painel lateral) filtra por tipo (N1, N2, N3 ou todos),
      investidor (o que ele compra), segmento, CNAE cadastrado, estado, região, cidade e temperatura do mapa. */
-  const VAZIO = {tipo:"N3", inv:"", seg:"", cnae:"", uf:"", reg:"", cid:"", temp:""};
+  const VAZIO = {tipo:"N3", inv:"", seg:"", cnae:"", uf:"", reg:"", cid:"", temp:"", pol:""};
   S.orb = {...VAZIO, ...(S.orb || {})};
   Object.defineProperty(S, "orbInv", {get:() => S.orb.inv, set:v => { S.orb.inv = v || ""; if (v) S.orb.tipo = "N3"; }, configurable:true});
   Object.assign(S.lv, {N1:true, N2:true, N3:true, rotas:false});
@@ -74,6 +74,7 @@ if (window.KT_DD) (() => {
     if (F.reg && regDe(s.uf) !== F.reg) return false;
     if (F.cid && nrm(s.municipio) !== F.cid) return false;
     if (F.temp && tempDe(s) !== F.temp) return false;
+    if (F.pol && s.nivel === "N3" && window.KT_POL){ const p = KT_POL.politica(s).st; if (F.pol === "ok" ? p === "abaixo" : p !== "abaixo") return false; }
     return true;
   }
   const fora = id => { const s = supById(id); return !s || !passa(s); };
@@ -150,6 +151,7 @@ if (window.KT_DD) (() => {
         <div><label for="oc-reg">Região</label><select id="oc-reg">${opt(regs, F.reg, x => x, "Todas")}</select></div>
         <div><label for="oc-uf">Estado</label><select id="oc-uf">${opt(ufs, F.uf)}</select></div>
         <div><label for="oc-cid">Cidade</label><select id="oc-cid">${opt(cid, F.cid, nomeCid, "Todas")}</select></div>
+        <div><label for="oc-pol">Política Kinsey (R$ 15 mi)</label><select id="oc-pol">${[["", "Todos"], ["ok", "Só dentro da política"], ["abaixo", "Só fora da política"]].map(([k, l]) => `<option value="${k}" ${k === F.pol ? "selected" : ""}>${l}</option>`).join("")}</select></div>
         ${temps.length ? `<div><label for="oc-temp">Temperatura no mapa</label><select id="oc-temp">${opt(temps, F.temp, x => x, "Todas")}</select></div>` : ""}
         <div class="res"><b>${R.n}</b> ${esc(R.txt.replace(/^\d+ /, ""))}</div>
         <div class="lst">${lista.slice(0, 60).map(s => `<button type="button" data-ocs="${s.id}"><i style="color:${RCOL[riskOf(s).level] || "#9fb"}">${s.nivel === "N1" ? "◆" : s.nivel === "N2" ? "■" : "●"}</i><span>${esc(s.nome)}</span><small>${esc(s.uf || s.pais || "")}</small></button>`).join("")}${lista.length > 60 ? `<p class="sub" style="margin:4px 0 0;font-size:11.5px">e mais ${lista.length - 60}</p>` : ""}</div>
@@ -160,7 +162,7 @@ if (window.KT_DD) (() => {
     $$("[data-tp]", el).forEach(b => b.onclick = () => { S.orb = {...VAZIO, tipo:b.dataset.tp}; atualiza(); });
     const set = (id, k, extra) => { const x = $(id, el); if (x) x.onchange = () => { S.orb[k] = x.value; if (extra) extra(x.value); atualiza(); }; };
     set("#oc-inv", "inv", v => { const i = v && supById(v); if (i){ selectSup(i.id, false); enquadra(i); } });
-    set("#oc-seg", "seg"); set("#oc-cnae", "cnae"); set("#oc-reg", "reg", () => { S.orb.uf = ""; S.orb.cid = ""; }); set("#oc-uf", "uf", () => { S.orb.cid = ""; }); set("#oc-cid", "cid"); set("#oc-temp", "temp");
+    set("#oc-seg", "seg"); set("#oc-cnae", "cnae"); set("#oc-reg", "reg", () => { S.orb.uf = ""; S.orb.cid = ""; }); set("#oc-uf", "uf", () => { S.orb.cid = ""; }); set("#oc-cid", "cid"); set("#oc-temp", "temp"); set("#oc-pol", "pol");
     $("#oc-limpa", el).onclick = () => { S.orb = {...VAZIO}; atualiza(); };
     $$("[data-ocs]", el).forEach(b => b.onclick = () => { if (window.matchMedia("(max-width:760px)").matches) S.orbCons = false; selectSup(b.dataset.ocs, true); painel(); });
   }

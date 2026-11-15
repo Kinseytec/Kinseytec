@@ -1,5 +1,13 @@
 # Registro de versões
 
+## v2.18 — 2026-11-15 · Política de abordagem e fontes de prospecção (Econodata, Lemitti, Ramper)
+- Política Kinsey: empresas com faturamento anual ou valuation abaixo de R$ 15 milhões ficam fora da abordagem; o target mostra "dentro", "fora" ou "sem dado" no cartão e no dossiê, a consulta da Órbita filtra por política e as importações deixam os fora da política de fora, salvo escolha
+- Leitura de faturamento em texto ("50MM", "R$ 500 milhões", "de 30 a 90 milhões", "R$ 1,2 bi")
+- Importação de listas exportadas do Econodata (empresas, CNAE, faturamento, funcionários, sócios, decisores e e-mails), do Lemitti (celulares dos sócios) e do Ramper: enriquece quem já está na base pelo CNPJ e inclui os novos como prospecção, com consultas automáticas e opção de ligar a um investidor
+- Dossiê do investidor: "Importar targets do Econodata para este investidor" e lista de critérios para a prospecção
+- Dossiê do target: sócios, decisores, cargos, e-mails, celulares, funcionários e faturamento das fontes, para uso interno do M&A (não entram em materiais antes do NDA)
+- Nenhuma senha de serviço externo é guardada no sistema; ligação direta só por token de API oficial, como segredo do Firebase
+
 ## v2.17 — 2026-11-15 · Cadastro principal do projeto, painéis e Ramper
 - Cadastro principal do projeto na Base inicial ("+ Novo projeto"): target pelo CNPJ (consultas automáticas), nome-código, lado; equipe Kinsey (sócio do projeto, sócio que trouxe o mandato, sócio que trouxe o investidor), parceiro N2 e investidores (inclusive novo); mandato (situação e anexo em PDF ou Word, lido e enviado ao Jurídico); due diligence pela Kinsey ou self due, com 2, 3 ou 5 exercícios e os balanços ou balancetes anexados já importados (análise prévia automática); valuation pela Kinsey e data-base, que já preenche o Valuation; informações iniciais
 - Política de honorários Kinsey como padrão: 6% de success fee e retainer negociável, usualmente devido após a apresentação do NDA com investidor

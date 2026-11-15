@@ -143,8 +143,8 @@ if (window.KT_DD) (() => {
       <div class="dd-kpis"><div class="dd-k"><span>O que compra</span><b style="font-size:13.5px">${esc(oq || "a definir no cadastro")}</b><small>${esc(onde || "região não definida")}</small></div>
         <div class="dd-k"><span>Ticket</span><b style="font-size:14px">${T.ticketMin != null || T.ticketMax != null ? `${mi((T.ticketMin || 0) * 1e6)} a ${mi((T.ticketMax || 0) * 1e6)}` : "—"}</b><small>${esc(P.socioOrigem ? "trazido por " + P.socioOrigem : "")}</small></div>
         <div class="dd-k"><span>Targets na base</span><b style="font-size:14px">${alvos.length}</b><small>${esc(alvos.slice(0, 3).map(t => t.mandato?.codinome || t.nome).join(", "))}</small></div></div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn sm ghost" data-n1="ramper">Lista de prospecção para o Ramper (CSV)</button></div>
-      <p class="sub" style="margin:0;font-size:12px">A lista leva os critérios do investidor (atividades, CNAEs e região) e os targets já mapeados, para a equipe de novos negócios prospectar mais empresas no Ramper e trazer o resultado de volta pela Base inicial › Ramper.</p></div>`;
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn sm ghost" data-n1="ramper">Lista de critérios para prospecção (CSV)</button><button type="button" class="btn sm" data-n1="econo">Importar targets do Econodata para este investidor</button></div>
+      <p class="sub" style="margin:0;font-size:12px">A lista leva os critérios do investidor (atividades, CNAEs e região) e os targets já mapeados, para a equipe de novos negócios prospectar no Econodata, no Lemitti ou no Ramper e trazer a lista de volta já ligada ao investidor (política Kinsey: faturamento ou valuation a partir de R$ 15 mi).</p></div>`;
   }
   const _body = renderSupBody;
   renderSupBody = function(){ const r = _body.apply(this, arguments); if (S.supTab !== "dados") return r; const s = supById(S.openSup), b = $("#sup-body"); if (!s || !b || b.querySelector("[data-painel]")) return r;
@@ -152,7 +152,7 @@ if (window.KT_DD) (() => {
     if (s.nivel === "N3") el.innerHTML = painelN3(s); else if (s.nivel === "N1") el.innerHTML = painelN1(s); else return r;
     b.prepend(el);
     $$("[data-pj]", el).forEach(x => x.onclick = () => { const a = x.dataset.pj; if (a === "proj") novoProjeto(s.id); else if (a === "pedido") pedidoDD(s); else if (a === "dd") vai("auditoria", s); else if (a === "fin") vai("financas", s); else if (a === "val"){ S.valTab = "sintese"; vai("valuation", s); } else if (a === "jur") vai("juridico", s); else if (a === "nda") setTab("lgpd"); });
-    $$("[data-n1]", el).forEach(x => x.onclick = () => { if (x.dataset.n1 === "orb"){ $("#layer").innerHTML = ""; S.openSup = null; go("orbita"); selectSup(s.id, true); } else exportarRamper(s); });
+    $$("[data-n1]", el).forEach(x => x.onclick = () => { if (x.dataset.n1 === "orb"){ $("#layer").innerHTML = ""; S.openSup = null; go("orbita"); selectSup(s.id, true); } else if (x.dataset.n1 === "econo" && window.KT_POL) KT_POL.importarLista("Econodata", s.id); else exportarRamper(s); });
     return r; };
 
   /* ---------------- Ramper: exportar lista e importar prospecção ---------------- */
