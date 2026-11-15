@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v2.28 — 2026-11-15 · Vigência do mandato e standby de targets
+- Prazo final do mandato no dossiê (assinatura + prazo, ou data informada), com os dias restantes; a 60 dias do fim, bandeira vermelha "Mandato prestes a vencer · necessidade de renovação"; vencido, pedido de renovação (registrado em Interações); alertas também no cartão do target e na Base inicial
+- Standby: o target sai do globo, da faixa, das listas das áreas e das indicações, sem apagar nada; reativação a qualquer momento
+- Regras: mandato assinado e vigente não vai para standby (só com a rescisão registrada, com data, motivo e documento, ou com o mandato vencido, conferido pelo sistema); frio vai direto, com motivo; morno só depois do questionário (contato recente, NDA, interesse em vender ou investidor em conversa impedem); quente só com o prazo do mandato perdido, e o sistema solicita a renovação
+- Sugestões automáticas: frios sem mandato, sem NDA e com menor faturamento, com opção de colocar todos em standby
+
 ## v2.27 — 2026-11-15 · Versões dos relatórios e teaser pós-NDA completo
 - Due diligence, diligência jurídica, valuation e PPA: sempre perguntam "Resumo para apresentação" ou "Relatório completo"
 - Teaser com duas versões fixas: antes do NDA (destaques positivos, sem identificar a empresa) e depois do NDA (tudo); a escolha resumo/completo deixa de aparecer no teaser

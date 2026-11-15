@@ -23,7 +23,7 @@ if (window.KT_DD && window.KT_MATCH) (() => {
     if (!tese) sc = Math.min(sc, 30);
     return {inv, t, sc, elim:false, motivos, m, a, p, c, ligado, tese, fora:p === "abaixo"};
   }
-  const N1 = () => S.suppliers.filter(x => x.nivel === "N1"), N3 = () => S.suppliers.filter(x => x.nivel === "N3" && x.etapa !== "descartada");
+  const N1 = () => S.suppliers.filter(x => x.nivel === "N1"), N3 = () => S.suppliers.filter(x => x.nivel === "N3" && x.etapa !== "descartada" && !x.standby?.ativo);
   const targetsPara = inv => N3().map(t => par(inv, t)).filter(x => !x.elim && x.tese && x.sc >= 50).sort((a, b) => b.sc - a.sc);
   const investidoresPara = t => N1().map(inv => par(inv, t)).filter(x => !x.elim && x.tese && x.sc >= 50).sort((a, b) => b.sc - a.sc);
   /* mercado do investidor */

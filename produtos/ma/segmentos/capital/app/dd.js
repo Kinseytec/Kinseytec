@@ -18,7 +18,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
   const norm = t => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
   const ed = () => Store.me.canEdit !== false;
   const up = (s, patch) => save(Store.update("suppliers", s.id, patch));
-  const targets = () => S.suppliers.filter(s => s.nivel === "N3").sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt"));
+  const targets = () => S.suppliers.filter(s => s.nivel === "N3" && (!s.standby?.ativo || s.id === S.ddSel)).sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt"));
   const temBal = s => Object.values(s?.dd?.bal || {}).some(b => b && b.contas?.length);
   const periodos = s => Object.keys(s?.dd?.bal || {}).filter(k => s.dd.bal[k]?.contas?.length).sort().reverse();
 
