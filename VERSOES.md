@@ -1,5 +1,13 @@
 # Registro de versões
 
+## v2.15 — 2026-11-15 · Preenchimento automático pelos documentos
+- Balancetes preenchem sozinhos os dados do target: receita líquida, EBITDA normalizado (com os ajustes que já têm OK), dívida líquida e ano do último exercício, a data-base do valuation e o regime tributário (lucro real quando o IR e a CSLL ficam entre 20% e 45% do lucro antes dos impostos; Simples pela Receita)
+- Consulta do CNPJ preenche cidade, UF, CNAE, segmento (pelo CNAE) e ano de fundação, quando vazios
+- Mandato importado (PDF ou Word) na aba M&A do dossiê: o sistema lê situação (assinado, em negociação ou enviado), success fee (com a divisão entre co-contratados), retainer, exclusividade, prazo, cauda, mínimo, participação e data de assinatura, mostra o que leu para confirmar, preenche o mandato e registra o documento no Jurídico (Contratos e pareceres)
+- Mandato já registrado no Jurídico com texto também preenche os campos vazios do mandato; mapa que dizia "assinado" sem data é corrigido pelo documento
+- NDA importado: registra o documento, se há assinatura eletrônica, prazo, multa e cláusula de não abordagem, para validação do Jurídico
+- O que o consultor salva à mão prevalece sobre o preenchimento automático
+
 ## v2.14 — 2026-11-15 · Cartão do target com valuation
 - Cartão do target na Órbita mais compacto (menos espaço, botões menores e, no celular, só as linhas principais)
 - O cartão mostra o valuation moderado pelo fluxo de caixa descontado e o valuation por múltiplos (EV/EBITDA), com o equity de cada um; "preliminar" quando o histórico ainda não atinge o mínimo; sem balancete, usa o EBITDA do cadastro × múltiplo do segmento

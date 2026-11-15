@@ -162,7 +162,7 @@ if (window.KT_DD) (() => {
   const _open = openSupplier; openSupplier = function(id){ _open.apply(this, arguments); const s = supById(id), h = document.querySelector(".sheet .sheet-h"); if (!s || !h) return;
     const r = riskOf(s), it = Object.values(s.interacoes || {}).filter(Boolean).sort((a, b) => String(b.data || b.em || "").localeCompare(String(a.data || a.em || "")))[0];
     const L = [s.nivel === "N3" && r.level !== "na" ? ["Risco", RISK_LABEL[r.level] || r.level] : null, ["Segmento", s.perfil?.segmento || s.segmento || s.mapa?.segmentoTxt], s.mapa?.temperatura ? ["Temperatura", s.mapa.temperatura] : null,
-      s.etapa ? ["Etapa", etapa(s.etapa)] : null, s.mandato?.status ? ["Mandato", s.mandato.status] : null, it?.proximo ? ["Próximo passo", it.proximo] : null].filter(x => x && x[1]);
+      s.etapa ? ["Etapa", etapa(s.etapa)] : null, s.mandato?.status ? ["Mandato", ({assinado:"assinado", negociacao:"em negociação", enviado:"enviado ao target", minuta:"minuta em preparação", encerrado:"encerrado"})[s.mandato.status] || s.mandato.status] : null, it?.proximo ? ["Próximo passo", it.proximo] : null].filter(x => x && x[1]);
     if (!L.length) return; const el = document.createElement("div"); el.className = "dos-res";
     el.innerHTML = L.map(([k, v]) => `<span><b>${esc(k)}</b>${esc(String(v))}</span>`).join(""); h.after(el); };
 })();
