@@ -1,6 +1,6 @@
 /* ================= POLÍTICA DE ABORDAGEM E FONTES DE PROSPECÇÃO · KinseyTec – M&A =================
-   Política Kinsey: não abordar empresas com faturamento anual abaixo de R$ 15 milhões ou valuation abaixo de
-   R$ 15 milhões. O sistema marca cada target (dentro, abaixo ou sem dado), filtra na Órbita e nas importações.
+   Política Kinsey: abordar empresas com faturamento anual de R$ 15 milhões a R$ 10 bilhões (e valuation a partir de
+   R$ 15 milhões). O sistema marca cada target (dentro, abaixo ou sem dado), filtra na Órbita e nas importações.
    Fontes de prospecção por arquivo exportado (sem senha no sistema):
      - Econodata: empresas, CNAE, faturamento, funcionários, sócios, decisores e e-mails;
      - Lemitti: celulares dos sócios e dados das empresas;
@@ -9,7 +9,8 @@
    ligados a um investidor (N1), para o time de novos negócios. Contatos pessoais: uso restrito ao M&A (LGPD,
    legítimo interesse); não aparecem em materiais antes do NDA. */
 if (window.KT_DD) (() => {
-  const MIN = 15;   /* R$ milhões */
+  const MIN = 15, MAX = 10000;   /* R$ milhões: faturamento de R$ 15 mi a R$ 10 bi */
+  const FAIXA = "faturamento de R$ 15 mi a R$ 10 bi";
   const dig = v => String(v || "").replace(/\D/g, "");
   const nrm = t => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
   const fmtCnpj = d => d.length === 14 ? d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5") : d;
@@ -25,9 +26,10 @@ if (window.KT_DD) (() => {
   function politica(s){
     if (!s || s.nivel !== "N3") return {st:"na"};
     const f = fatMi(s); let v = null; try{ const V = window.KT_BASE && KT_BASE.valorAlvo(s); if (V) v = V.eq / 1e6; }catch(e){}
-    const abaixo = (f != null && f < MIN) || (v != null && v > 0 && v < MIN);
-    if (abaixo) return {st:"abaixo", txt:`Fora da política Kinsey: ${f != null && f < MIN ? `faturamento de R$ ${fmt(f, 1)} mi` : `valuation de R$ ${fmt(v, 1)} mi`} (mínimo de R$ ${MIN} mi)`, f, v};
-    if (f == null && v == null) return {st:"sem", txt:"Sem faturamento ou valuation para conferir a política (mínimo de R$ 15 mi)"};
+    const acima = f != null && f > MAX, abaixo = (f != null && f < MIN) || (v != null && v > 0 && v < MIN);
+    if (acima) return {st:"abaixo", acima:true, txt:`Fora da política Kinsey: faturamento de R$ ${fmt(f / 1000, 1)} bi, acima do teto de R$ 10 bi (política: ${FAIXA})`, f, v};
+    if (abaixo) return {st:"abaixo", txt:`Fora da política Kinsey: ${f != null && f < MIN ? `faturamento de R$ ${fmt(f, 1)} mi` : `valuation de R$ ${fmt(v, 1)} mi`} (política: ${FAIXA})`, f, v};
+    if (f == null && v == null) return {st:"sem", txt:`Sem faturamento ou valuation para conferir a política (${FAIXA})`};
     return {st:"ok", txt:`Dentro da política Kinsey (faturamento ${f != null ? "R$ " + fmt(f, 1) + " mi" : "—"}${v != null ? `, valuation R$ ${fmt(v, 1)} mi` : ""})`, f, v};
   }
   const pill = p => p.st === "abaixo" ? `<span class="pill r-alto" style="font-size:10.5px;padding:1px 8px">Fora da política</span>` : p.st === "sem" ? `<span class="pill r-pend" style="font-size:10.5px;padding:1px 8px">Política: sem dado</span>` : "";
@@ -59,11 +61,11 @@ if (window.KT_DD) (() => {
   /* revisão e gravação de uma lista (arquivo exportado ou resposta da API da fonte) */
   function revisarLista(fonte, L, invId, arq){ const f = {name:arq};
       const exist = L.filter(o => S.suppliers.some(s => dig(s.doc) === o.d)), novos = L.filter(o => !S.suppliers.some(s => dig(s.doc) === o.d));
-      const fora = novos.filter(o => { const v = emMi(o.fat); return v != null && v < MIN; }), dentro = novos.filter(o => !fora.includes(o));
+      const fora = novos.filter(o => { const v = emMi(o.fat); return v != null && (v < MIN || v > MAX); }), dentro = novos.filter(o => !fora.includes(o));
       const inv = invId && supById(invId), N1 = S.suppliers.filter(x => x.nivel === "N1").sort((a, b) => (a.nome || "").localeCompare(b.nome || ""));
       const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Fonte de prospecção · ${esc(fonte)}</div><h2>Importar lista</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
         <form class="sheet-b" id="fli" style="display:flex;flex-direction:column;gap:10px" novalidate>
-          <div class="dd-kpis"><div class="dd-k"><span>Empresas no arquivo</span><b>${L.length}</b><small>${esc(f.name)}</small></div><div class="dd-k"><span>Já na base</span><b>${exist.length}</b><small>serão enriquecidas</small></div><div class="dd-k"><span>Novas na política</span><b>${dentro.length}</b><small>faturamento ≥ R$ ${MIN} mi ou sem dado</small></div><div class="dd-k"><span>Novas fora da política</span><b>${fora.length}</b><small>faturamento &lt; R$ ${MIN} mi</small></div></div>
+          <div class="dd-kpis"><div class="dd-k"><span>Empresas no arquivo</span><b>${L.length}</b><small>${esc(f.name)}</small></div><div class="dd-k"><span>Já na base</span><b>${exist.length}</b><small>serão enriquecidas</small></div><div class="dd-k"><span>Novas na política</span><b>${dentro.length}</b><small>faturamento de R$ 15 mi a R$ 10 bi ou sem dado</small></div><div class="dd-k"><span>Novas fora da política</span><b>${fora.length}</b><small>faturamento abaixo de R$ 15 mi ou acima de R$ 10 bi</small></div></div>
           <div class="form"><div class="fld"><label for="li-inv">Ligar os novos targets ao investidor</label><select id="li-inv"><option value="">—</option>${N1.map(x => `<option value="${x.id}" ${x.id === invId ? "selected" : ""}>${esc(x.nome)}</option>`).join("")}</select></div>
             <div class="fld"><label><input type="checkbox" id="li-fora"> Incluir também os fora da política</label><span class="hint">entram marcados como "fora da política"</span></div></div>
           <p class="sub" style="margin:0;font-size:12px">Contatos de sócios e decisores (e-mails e celulares) ficam no cadastro de cada empresa para uso do time de M&A; não aparecem em teaser nem em materiais antes do NDA.</p>
@@ -100,5 +102,5 @@ if (window.KT_DD) (() => {
     const p = it.querySelector("p.sub"); if (p) p.innerHTML = `Importe as listas exportadas do <b>Econodata</b> (empresas, CNAE, faturamento, funcionários, sócios, decisores e e-mails), do <b>Lemitti</b> (celulares dos sócios) ou do <b>Ramper</b>. Quem já está na base é enriquecido pelo CNPJ; os novos entram como prospecção (podendo ser ligados a um investidor) e o sistema consulta cada CNPJ. Política Kinsey: empresas com faturamento ou valuation abaixo de R$ ${MIN} mi ficam fora, salvo escolha.`;
     return r; };
 
-  window.KT_POL = {MIN, politica, emMi, fatMi, importarLista, revisarLista};
+  window.KT_POL = {MIN, MAX, FAIXA, politica, emMi, fatMi, importarLista, revisarLista};
 })();

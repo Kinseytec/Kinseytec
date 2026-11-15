@@ -2,7 +2,7 @@
    O sistema indica os principais targets para cada investidor (N1) e os principais investidores para cada target (N3):
    - aderência à tese (matching: segmento, faturamento, EBITDA, ticket, região, participação e restrições);
    - o que o investidor compra (atividades, CNAEs e CNPJs da tese) e ligações já feitas no mapa;
-   - política Kinsey (faturamento ou valuation a partir de R$ 15 mi), temperatura e capacidade de compra;
+   - política Kinsey (faturamento de R$ 15 mi a R$ 10 bi), temperatura e capacidade de compra;
    - informações de mercado do investidor: aquisições recentes (notícias), capital disponível, companhia aberta (CVM/B3)
      e, para investidores internacionais, notícias em inglês e movimentos no Brasil.
    Prospecção: busca nas bases contratadas (Econodata, Ramper, Lemitti) pela API oficial com os critérios da tese do
@@ -70,12 +70,12 @@ if (window.KT_DD && window.KT_MATCH) (() => {
   /* ---------------- prospecção nas bases contratadas ---------------- */
   const publicado = () => !!(window.firebase?.functions && Store.db);
   function filtrosDe(inv){ const T = inv.tese || {}, C = window.KT_ORBINV ? KT_ORBINV.criterios(inv) : {};
-    return {cnaes:C.cnaes || [], ufs:C.ufs || [], regioes:C.regioes || [], atividades:(C.atv || []).map(a => a.join(" ")), fatMin:Math.max(T.fatMin ?? 0, window.KT_POL?.MIN || 15), fatMax:T.fatMax ?? null, segmentos:T.segmentos || []}; }
+    return {cnaes:C.cnaes || [], ufs:C.ufs || [], regioes:C.regioes || [], atividades:(C.atv || []).map(a => a.join(" ")), fatMin:Math.max(T.fatMin ?? 0, window.KT_POL?.MIN || 15), fatMax:Math.min(T.fatMax ?? Infinity, window.KT_POL?.MAX || 10000), segmentos:T.segmentos || []}; }
   async function prospectar(inv){
     const F = filtrosDe(inv);
     if (!publicado()){ sheet(`<div class="sheet-h"><div><div class="eyebrow">Prospecção · ${esc(inv.nome)}</div><h2>Critérios para o Econodata</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
       <div class="sheet-b" style="display:flex;flex-direction:column;gap:10px"><p class="sub" style="margin:0">Nesta versão local a busca é pelo arquivo: filtre no Econodata com os critérios abaixo, exporte a lista e importe aqui (os novos targets já entram ligados a ${esc(inv.nome)}). Na versão publicada, com a API configurada, a busca é direta.</p>
-      <div class="tbl"><table><tbody>${[["CNAEs", F.cnaes.join(", ") || "—"], ["Atividades", F.atividades.join(" · ") || "—"], ["Segmentos", F.segmentos.join(", ") || "—"], ["UFs", F.ufs.join(", ") || "Brasil"], ["Regiões", F.regioes.join(", ") || "—"], ["Faturamento", `a partir de R$ ${F.fatMin} mi${F.fatMax ? ` até R$ ${F.fatMax} mi` : ""} (política Kinsey)`]].map(([k, v]) => `<tr><td><b>${k}</b></td><td>${esc(v)}</td></tr>`).join("")}</tbody></table></div>
+      <div class="tbl"><table><tbody>${[["CNAEs", F.cnaes.join(", ") || "—"], ["Atividades", F.atividades.join(" · ") || "—"], ["Segmentos", F.segmentos.join(", ") || "—"], ["UFs", F.ufs.join(", ") || "Brasil"], ["Regiões", F.regioes.join(", ") || "—"], ["Faturamento", `de R$ ${F.fatMin} mi até ${F.fatMax >= 1000 ? `R$ ${fmt(F.fatMax / 1000, 1)} bi` : `R$ ${F.fatMax} mi`} (política Kinsey: R$ 15 mi a R$ 10 bi)`]].map(([k, v]) => `<tr><td><b>${k}</b></td><td>${esc(v)}</td></tr>`).join("")}</tbody></table></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn primary" id="pr-imp">Importar lista do Econodata</button></div></div>`);
       $("#pr-imp").onclick = () => KT_POL.importarLista("Econodata", inv.id); return; }
     toast("Buscando no Econodata…");

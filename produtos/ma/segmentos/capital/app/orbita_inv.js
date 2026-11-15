@@ -151,7 +151,7 @@ if (window.KT_DD) (() => {
         <div><label for="oc-reg">Região</label><select id="oc-reg">${opt(regs, F.reg, x => x, "Todas")}</select></div>
         <div><label for="oc-uf">Estado</label><select id="oc-uf">${opt(ufs, F.uf)}</select></div>
         <div><label for="oc-cid">Cidade</label><select id="oc-cid">${opt(cid, F.cid, nomeCid, "Todas")}</select></div>
-        <div><label for="oc-pol">Política Kinsey (R$ 15 mi)</label><select id="oc-pol">${[["", "Todos"], ["ok", "Só dentro da política"], ["abaixo", "Só fora da política"]].map(([k, l]) => `<option value="${k}" ${k === F.pol ? "selected" : ""}>${l}</option>`).join("")}</select></div>
+        <div><label for="oc-pol">Política Kinsey (R$ 15 mi a R$ 10 bi)</label><select id="oc-pol">${[["", "Todos"], ["ok", "Só dentro da política"], ["abaixo", "Só fora da política"]].map(([k, l]) => `<option value="${k}" ${k === F.pol ? "selected" : ""}>${l}</option>`).join("")}</select></div>
         ${temps.length ? `<div><label for="oc-temp">Temperatura no mapa</label><select id="oc-temp">${opt(temps, F.temp, x => x, "Todas")}</select></div>` : ""}
         <div class="res"><b>${R.n}</b> ${esc(R.txt.replace(/^\d+ /, ""))}</div>
         <div class="lst">${lista.slice(0, 60).map(s => `<button type="button" data-ocs="${s.id}"><i style="color:${RCOL[riskOf(s).level] || "#9fb"}">${s.nivel === "N1" ? "◆" : s.nivel === "N2" ? "■" : "●"}</i><span>${esc(s.nome)}</span><small>${esc(s.uf || s.pais || "")}</small></button>`).join("")}${lista.length > 60 ? `<p class="sub" style="margin:4px 0 0;font-size:11.5px">e mais ${lista.length - 60}</p>` : ""}</div>

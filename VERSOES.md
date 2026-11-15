@@ -1,5 +1,9 @@
 # Registro de versões
 
+## v2.22 — 2026-11-15 · Política de abordagem: faturamento de R$ 15 milhões a R$ 10 bilhões
+- Política Kinsey passa a ser uma faixa: faturamento anual de R$ 15 mi a R$ 10 bi (e valuation a partir de R$ 15 mi); acima de R$ 10 bi o target fica fora da política, com o motivo
+- Vale para o cartão e o dossiê do target, o filtro da Órbita, as importações do Econodata, Lemitti e Ramper, as indicações e os critérios de prospecção
+
 ## v2.21 — 2026-11-15 · Relatórios com gráficos (resumo ou completo), teaser robusto, indicações e prospecção
 - Todas as áreas emitem "Resumo para apresentação" ou "Relatório completo": due diligence, valuation, diligência jurídica, PPA e teaser (one-pager ou completo)
 - Gráficos vetoriais nos PDFs, com todos os valores escritos: rosca (alocação do PPA, exposições por área, processos por prognóstico), cascata (ponte do EBITDA, EV → equity, dívida líquida, PL → consideração), barras horizontais (exposições, comparáveis com o múltiplo do target, WARA × WACC, custo de capital), colunas com linha de margem e mapa de calor da sensibilidade do EV ao WACC
