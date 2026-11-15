@@ -1,5 +1,9 @@
 # Registro de versões
 
+## v2.40 — 2026-11-15 · Cores Kinsey nas telas de trabalho
+- Fundo navy Kinsey (gradiente) em todas as telas de trabalho (Base inicial, Due Diligence, Análises, Valuation, Apresentação, Jurídico, Pós-aquisição); o fundo escuro do espaço fica só na Órbita
+- Cartões, indicadores e campos em tons de azul Kinsey, com contraste para leitura, também no celular
+
 ## v2.39 — 2026-11-15 · WACC automático com ajuste limitado e justificado
 - O WACC vem sempre calculado automaticamente pelo CAPM (beta e estrutura de capital do setor, prêmio de tamanho da base)
 - O consultor pode ajustar os componentes (dívida/patrimônio, prêmio de tamanho) ou a taxa, com fundamento e justificativa obrigatória, até 3 p.p. acima ou abaixo do automático; fora disso o sistema não salva

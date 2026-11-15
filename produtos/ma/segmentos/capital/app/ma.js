@@ -30,6 +30,13 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     if (W.length === 2 && base.length <= 16) out = W.join(" "); else if ((GENERICO.test(W[0]) || curto) && W[1]) out = /^(de|do|da)$/i.test(W[1]) && W[2] ? W[0] + " " + W[2] : W[0] + " " + W[1];
     if (linha) out += " " + linha;
     return out.split(" ").map(titulo).join(" ").slice(0, 20); };
+  /* cores Kinsey: fundo navy nas telas de trabalho (o preto do espaço fica só na Órbita) */
+  { const st = document.createElement("style"); st.textContent = `.view:not(#v-orbita){background:linear-gradient(180deg,#022B63 0%,var(--navy) 38%,#011A40 100%)}
+.view:not(#v-orbita) .card{background:#0A2D60;border-color:rgba(150,190,240,.22)}
+.view:not(#v-orbita) .card .card{background:#0D3570}
+.view:not(#v-orbita) .tbl tbody tr:hover,.view:not(#v-orbita) .mb-row:hover{background:rgba(79,176,245,.08)}
+.view:not(#v-orbita) input,.view:not(#v-orbita) select,.view:not(#v-orbita) textarea{background:#01183D}
+.view:not(#v-orbita) .dd-k{background:rgba(1,24,61,.55)}`; document.head.appendChild(st); }
   /* legenda compacta (também no celular) */
   setTimeout(() => { const v = $("#v-orbita"); if (!v || $("#orb-leg")) return; const el = document.createElement("div"); el.id = "orb-leg";
     el.innerHTML = `<span><i style="background:${LVC.N3};border-radius:50%"></i>Target</span><span><i style="background:${LVC.N1};transform:rotate(45deg)"></i>Investidor</span><span><i style="background:${LVC.N2}"></i>Intermediador</span>`;
