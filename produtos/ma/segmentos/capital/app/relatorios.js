@@ -265,12 +265,25 @@ if (window.KT_DD) (() => {
       secT("A companhia"); tab(P, ["Item", "Informação"], Z.companhia.map(([k, v]) => [k, v]), [.3, .7]); if (!pre && Z.descricao && Z.descricao !== Z.sumario.slice(0, Z.descricao.length)) par(P, Z.descricao, {size:9.5});
       if (Z.operacoes.length){ P.h2("Operações"); Z.operacoes.forEach(o => bl(o)); }
       if (Z.instit.length){ P.h2("Sobre a companhia (material institucional e site)"); Z.instit.forEach(o => bl(o)); }
+      if (!pre && Z.site?.url) par(P, `Site: ${Z.site.url}${Z.site.descricao ? " · " + Z.site.descricao : ""}`, {size:9});
+      if (!pre && Z.produtos.length){ P.h2("Produtos e serviços"); Z.produtos.forEach(o => bl(o)); }
       if (Z.linhas.length){ secT("Portfólio e linhas de negócio"); tab(P, pre ? ["Linha", "Participação"] : ["Linha", "Participação", "Descrição"], Z.linhas.map(l => pre ? [l.nome, l.pct || "-"] : [l.nome, l.pct || "-", l.desc || ""]), pre ? [.7, .3] : [.3, .15, .55]); }
       secT("Destaques financeiros", 330);
       evol();
       if (Z.serie.length) tab(P, ["", ...Z.serie.map(a => a.ano)], [["Receita líquida", ...Z.serie.map(a => mi(a.rl, pre ? 0 : 1))], ["EBITDA ajustado", ...Z.serie.map(a => mi(a.eb, pre ? 0 : 1))], ["Margem EBITDA", ...Z.serie.map(a => pc(a.mg ?? a.eb / (a.rl || 1), pre ? 0 : 1))]], [.4, ...Z.serie.map(() => .6 / Z.serie.length)]);
       Z.destaques.slice(3).forEach(d => bl(d));
-      if (!pre && Z.dd.length){ P.h2("Due diligence: pontos principais"); Z.dd.forEach(d => bl(d)); }
+      if (!pre){ /* pós-NDA: diligências, ajustes e jurídico */
+        secT("Due diligence e ajustes", 220); Z.dd.forEach(d => bl(d));
+        try{ const Rv = KT_VAL.resumo(s), Xv = Rv.X, AJ = Xv && !Xv.vazio ? D.ajustes(s, Xv.perBase).filter(D.okFin) : [];
+          if (AJ.length){ P.h2("Ajustes da due diligence (validados pelos consultores)"); tab(P, ["Ajuste", "Área", "Efeito"], AJ.map(a => [a.titulo, D.areaNome(a.area), D.efeitoTxt(a)]), [.42, .16, .42]);
+            const G = window.KT_GRAF; if (G){ const K = Xv.bp.K, A = D.soma(AJ); G.cascata(P, "Ponte do EBITDA", [{l:"EBITDA reportado", v:K.ebitda, tipo:"base"}, ...AJ.filter(a => Math.abs(D.soma([a]).ebitda) > 1).map(a => ({l:a.titulo, v:D.soma([a]).ebitda, tipo:"delta"})), {l:"EBITDA ajustado", v:K.ebitda + A.ebitda, tipo:"total"}], v => mi(v, 1)); } } }catch(e){}
+        const EX = window.KT_EXP ? KT_EXP.lista(s) : []; if (EX.length){ const ate = +(String(s.perfil?.dataBase || new Date().toISOString()).slice(0, 4)), C = EX.map(e => ({e, c:KT_EXP.calc(e, ate)})), mil = v => v == null ? "NQ" : fmt(v / 1e3, 0);
+          P.h2("Exposições fiscais, trabalhistas e previdenciárias (MR$)"); tab(P, ["Item", "Mínimo", "Máximo", "Avaliação"], C.map(({e, c}) => [e.titulo, mil(c.min), mil(c.max), {provavel:"Provável", possivel:"Possível", remota:"Remota"}[e.aval] || "NQ"]), [.58, .14, .14, .14]); }
+        if (window.KT_JDD){ const cg = KT_JDD.contingencias(s), q = s.jdd?.q || {}, risco = KT_JDD.QS.filter(x => x.risco && q[x.id]?.v === x.risco), rec = KT_JDD.recomendacoes(s);
+          if (cg.n || risco.length || rec.length){ secT("Diligência jurídica", 160);
+            if (cg.n) par(P, `${cg.n} processo(s): provável ${mi(cg.provavel)}, possível ${mi(cg.possivel)}, remota ${mi(cg.remota)}.`, {size:9.5});
+            if (risco.length){ P.h2("Pontos de atenção"); risco.slice(0, 8).forEach(x => bl(`${x.t}${q[x.id]?.n ? " · " + q[x.id].n : ""}`, {size:9})); }
+            if (rec.length){ P.h2("Encaminhamento no contrato"); rec.slice(0, 6).forEach(x => bl(x, {size:9})); } } } }
       secT("Tese de investimento", 160); Z.tese.forEach(t => bl(t));
       secT("Setor e mercado", 200); Z.mercado.forEach(m => bl(m)); paresG();
       if (!pre && Z.noticias.length){ P.h2("Notícias do segmento"); Z.noticias.forEach(n2 => bl(`${n2.titulo} (${n2.fonte || ""} ${n2.data || ""})`, {size:9})); }

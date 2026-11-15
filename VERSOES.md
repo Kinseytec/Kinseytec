@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v2.27 — 2026-11-15 · Versões dos relatórios e teaser pós-NDA completo
+- Due diligence, diligência jurídica, valuation e PPA: sempre perguntam "Resumo para apresentação" ou "Relatório completo"
+- Teaser com duas versões fixas: antes do NDA (destaques positivos, sem identificar a empresa) e depois do NDA (tudo); a escolha resumo/completo deixa de aparecer no teaser
+- Pós-NDA ampliado: due diligence e ajustes validados (tabela e ponte do EBITDA), exposições fiscais, trabalhistas e previdenciárias, diligência jurídica (processos, pontos de atenção e encaminhamento no contrato), produtos e serviços, site e material institucional
+
 ## v2.26 — 2026-11-15 · Diligência jurídica automática
 - Contrato social, última alteração, ficha da Junta ou cartão CNPJ anexados no cadastro do projeto ou no Jurídico são lidos: sócios e quotas, capital, administração, registro na Junta, cláusulas de preferência, tag/drag along, lock-up, ônus sobre quotas, procuradores, filiais, participações e espólio; o CNPJ lido completa o cadastro e dispara as consultas
 - Questionário jurídico respondido pelo sistema com a fonte: documento societário, QSA da Receita (com aviso de divergência), contratos analisados (mudança de controle, exclusividade, não concorrência, multas, garantias, dívida), processos, CND e PJ da due diligence, investigação (CEIS/CNEP, PEP, IBAMA) e licenças exigidas pelo CNAE

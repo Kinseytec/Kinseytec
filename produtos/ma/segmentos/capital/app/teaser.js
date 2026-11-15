@@ -55,7 +55,9 @@ if (window.KT_DD && window.KT_VAL) (() => {
     const mat = t.material || null, site = s.ext?.site || t.site || null;
     const pares = (C?.ok || []).filter(c => c.evEb > 0 && c.evEb < 60).sort((a, b) => b.evEb - a.evEb).slice(0, 10).map(c => ({nome:c.nome, evEb:c.evEb, mg:c.mg}));
     const instit = pre ? [] : [...(mat?.resumo || []), ...(site?.resumo || [])].filter(Boolean).slice(0, 8);
-    return {sumario, companhia, operacoes, tese, passos, pares, instit, mat, site, codinome, subtitulo, transacao, kpis, serie, destaques:[...new Set(destaques)].slice(0, 8), mercado, linhas, noticias, materiais, dd, valor, descricao:pre ? (t.descricaoPre || "") : (p.descricao || ""), pesquisa:pre ? "" : [t.pesquisa, t.regiao].filter(Boolean).join("\n\n")};
+    const prodRe = /produt|servi[cç]o|solu[cç][aã]o|portf[oó]lio|linha de|marca|atende|clientes/i;
+    const produtos = pre ? [] : [...(p.linhas || []).filter(l => l.desc).map(l => `${l.nome}: ${l.desc}`), ...[...String(mat?.texto || "").split(/\n+/), ...(site?.resumo || [])].map(x => String(x).replace(/\s+/g, " ").trim()).filter(x => x.length >= 30 && x.length <= 220 && prodRe.test(x))].filter((x, i, a) => a.indexOf(x) === i).slice(0, 10);
+    return {sumario, companhia, operacoes, tese, passos, pares, instit, produtos, mat, site, codinome, subtitulo, transacao, kpis, serie, destaques:[...new Set(destaques)].slice(0, 8), mercado, linhas, noticias, materiais, dd, valor, descricao:pre ? (t.descricaoPre || "") : (p.descricao || ""), pesquisa:pre ? "" : [t.pesquisa, t.regiao].filter(Boolean).join("\n\n")};
   }
 
   /* ---------------- gráficos em SVG (tela) ---------------- */
@@ -109,7 +111,7 @@ if (window.KT_DD && window.KT_VAL) (() => {
     </div></div>`;
     sd.bind(host);
     $$("[data-tz]", host).forEach(b => b.onclick = () => { S.tzFase = b.dataset.tz; renderView(); });
-    $$("[data-tzr]", host).forEach(b => b.onclick = () => b.dataset.tzr === "pdf" && window.KT_GRAF ? KT_GRAF.modo((S.tzFase === "pre" ? "Teaser · " : "Apresentação pós-NDA · ") + (S.tzFase === "pre" ? conteudo(s, "pre").codinome : s.nome), md => KT_REL.teaser(s, S.tzFase, "pdf", md)) : KT_REL.teaser(s, S.tzFase, b.dataset.tzr).catch(e => { console.error(e); toast("Não foi possível gerar o arquivo."); }));
+    $$("[data-tzr]", host).forEach(b => b.onclick = () => KT_REL.teaser(s, S.tzFase, b.dataset.tzr, "completo").catch(e => { console.error(e); toast("Não foi possível gerar o arquivo."); }));
     const mt = $("#tz-mat", host); if (mt) mt.onchange = () => mt.files[0] && importarMaterial(s, mt.files[0]);
     const st = $("#tz-site", host); if (st) st.onclick = () => lerSite(s, $("#tz-url", host).value);
     const f = $("#ftz", host); if (f) f.onsubmit = e => { e.preventDefault(); const v = id => $("#" + id).value.trim();
