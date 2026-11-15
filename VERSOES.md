@@ -1,5 +1,9 @@
 # Registro de versões
 
+## v2.14 — 2026-11-15 · Cartão do target com valuation
+- Cartão do target na Órbita mais compacto (menos espaço, botões menores e, no celular, só as linhas principais)
+- O cartão mostra o valuation moderado pelo fluxo de caixa descontado e o valuation por múltiplos (EV/EBITDA), com o equity de cada um; "preliminar" quando o histórico ainda não atinge o mínimo; sem balancete, usa o EBITDA do cadastro × múltiplo do segmento
+
 ## v2.13 — 2026-11-15 · Pré-due diligence pelos pronunciamentos do CPC e equipe Kinsey
 - Pré-ajustes automáticos para avaliação do auditor: gastos com natureza de imobilizado lançados no resultado (CPC 27, itens 7, 12, 16 e 17; CPC 23), com estimativa de ativação e alerta para manutenção que pode ser reforma; gastos de implantação de nova unidade (CPC 27, item 19; CPC 04, item 69: não ativáveis, mas fora do EBITDA normalizado); despesas que cresceram acima da receita frente ao exercício anterior (revisão analítica)
 - Projeto de expansão na Due Diligence (ex.: nova distribuidora): o consultor informa a parte ativável e a pré-operacional e o sistema gera os dois pré-ajustes (ativação e depreciação, normalização do EBITDA), que seguem para o OK do auditor

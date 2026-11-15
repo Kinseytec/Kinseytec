@@ -262,5 +262,31 @@ if (window.KT_DD) (() => {
 @media (max-width:760px){#auditoria .head > div > p.sub,#financas .head > div > p.sub,#valuation .head > div > p.sub,#apresentacao .head > div > p.sub,#pos .head > div > p.sub,#juridico .head > div > p.sub{display:none}#auditoria .dd-tabs,#financas .dd-tabs,#valuation .dd-tabs,#apresentacao .dd-tabs,#pos .dd-tabs,#juridico .dd-tabs{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;gap:6px}#auditoria .dd-tabs .fbtn,#financas .dd-tabs .fbtn,#valuation .dd-tabs .fbtn,#apresentacao .dd-tabs .fbtn,#pos .dd-tabs .fbtn,#juridico .dd-tabs .fbtn{flex:0 0 auto;white-space:nowrap}}`;
   document.head.appendChild(css);
 
+  /* cartão do target na Órbita: mais compacto e com o valuation moderado (FCD) e por múltiplos */
+  const faixaTxt = (a, b) => a == null ? "—" : Math.abs(b - a) < 5e4 ? mi(a) : `R$ ${fmt(a / 1e6, 1)}–${fmt(b / 1e6, 1)} mi`;
+  function valCartao(s){
+    let fcd = null, mult = null, dl = 0, prelim = false, fonte = "";
+    try{ if (D.temBal(s) && window.KT_VAL){ const R = KT_VAL.resumo(s); if (R.X && !R.X.vazio){ dl = R.X.dl;
+        fcd = R.mod ? [R.mod.min, R.mod.max] : null; const m = R.met.find(x => /EV\/EBITDA/.test(x[0]) && !/Transa/.test(x[0])); if (m) mult = [m[1], m[2]];
+        prelim = (R.A || []).some(a => a.nivel === "bloqueio"); fonte = "balancete " + R.X.perBase; } } }catch(e){}
+    if (!mult){ const V = valorAlvo(s); if (V && /EBITDA ×|faturamento ×/.test(V.fonte)){ mult = [V.ev, V.ev]; dl = V.dl; fonte = fonte || "cadastro"; } }
+    return {fcd, mult, dl, prelim, fonte};
+  }
+  EXT_TARGET.push((s, el) => { if (s.nivel !== "N3") return; const v = valCartao(s); if (!v.fcd && !v.mult) return;
+    const box = document.createElement("div"); box.className = "tg-val";
+    const t = (rot, f) => `<div><span>${rot}</span><b>${f ? faixaTxt(f[0], f[1]) : "—"}</b>${f ? `<small>equity ${faixaTxt(f[0] - v.dl, f[1] - v.dl)}</small>` : `<small>${rot.startsWith("Múlt") ? "sem comparáveis do segmento" : "sem balancete"}</small>`}</div>`;
+    box.innerHTML = t("Valuation moderado · FCD", v.fcd) + t("Múltiplos · EV/EBITDA", v.mult) + (v.prelim ? `<em>preliminar: histórico incompleto</em>` : "");
+    const acts = el.querySelector(".acts"); el.insertBefore(box, acts || null); });
+  const cssT = document.createElement("style");
+  cssT.textContent = `#v-orbita .target{padding:8px 11px!important;gap:3px 8px!important;font-size:12px}
+#v-orbita .target h3{font-size:14px!important}#v-orbita .target .loc{font-size:10px}
+#v-orbita .target .acts .btn{padding:5px 10px;font-size:12px}
+.tg-val{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:2px}
+.tg-val>div{border:1px solid var(--line-2);border-radius:9px;padding:5px 8px;display:flex;flex-direction:column;min-width:0}
+.tg-val span{font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.tg-val b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tg-val small{font-size:10.5px;color:var(--muted)}
+.tg-val em{grid-column:1/-1;font-size:10.5px;color:#F2C14E;font-style:normal}
+@media (max-width:760px){#v-orbita .target{max-height:38vh!important}#v-orbita .target > div[style*="flex-wrap"] > span:nth-child(n+5){display:none}}`;
+  document.head.appendChild(cssT);
   window.KT_BASE = {cadastro, valorAlvo, capacidade, condicao, consultas, dossiePdf};
 })();
