@@ -164,7 +164,7 @@ if (window.KT_DD) (() => {
           <div class="fld full"><label for="pi-a">Arquivo</label><input id="pi-a" type="file" accept=".csv,.xlsx,.txt"></div></div>
         <p class="err" id="pi-err" hidden></p><div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="btn ghost" data-x>Cancelar</button><button type="submit" class="btn primary">Importar</button></div></form>`);
     $("#pi-f").onsubmit = async e => { e.preventDefault(); const f = $("#pi-a").files[0], err = t => { $("#pi-err").textContent = t; $("#pi-err").hidden = false; }; if (!f) return err("Escolha o arquivo.");
-      let rows; try{ const buf = await f.arrayBuffer(); rows = /\.xlsx$/i.test(f.name) ? await IMP.lerXLSX(buf) : D.csv((() => { let x = new TextDecoder("utf-8").decode(buf); if (x.includes("�")) x = new TextDecoder("latin1").decode(buf); return x; })()); }catch(x){ return err("Não consegui ler o arquivo."); }
+      let rows; try{ const buf = await f.arrayBuffer(); rows = /\.xlsx$/i.test(f.name) ? await IMP.lerXLSX(buf) : D.csv((() => { let x = new TextDecoder("utf-8").decode(buf); if (x.includes("\uFFFD")) x = new TextDecoder("latin1").decode(buf); return x; })()); }catch(x){ return err("Não consegui ler o arquivo."); }
       const L = lerLinhas(rows); if (!L) return err("O arquivo precisa ter as colunas CNPJ e Empresa (ou Razão social).");
       const r = await incluir(L, $("#pi-o").value, f.name, $("#pi-r").value); close(); toast(`${r.novos} prospect(s) incluído(s) · ${r.base} já na base · ${r.pros} já na prospecção`); renderView(); };
   }
