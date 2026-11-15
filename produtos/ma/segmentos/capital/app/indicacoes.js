@@ -13,19 +13,23 @@ if (window.KT_DD && window.KT_MATCH) (() => {
   const ader = (inv, t) => { try{ return window.KT_ORBINV ? KT_ORBINV.aderente(inv, t) : null; }catch(e){ return null; } };
   const cond = (inv, t) => { try{ return window.KT_BASE ? KT_BASE.condicao(inv, t) : null; }catch(e){ return null; } };
   const TEMP = {quente:8, morno:4, frio:0};
-  function par(inv, t){
+  const PAR = new WeakMap(); function par(inv, t){ let m = PAR.get(inv); if (!m){ m = new WeakMap(); PAR.set(inv, m); } if (!m.has(t)) m.set(t, par0(inv, t)); return m.get(t); }
+  function par0(inv, t){
     const m = KT_MATCH.score(inv, t), a = ader(inv, t), p = pol(t), c = cond(inv, t), ligado = (t.investidores || []).includes(inv.id);
     if (m.elim) return {inv, t, sc:0, elim:true, motivos:[m.motivo], m, a, p, c, ligado};
     let sc = m.score * .6 + (a ? 35 : 0) + (p === "ok" ? 5 : 0) + (TEMP[String(t.mapa?.temperatura || "").toLowerCase()] || 0);
     if (c && /Acima/i.test(c.txt || "")) sc -= 15; sc = Math.max(0, Math.min(100, Math.round(sc)));
-    const segPts = m.M.find(x => x.crit === "Segmento")?.pts || 0, tese = !!a || segPts >= 15;
-    const motivos = [a && (a === "ligado no mapa" ? "já ligado no mapa M&A" : a), ...m.M.filter(x => x.pts === x.max && x.max >= 10 && !/n[aã]o (informad|definid)|sem dado/.test(x.txt)).map(x => `${x.crit.toLowerCase()}: ${x.txt}`), c?.txt && !/Sem valor/.test(c.txt) ? c.txt.toLowerCase() : ""].filter(Boolean).filter((x, i, L) => !(/^segmento /.test(x) && L.some(y => /^segmento: /.test(y))));
+    const segPts = m.M.find(x => x.crit === "Segmento")?.pts || 0, Q = window.KT_QUAL ? KT_QUAL.avaliar(inv, t) : null; let tese = !!a || segPts >= 15; if (Q && !Q.ativ.ok && !ligado) tese = false;
+    const motivos = [a && (a === "ligado no mapa" ? "já ligado no mapa M&A" : a), ...m.M.filter(x => x.pts === x.max && x.max >= 10 && !/n[aã]o (informad|definid)|sem dado/.test(x.txt)).map(x => `${x.crit.toLowerCase()}: ${x.txt}`), Q ? Q.ativ.txt : "", Q && Q.porte.st !== "sem" ? Q.porte.txt : "", c?.txt && !/Sem valor|sem dados/i.test(c.txt) ? c.txt.toLowerCase() : ""].filter(Boolean).filter(x => !/^segmento[ :]/.test(x) || !Q?.ativ.ok).filter((x, i, L) => !(/^segmento /.test(x) && L.some(y => /^segmento: /.test(y))));
     if (!tese) sc = Math.min(sc, 30);
-    return {inv, t, sc, elim:false, motivos, m, a, p, c, ligado, tese, fora:p === "abaixo"};
+    if (Q && !Q.ok && !ligado) sc = Math.min(sc, 45);
+    return {inv, t, sc, elim:false, motivos, m, a, p, c, ligado, tese, Q, qualificar:!!(Q && Q.ativ.ok && Q.porte.st === "sem"), pequeno:Q?.porte.st === "pequeno", fora:p === "abaixo"};
   }
   const N1 = () => S.suppliers.filter(x => x.nivel === "N1"), N3 = () => S.suppliers.filter(x => x.nivel === "N3" && x.etapa !== "descartada" && !x.standby?.ativo);
-  const targetsPara = inv => N3().map(t => par(inv, t)).filter(x => !x.elim && x.tese && x.sc >= 50).sort((a, b) => b.sc - a.sc);
-  const investidoresPara = t => N1().map(inv => par(inv, t)).filter(x => !x.elim && x.tese && x.sc >= 50).sort((a, b) => b.sc - a.sc);
+  const valido = x => !x.elim && x.tese && (x.ligado || (!x.qualificar && !x.pequeno && x.sc >= 50));
+  const aQualificar = t => N1().map(inv => par(inv, t)).filter(x => !x.elim && x.qualificar && !x.ligado);
+  const targetsPara = inv => N3().map(t => par(inv, t)).filter(valido).sort((a, b) => b.sc - a.sc);
+  const investidoresPara = t => N1().map(inv => par(inv, t)).filter(valido).sort((a, b) => b.sc - a.sc);
   /* mercado do investidor */
   function mercado(inv){
     const x = inv.ext || {}, K = window.KT_BASE ? (() => { try{ return KT_BASE.capacidade(inv); }catch(e){ return {}; } })() : {}, intl = inv.pais && !/brasil|brazil/i.test(inv.pais);
@@ -53,8 +57,9 @@ if (window.KT_DD && window.KT_MATCH) (() => {
       else corpo = N3().filter(t => !f || (t.nome + " " + (t.segmento || "") + " " + (t.uf || "")).toLowerCase().includes(f)).sort((a, b) => (b.mandato?.status === "assinado") - (a.mandato?.status === "assinado")).map(t => { const L = investidoresPara(t);
         return `<div class="card" style="display:flex;flex-direction:column;gap:6px"><div><h3 style="margin:0">${esc(t.nome)}</h3><p class="sub" style="margin:2px 0 0">${esc([t.perfil?.segmento || t.segmento, [t.municipio, t.uf].filter(Boolean).join("/"), t.mandato?.status === "assinado" ? "mandato assinado" : "", pol(t) === "abaixo" ? "fora da política" : ""].filter(Boolean).join(" · "))}</p></div>
           ${L.length ? `<div class="tbl"><table><tbody>${L.slice(0, MAX).map(x => linha(x, "tgt")).join("")}</tbody></table></div>` : `<p class="sub" style="margin:0">Nenhum investidor aderente na base.</p>`}
+          ${(() => { const Lq = aQualificar(t); return Lq.length ? `<div class="sub" style="margin:0;font-size:12px">A qualificar (mesma atividade, porte não informado): ${Lq.slice(0, 8).map(x => `<a href="#" data-abre="${x.inv.id}" onclick="return false" style="color:var(--glow)">${esc(x.inv.nome)}</a>`).join(", ")}</div>` : ""; })()}
           ${window.KT_PINV && D.ed() ? `<button type="button" class="btn sm" data-pq="${t.id}" style="align-self:flex-start">Consultar prováveis investidores no mercado</button>` : ""}</div>`; }).join("");
-      host.innerHTML = tabs + `<p class="sub" style="margin:0">Pontuação de 0 a 100: aderência à tese (60%), o que o investidor compra (+35), política Kinsey (+5) e temperatura; menos 15 quando o valor passa da capacidade de compra. Investidores internacionais trazem notícias em inglês e movimentos no Brasil (versão publicada).</p>` + q + corpo;
+      host.innerHTML = tabs + `<p class="sub" style="margin:0">Só entram ligações com a mesma atividade (subsetor ou CNAE; fundo com o setor na tese) e investidor com porte muito maior que o target (estratégico: faturamento ≥ 3× ou capacidade ≥ 1,5× o valuation; fundo: ticket ou capacidade ≥ valuation). Investidor sem porte informado fica em "a qualificar". Investidores internacionais trazem notícias em inglês e movimentos no Brasil (versão publicada).</p>` + q + corpo;
       $$("[data-it]", host).forEach(b => b.onclick = () => { S.indTab = b.dataset.it; desenha(); });
       $("#ind-q").oninput = e => { S.indQ = e.target.value; clearTimeout(desenha._t); desenha._t = setTimeout(() => { desenha(); const i = $("#ind-q"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }, 250); };
       $$("[data-ind]", host).forEach(b => b.onclick = () => { const [iid, tid] = b.dataset.ind.split("|"), t = supById(tid); D.up(t, {investidores:[...new Set([...(t.investidores || []), iid])]}).then(() => { toast("Indicação registrada no mapa"); desenha(); }); });
@@ -111,5 +116,5 @@ if (window.KT_DD && window.KT_MATCH) (() => {
       <div><b>Targets indicados:</b> ${targetsPara(s).slice(0, 5).map(x => esc(nomeT(x.t, s)) + ` (${x.sc})`).join(", ") || "nenhum aderente"}</div>`;
     b.appendChild(el); return r; };
   const css = document.createElement("style"); css.textContent = `@media (max-width:760px){ tr.ind-l{display:flex;flex-wrap:wrap;gap:4px 10px;padding:8px 0;border-bottom:1px solid var(--line)} tr.ind-l td{display:block;padding:0!important;border:0!important;max-width:none!important;min-width:0!important} tr.ind-l td:first-child{flex:1 1 60%} tr.ind-l td:nth-child(3){flex:1 1 100%;order:3} tr.ind-l td:last-child{order:2} }`; document.head.appendChild(css);
-  window.KT_IND = {par, targetsPara, investidoresPara, mercado, painel, prospectar, cadencia, filtrosDe};
+  window.KT_IND = {par, aQualificar, targetsPara, investidoresPara, mercado, painel, prospectar, cadencia, filtrosDe};
 })();

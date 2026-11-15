@@ -24,9 +24,10 @@ if (window.KT_DD) (() => {
   const UFS_ = new Set(typeof UFS !== "undefined" ? UFS : []);
   function local(t){ const s = String(t || "").trim(); if (!s || s === "?") return {}; const p = s.split("/").map(x => x.trim()); const uf = p.find(x => UFS_.has(x.toUpperCase()));
     if (uf) return {uf:uf.toUpperCase(), municipio:p.length > 1 && p[0].toUpperCase() !== uf.toUpperCase() ? p[0] : ""}; return {pais:p[0]}; }
-  const SEGS = [["Saúde",/saude|medicament|farmac|hospital|planos|beneficio|biotec|laborat/],["Serviços",/lavanderi|facilit|terceiriz|seguro|corretor|financeir|fidc|advisory|servic/],["Alimentos",/aliment|frigor|cervej|vinic|latic|bebida/],["Agro",/fazenda|agro|cana|grao|ativo fixo/],
+  const SEGS = [["Industrial",/^\s*industria|fabricacao de (?!medicament)/],["Saúde",/saude|medicament|farmac|hospital|planos de saude|adm(inistradora)? de planos|odontolog|beneficio|biotec|laborat|clinic/],["Serviços",/lavanderi|facilit|terceiriz|seguro|corretor|financeir|fidc|advisory|servic/],["Alimentos",/aliment|frigor|cervej|vinic|latic|bebida/],["Agro",/fazenda|agro|cana|grao|ativo fixo/],
     ["Industrial",/industria|fabric|latex|plastic|metalur|aditiv|grafic|rotulo|piso|revestiment|aviament|embalag|celulose|papel|florest|pinus|madeira|osb|automac|borracha|quimic|reciclag/],["Tecnologia",/tecnolog|saas|software|pagament|fintech|marketing|startup/],["Logística",/logist|transport|locadora/],["Educação",/educa|curso/],["Construção",/engenharia|imobili|real estate/],["Varejo",/comercio|atacad|distribui|vestuar|loja/]];
   const segDe = t => (SEGS.find(([, re]) => re.test(nrm(t))) || ["Outros"])[0];
+  window.KT_SEGDE = segDe;
   const econodata = t => { const m = String(t || "").match(/econodata[^\s]*?(?:detalhe-empresa\/|#\/s\/)([A-Za-z0-9=]+)/); if (!m) return ""; try{ let b = m[1]; b += "=".repeat((4 - b.length % 4) % 4); const d = atob(b).split("|")[0]; return /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/.test(d) ? d : ""; }catch(e){ return ""; } };
 
   /* ---------------- leitura do Excel (todas as abas) ---------------- */

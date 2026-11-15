@@ -1,5 +1,13 @@
 # Registro de versões
 
+## v2.31 — 2026-11-15 · Ligação investidor × target só com mesma atividade e porte compatível
+- Atividade: subsetores (plásticos e embalagens, planos de saúde e benefícios, medicamentos, hospitais, lavanderia, terceirização, química, metalurgia, papel, logística, tecnologia e outros) pelo texto do mapa, CNAE, descrição e linhas de negócio; estratégico precisa atuar no mesmo subsetor; fundo ou private equity precisa ter o subsetor, o CNAE ou o setor na tese; frases negativas da tese ("não é foco") são ignoradas
+- Porte: estratégico com faturamento ≥ 3× o do target ou capacidade ≥ 1,5× o valuation; fundo com ticket ou capacidade ≥ valuation (ou patrimônio ≥ 5×); valuation pela expectativa da administração, pelo valuation do sistema ou estimado pelo faturamento
+- Investidor sem porte informado não é ligado automaticamente: aparece em "a qualificar" no target; dossiê com os campos de porte (target: faturamento e valuation esperado pela administração; investidor: faturamento, patrimônio e ticket máximo)
+- Vale para o cartão e o painel de indicações, os investidores sugeridos do dossiê e a consulta de investidores prováveis; indicação manual continua livre
+- Correção do classificador de segmento do mapa ("laminados planos" era lido como planos de saúde) e ajuste automático dos registros já importados
+- Desempenho: cálculos de matching e porte guardados por versão do registro (a Base inicial deixa de recalcular o valuation de cada par)
+
 ## v2.30 — 2026-11-15 · Workbooks de diligência e relatório de DD com impacto na negociação
 - Workbook de Due Diligence (Excel do auditor): leitura de todas as abas pelos cabeçalhos (ajustes de EBITDA, dívida, capital de giro, PL e lucro; exposições com mínimo, máximo e avaliação; conferências; pontos e recomendações); ajustes vão para as Análises, exposições para a aba Exposições; reimportar substitui a versão anterior
 - Due diligence prévia (balancetes e informações do sistema) até o workbook; depois, relatório completo identificado com o arquivo do auditor

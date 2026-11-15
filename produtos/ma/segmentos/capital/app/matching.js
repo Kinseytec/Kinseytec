@@ -12,7 +12,8 @@ if (window.KT_DD) (() => {
   const etapaNome = k => (FUNIL.find(f => f[0] === k) || [k, k || "—"])[1];
 
   /* ---------------- valores do target ---------------- */
-  function numeros(t){
+  const NUM = new WeakMap(); function numeros(t){ if (!NUM.has(t)) NUM.set(t, numeros0(t)); return NUM.get(t); }
+  function numeros0(t){
     let rec = t.fin?.receita ? t.fin.receita * 1e6 : null, eb = t.fin?.ebitda ? t.fin.ebitda * 1e6 : null, dl = t.fin?.divLiq != null ? t.fin.divLiq * 1e6 : 0, ev = null, fonte = "informados no cadastro";
     try{ if (D.temBal(t) && window.KT_VAL){ const R = KT_VAL.resumo(t); if (R.X && !R.X.vazio){ rec = R.X.bp.rl; eb = R.X.bp.eb; dl = R.X.dl; ev = R.rec ? (R.rec[0] + R.rec[1]) / 2 : null; fonte = "Due Diligence e valuation"; } } }catch(e){}
     if (!ev && eb) ev = eb * 6; const pct = (parseFloat(String(t.mandato?.participacao || "").replace(",", ".")) || 100) / 100;
@@ -51,15 +52,15 @@ if (window.KT_DD) (() => {
         <p class="sub" style="margin:0">Define a visão das análises de contrato (pró-${s.lado === "compra" ? "comprador" : "vendedor"}), das recomendações jurídicas e o modelo de honorários.</p>`;
       host.insertBefore(lado, host.children[1] || null);
       $("#m-lado", lado).onchange = e => up({lado:e.target.value}); const mc = $("#m-cli", lado); if (mc) mc.onchange = e => up({compradorId:e.target.value, investidores:[...new Set([...(s.investidores || []), e.target.value].filter(Boolean))]});
-      const L = N1.map(v => ({v, r:score(v, s)})).sort((a, b) => b.r.score - a.r.score), el = document.createElement("div"); el.className = "card"; el.style.cssText = "display:flex;flex-direction:column;gap:8px";
-      el.innerHTML = `<h3>Investidores sugeridos pelo matching</h3><p class="sub" style="margin:0">Pontuação de 0 a 100 pela tese de cada investidor (valores ${esc(L[0]?.r.N.fonte || "")}). Passe o mouse para ver o motivo de cada ponto.</p>
+      const Qf = v => !window.KT_QUAL || (s.investidores || []).includes(v.id) || KT_QUAL.avaliar(v, s).ok, L = N1.filter(Qf).map(v => ({v, r:score(v, s)})).sort((a, b) => b.r.score - a.r.score), el = document.createElement("div"); el.className = "card"; el.style.cssText = "display:flex;flex-direction:column;gap:8px";
+      el.innerHTML = `<h3>Investidores sugeridos pelo matching</h3><p class="sub" style="margin:0">Só aparecem investidores da mesma atividade e com porte para comprar (ou já indicados). Pontuação de 0 a 100 pela tese de cada investidor (valores ${esc(L[0]?.r.N.fonte || "")}). Passe o mouse para ver o motivo de cada ponto.</p>
         <div class="tbl"><table><thead><tr><th>Investidor</th><th>Aderência</th><th>Motivos</th><th></th></tr></thead><tbody>${L.map(({v, r}) => `<tr><td><b>${esc(v.nome)}</b><div class="sub" style="margin:0;font-size:11.5px">${esc(v.tipo || "")}${v.pais ? " · " + esc(v.pais) : ""}</div></td><td title="${esc(detalhe(r))}">${barra(r.score)}</td>
           <td style="font-size:12px;max-width:340px">${esc(r.elim ? r.motivo : r.M.filter(m => m.pts < m.max).map(m => `${m.crit}: ${m.txt}`).join("; ") || "aderente em todos os critérios")}</td>
           <td style="text-align:right">${(s.investidores || []).includes(v.id) ? `<span class="pill r-baixo">Indicado</span>` : D.ed() && !r.elim ? `<button type="button" class="btn sm" data-mind="${v.id}">Indicar</button>` : ""}</td></tr>`).join("")}</tbody></table></div>`;
       host.appendChild(el); $$("[data-mind]", el).forEach(x => x.onclick = () => up({investidores:[...(s.investidores || []), x.dataset.mind]}).then(() => toast("Investidor indicado ao target")));
     }
     if (s.nivel === "N1"){
-      const L = N3.filter(t => t.etapa !== "descartada").map(t => ({t, r:score(s, t)})).sort((a, b) => b.r.score - a.r.score), el = document.createElement("div"); el.className = "card"; el.style.cssText = "display:flex;flex-direction:column;gap:8px";
+      const L = N3.filter(t => t.etapa !== "descartada" && !t.standby?.ativo && (!window.KT_QUAL || (t.investidores || []).includes(s.id) || KT_QUAL.avaliar(s, t).ok)).map(t => ({t, r:score(s, t)})).sort((a, b) => b.r.score - a.r.score), el = document.createElement("div"); el.className = "card"; el.style.cssText = "display:flex;flex-direction:column;gap:8px";
       const buy = N3.filter(t => t.lado === "compra" && t.compradorId === s.id);
       el.innerHTML = `<h3>${buy.length || s.mandato?.status ? "Busca de targets (buy-side)" : "Targets aderentes à tese"}</h3><p class="sub" style="margin:0">Matching pela tese do investidor. Antes do NDA do mandato, o investidor conhece o target só pelo nome-código.</p>
         <div class="tbl"><table><thead><tr><th>Target</th><th>Aderência</th><th>Etapa</th><th>Motivos</th></tr></thead><tbody>${L.map(({t, r}) => `<tr><td><b>${esc(t.mandato?.codinome && !["nda","dataroom","ioi","loi"].includes(t.mandato?.acessos?.[s.id]?.status) ? t.mandato.codinome : t.nome)}</b><div class="sub" style="margin:0;font-size:11.5px">${esc(t.perfil?.segmento || t.segmento || "")} · ${esc(t.uf || "")}${t.lado === "compra" ? " · buy-side" : ""}</div></td>
