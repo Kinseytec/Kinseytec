@@ -372,8 +372,8 @@ if (typeof MA_MODELOS !== "undefined") (() => {
 
   /* ---------------- ESTILO E NAVEGAÇÃO ---------------- */
   const st = document.createElement("style");
-  st.textContent = `.dd-split{display:grid;grid-template-columns:290px minmax(0,1fr);gap:16px;align-items:start}@media (max-width:900px){.dd-split{grid-template-columns:minmax(0,1fr)}}
-    .dd-side{display:flex;flex-direction:column;gap:10px;position:sticky;top:8px}.dd-list{display:flex;flex-direction:column;gap:4px;max-height:340px;overflow:auto}
+  st.textContent = `.dd-split{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-items:start}
+    .dd-side{display:flex;flex-direction:column;gap:10px;max-width:560px}.dd-list{display:flex;flex-direction:column;gap:4px;max-height:340px;overflow:auto}
     .dd-list button{display:flex;align-items:center;gap:8px;text-align:left;background:transparent;border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:inherit;font:inherit;font-size:12.5px;cursor:pointer}
     .dd-list button[aria-pressed=true]{border-color:var(--acc,#4FB0F5);background:rgba(79,176,245,.12)}.dd-list i{width:9px;height:9px;border-radius:50%;flex:none}
     .dd-kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}.dd-k{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -394,13 +394,21 @@ if (typeof MA_MODELOS !== "undefined") (() => {
      O globo com o mapa fica só na tela principal (Órbita). */
   const PASTAS = {financas:["Análises financeiras","#3DDC97","EBITDA, endividamento, indicadores e capital de giro"], valuation:["Valuation","#F2C14E","FCD, múltiplos e outras avaliações · EV e equity"], apresentacao:["Apresentação","#4FB0F5","Teaser antes e depois do NDA"], pos:["Pós-aquisição","#C39BFF","PPA e base de modelos"], juridico:["Jurídico","#FF8A65","Diligência jurídica, NDAs, mandatos e honorários"]};
   const emblema = cor => `<svg viewBox="0 0 48 48" width="44" height="44" aria-hidden="true"><circle cx="24" cy="24" r="19" fill="none" stroke="${cor}" stroke-width="2.4"/><ellipse cx="24" cy="24" rx="8" ry="19" fill="none" stroke="${cor}" stroke-width="1.6" opacity=".8"/><path d="M5 24h38M8 14h32M8 34h32" stroke="${cor}" stroke-width="1.4" opacity=".6"/><circle cx="38" cy="10" r="4" fill="${cor}"/></svg>`;
+  /* pasta de análise recolhida: mostra só o target escolhido; a lista abre ao tocar em "Trocar" */
   function lado(s, onPick, legenda){
-    const L = targets(), P = PASTAS[S.view] || ["Análise","#4FB0F5",""];
-    return {html:`<div class="dd-side"><div class="card" style="display:flex;flex-direction:column;gap:10px;padding:12px">
-      ${S.view === "juridico" ? "" : `<div style="display:flex;gap:10px;align-items:center">${emblema(P[1])}<div style="min-width:0"><div class="eyebrow" style="color:${P[1]}">Pasta de análise</div><b style="font-size:15px">${esc(P[0])}</b><div class="sub" style="margin:0;font-size:11.5px">${esc(P[2])}</div></div></div>`}
-      <div class="sub" style="margin:0;font-size:11.5px;display:flex;gap:10px;flex-wrap:wrap"><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${COR.ok}"></i> ${legenda[0]}</span><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${COR.pend}"></i> ${legenda[1]}</span><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${COR.sem}"></i> ${legenda[2] || "sem balancete"}</span></div>
-      <div class="eyebrow">Targets (N3)</div><div class="dd-list" style="max-height:520px">${L.map(x => `<button type="button" data-ddsel="${x.id}" aria-pressed="${x.id === s?.id}"><i style="background:${(legenda[3] || (y => COR[statusAlvo(y)]))(x)}"></i><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.mandato?.codinome ? x.mandato.codinome + " · " : "")}${esc((x.nome || "").replace(/^EXEMPLO /, ""))}</span></button>`).join("")}</div></div></div>`,
-      bind:host => { $$("[data-ddsel]", host).forEach(b => b.onclick = () => onPick(b.dataset.ddsel)); }};
+    const L = targets(), P = PASTAS[S.view] || ["Análise","#4FB0F5",""], aberta = !!S.pastaAberta || !s;
+    const cor = legenda[3] || (y => COR[statusAlvo(y)]), nomeDe = x => `${x.mandato?.codinome ? x.mandato.codinome + " · " : ""}${(x.nome || "").replace(/^EXEMPLO /, "")}`;
+    const lista = `<div class="sub" style="margin:0;font-size:11.5px;display:flex;gap:10px;flex-wrap:wrap"><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${COR.ok}"></i> ${legenda[0]}</span><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${COR.pend}"></i> ${legenda[1]}</span><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${COR.sem}"></i> ${legenda[2] || "sem balancete"}</span></div>
+      ${L.length > 8 ? `<input type="search" id="dd-busca" placeholder="Filtrar targets" autocomplete="off" style="height:34px;border-radius:9px;border:1px solid var(--line-2);background:rgba(1,31,75,.6);color:var(--fog);padding:0 10px;font:inherit;font-size:13px">` : ""}
+      <div class="dd-list" style="max-height:360px">${L.map(x => `<button type="button" data-ddsel="${x.id}" data-nome="${esc(norm(nomeDe(x)))}" aria-pressed="${x.id === s?.id}"><i style="background:${cor(x)}"></i><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(nomeDe(x))}</span></button>`).join("")}</div>`;
+    return {html:`<div class="dd-side"><div class="card dd-pasta" style="display:flex;flex-direction:column;gap:10px;padding:10px 12px">
+      <div style="display:flex;gap:10px;align-items:center">${S.view === "juridico" ? "" : emblema(P[1])}<div style="min-width:0;flex:1"><div class="eyebrow" style="color:${S.view === "juridico" ? "var(--muted)" : P[1]}">${S.view === "juridico" ? "Target" : "Pasta de análise · " + esc(P[0])}</div>
+          ${s ? `<b style="font-size:14.5px;display:flex;align-items:center;gap:7px;min-width:0"><i style="flex:none;display:inline-block;width:9px;height:9px;border-radius:50%;background:${cor(s)}"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(nomeDe(s))}</span></b>` : `<b style="font-size:14.5px">Escolha o target</b>`}</div>
+        ${s ? `<button type="button" class="btn sm" id="dd-troca" aria-expanded="${aberta}">${aberta ? "Fechar" : "Trocar"}</button>` : ""}</div>
+      ${aberta ? lista : ""}</div></div>`,
+      bind:host => { $$("[data-ddsel]", host).forEach(b => b.onclick = () => { S.pastaAberta = false; onPick(b.dataset.ddsel); });
+        const t = $("#dd-troca", host); if (t) t.onclick = () => { S.pastaAberta = !S.pastaAberta; renderView(); };
+        const q = $("#dd-busca", host); if (q) q.oninput = () => { const v = norm(q.value); $$("[data-ddsel]", host).forEach(b => b.hidden = !!v && !b.dataset.nome.includes(v)); }; }};
   }
   const cab = (eb, tit, sub, acoes = "") => `<div class="head"><div><div class="eyebrow">${eb}</div><h2>${tit}</h2><p class="sub">${sub}</p></div>${acoes}</div>`;
   const semBal = s => `<div class="card" style="display:flex;flex-direction:column;gap:10px;align-items:flex-start"><h3>${esc(s?.nome || "Nenhum target")}</h3><p class="sub" style="margin:0">Ainda sem balancete. Importe na Due Diligence para calcular os indicadores, os procedimentos e o valuation.</p>${s ? `<button type="button" class="btn primary" data-ddimp>Importar balancete</button>` : ""}</div>`;

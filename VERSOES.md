@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v2.10 — 2026-11-15 · Pastas de análise recolhidas
+- Due Diligence, Análises financeiras, Valuation, Apresentação, Pós-aquisição e Jurídico: a pasta de análise fica recolhida, mostrando só o target escolhido; a lista de targets abre ao tocar em "Trocar" (com filtro quando a lista é longa) e fecha ao escolher
+- O conteúdo da análise passa a ocupar a largura toda, no computador e no celular
+- No celular, o topo dessas telas fica curto: sem o texto descritivo e com as abas em uma linha com rolagem
+
 ## v2.9 — 2026-11-14 · Órbita por investidor: o mapa mostra só os targets (N3)
 - O mapa mostra apenas os targets vendedores (N3); investidores e intermediadores não poluem mais o globo, e os nomes não se sobrepõem ao aproximar
 - Escolha do investidor (N1) no topo da Órbita: o mapa passa a mostrar só os N3 que ele compra, ligados a ele por linhas, com o total e o critério ("7 targets que Alsco Uniformes compra · lavanderia")

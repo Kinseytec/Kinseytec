@@ -258,7 +258,8 @@ if (window.KT_DD) (() => {
   const css = document.createElement("style");
   css.textContent = `#orb-busca,.orb-busca{display:none!important}#v-orbita .target .photos{display:none!important}#d-ev{display:none!important}
 @media (max-width:760px){#v-orbita .lvl{top:8px!important}#bi-top .dd-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}#bi-top h2{font-size:20px}}
-@media (max-width:440px){.brand b .sys{display:inline!important;font-size:.85em}.brand b{font-size:15px}}`;
+@media (max-width:440px){.brand b .sys{display:inline!important;font-size:.85em}.brand b{font-size:15px}}
+@media (max-width:760px){#auditoria .head > div > p.sub,#financas .head > div > p.sub,#valuation .head > div > p.sub,#apresentacao .head > div > p.sub,#pos .head > div > p.sub,#juridico .head > div > p.sub{display:none}#auditoria .dd-tabs,#financas .dd-tabs,#valuation .dd-tabs,#apresentacao .dd-tabs,#pos .dd-tabs,#juridico .dd-tabs{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;gap:6px}#auditoria .dd-tabs .fbtn,#financas .dd-tabs .fbtn,#valuation .dd-tabs .fbtn,#apresentacao .dd-tabs .fbtn,#pos .dd-tabs .fbtn,#juridico .dd-tabs .fbtn{flex:0 0 auto;white-space:nowrap}}`;
   document.head.appendChild(css);
 
   window.KT_BASE = {cadastro, valorAlvo, capacidade, condicao, consultas, dossiePdf};
