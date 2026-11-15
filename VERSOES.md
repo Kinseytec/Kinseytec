@@ -1,5 +1,9 @@
 # Registro de versões
 
+## v2.25 — 2026-11-15 · Target em consulta único em todas as áreas
+- A empresa escolhida na busca da Órbita (ou na faixa, no globo, no dossiê) vira o target em consulta de Due Diligence, Análises financeiras, Valuation, Apresentação, Jurídico e Pós-aquisição
+- Trocar em qualquer área (Pasta de análise · Trocar, ou a faixa "Em consulta" com busca por nome, codinome ou CNPJ) vale para todas; a escolha fica guardada no aparelho
+
 ## v2.24 — 2026-11-15 · Investidores prováveis do target e prospecção no mercado
 - No dossiê do target (aba M&A): lista de investidores prováveis com a situação do contato (a contatar, contatado, interessado, NDA enviado, NDA assinado, sem interesse) e com quem falou
 - "Você quer consultar prováveis investidores para este target?": consulta a base Kinsey (tese, aquisições recentes), o mercado (notícias de aquisições no setor por private equity, fundos e estratégicos, com o comprador extraído) e as bases Econodata, Ramper e Lemitti (empresas maiores do mesmo CNAE, com sócios e decisores)
