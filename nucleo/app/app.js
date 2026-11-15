@@ -39,7 +39,7 @@ const muniOf = (name, uf) => MUNI.find(m => m[0].toLowerCase()===String(name||""
 const ADMINS = ["ia@kinsey.com.br"];
 const PORTAL_URL = location.origin + "/portal.html";
 const APP_URL = location.origin;
-const COLS = ["suppliers","evidences","contracts","pareceres","config","operacoes"];
+const COLS = ["suppliers","evidences","contracts","pareceres","config","operacoes","prospects"];
 /* Extensões por segmento (ex.: cadeia do cobre): abas extras no dossiê, riscos extras e quadros na Auditoria */
 const EXT_TABS = {}, EXT_RISKS = [], EXT_AUD = [], EXT_QUEST = [], EXT_DOCS = [], EXT_TOUCH = [], EXT_VIEWS = {}, EXT_EVID = [], EXT_JUR = [], EXT_INV = [], EXT_EVVIEW = [], EXT_CAD = [], EXT_ORB = [], EXT_TARGET = [];
 const LV_NOME = Object.fromEntries(["N1","N2","N3"].map(l => [l, l==="N1"?"Traders":l==="N2"?"Fornecedores":"Produtores"]));
@@ -74,7 +74,7 @@ const Store = {
   }
 };
 
-const S = { suppliers:[], evidences:[], contracts:[], pareceres:{}, config:{}, operacoes:[], view:"orbita", sel:null, lv:{N1:true,N2:true,N3:true,rotas:true}, fLevel:"todos", fRisk:"todos", q:"", ctFilter:"pendente", evFilter:"todos", audSup:null, profiles:{} };
+const S = { suppliers:[], evidences:[], contracts:[], pareceres:{}, config:{}, operacoes:[], prospects:[], view:"orbita", sel:null, lv:{N1:true,N2:true,N3:true,rotas:true}, fLevel:"todos", fRisk:"todos", q:"", ctFilter:"pendente", evFilter:"todos", audSup:null, profiles:{} };
 const supById = id => S.suppliers.find(s => s.id===id);
 
 /* ================= INVESTIGAÇÃO DA TRADER (bases públicas e privadas) ================= */
@@ -1177,6 +1177,7 @@ function subscribe(){
   Store.listen("pareceres", a => { S.pareceres = Object.fromEntries(a.map(p => [p.id, p])); renderAll(); });
   Store.listen("config", a => { S.config = Object.fromEntries(a.map(p => [p.id, p])); renderAll(); });
   Store.listen("operacoes", a => { S.operacoes = a; renderAll(); });
+  if (EXT_VIEWS.prospeccao) Store.listen("prospects", a => { S.prospects = a; if (S.view === "prospeccao") renderView(); });
 }
 function openKim(){
   sheet(`<div class="sheet-h"><div><div class="eyebrow">KinseyTec – Cacau</div><h2>Tour com a Kim</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>

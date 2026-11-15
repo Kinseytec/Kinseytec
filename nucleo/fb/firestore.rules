@@ -76,6 +76,12 @@ service cloud.firestore {
       allow write: if false;
     }
     // operações comerciais (notas fiscais, pedidos e pagamentos) de cada cliente
+    match /prospects/{id} {
+      allow read: if doCliente(cliDe(resource.data));
+      allow create: if doCliente(cliDe(request.resource.data));
+      allow update: if doCliente(cliDe(resource.data)) && (isAdmin() || cliDe(request.resource.data) == cliDe(resource.data));
+      allow delete: if editaCliente(cliDe(resource.data));
+    }
     match /operacoes/{id} {
       allow read: if doCliente(cliDe(resource.data));
       allow create: if doCliente(cliDe(request.resource.data));

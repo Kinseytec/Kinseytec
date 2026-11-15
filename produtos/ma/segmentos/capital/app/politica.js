@@ -82,8 +82,8 @@ if (window.KT_DD) (() => {
             mapa:{temperatura:"Frio", fat:o.fat, segmentoTxt:o.cnae, site:o.site, contato:o.pessoas[0] ? [o.pessoas[0].nome, o.pessoas[0].cargo, o.pessoas[0].email].filter(Boolean).join(" · ") : "", telefone:(o.pessoas.find(x => x.cel) || {}).cel || "", aba:fonte},
             enriq:{fat:o.fat, funcionarios:o.func, fontes:enr(o)}, ...(v != null ? {fin:{receita:Math.round(v * 100) / 100, ano:new Date().getFullYear() - 1, fonte:fonte + " (estimado)"}} : {}), ...(iv ? {investidores:[iv]} : {})};
           if (window.KT_MAPA?.coords){ const [lat, lng] = KT_MAPA.coords(base); base.lat = lat; base.lng = lng; }
-          await Store.set("suppliers", "e" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), {parentId:"", answers:{}, docs:{}, insp:{}, balanco:{}, invest:{}, criadoEm:agora, ...base}); n++; }
-        close(); toast(`${fonte}: ${exist.length} enriquecida(s), ${n} nova(s)${iv ? " ligada(s) ao investidor" : ""}; consultas dos CNPJs em andamento`); renderAll(); }; }
+          if (window.KT_PROS) await KT_PROS.deBase(base, fonte); else await Store.set("suppliers", "e" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), {parentId:"", answers:{}, docs:{}, insp:{}, balanco:{}, invest:{}, criadoEm:agora, ...base}); n++; }
+        close(); toast(window.KT_PROS ? `${fonte}: ${exist.length} da base enriquecida(s), ${n} nova(s) na Prospecção (contato frio)` : `${fonte}: ${exist.length} enriquecida(s), ${n} nova(s)${iv ? " ligada(s) ao investidor" : ""}; consultas dos CNPJs em andamento`); renderAll(); }; }
 
   /* contatos enriquecidos no dossiê (aba Dados) */
   const _b2 = renderSupBody;

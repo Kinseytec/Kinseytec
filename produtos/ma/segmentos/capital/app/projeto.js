@@ -196,6 +196,7 @@ if (window.KT_DD) (() => {
     S.suppliers.filter(s => s.nivel === "N3" || s.nivel === "N1").forEach(s => L.push([s.nivel, s.nome, s.doc, s.perfil?.segmento || s.segmento, s.municipio, s.uf, s.mapa?.temperatura, s.etapa, s.mapa?.contato, s.mapa?.telefone, s.mapa?.site].map(csvCel).join(";")));
     baixar("KinseyTec_base_para_cadencias.csv", L.join("\n")); toast("Base exportada para cadências"); }
   async function importarRamper(){
+    if (window.KT_PROS && window.EXT_VIEWS?.prospeccao){ go("prospeccao"); setTimeout(() => $("#pr-imp")?.click(), 200); return; }
     const i = document.createElement("input"); i.type = "file"; i.accept = ".csv,.xlsx,.txt"; i.onchange = async () => { const f = i.files[0]; if (!f) return;
       let rows = []; try{ const buf = await f.arrayBuffer(); rows = /\.xlsx$/i.test(f.name) ? await IMP.lerXLSX(buf) : D.csv((() => { let x = new TextDecoder("utf-8").decode(buf); if (x.includes("\uFFFD")) x = new TextDecoder("latin1").decode(buf); return x; })()); }catch(e){ toast("Não consegui ler o arquivo"); return; }
       const hi = rows.findIndex(r => r.some(c => /cnpj/i.test(c)) && r.some(c => /raz|empresa|nome/i.test(c))); if (hi < 0){ toast("O arquivo precisa ter as colunas CNPJ e Empresa (ou Razão social)."); return; }

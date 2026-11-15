@@ -1,5 +1,15 @@
 # Registro de versões
 
+## v2.42 — 2026-11-15 · Prospecção (contato frio) e mérito
+- Nova área Prospecção no menu, depois da Base inicial: antessala do cadastro inicial para o SDR, a área de novos negócios e as listas do Econodata, do Lemitti e do Ramper; coleção própria, fora da Base inicial, da Órbita, das indicações e das análises
+- Importação de listas (CSV ou Excel) com origem e responsável; prospect manual; duplicidade conferida por CNPJ e nome contra a prospecção e a base
+- Histórico de abordagem (canal, resultado, quem abordou, anotação) e situação (novo, em abordagem, reunião marcada, reunião realizada, promovido, arquivado)
+- Controle de quem abordou: um responsável por empresa, exclusivo por 90 dias sem contato (configurável); depois fica livre para outra pessoa assumir
+- "Promover a target" só depois da reunião realizada e da confirmação da possibilidade de venda: cria o target com a origem e o histórico e abre o cadastro inicial
+- Listas do Econodata/Lemitti e do Ramper importadas pelas integrações passam a entrar na Prospecção (empresas já na base continuam sendo enriquecidas)
+- Origem e mérito no dossiê do target (regras provisórias até a política de M&A): originação do mandato 10% e do investidor 5% do success fee, só time de M&A, sócios e novos negócios, divididos entre os participantes; SDR 5% em serviços separados quando participa ativamente; sócios e novos negócios 15% em serviços separados ou retainers; success fee estimado pelo valuation e pelo modelo de honorários, ou informado; aprovação da divisão
+- Equipe e regras de mérito editáveis (percentuais, prazo de exclusividade, pessoas e papéis: sócio, time de M&A, novos negócios, SDR)
+
 ## v2.41 — 2026-11-15 · Relatório de análises financeiras e ajustes nos relatórios
 - Novo relatório de Análises financeiras (resumo e completo), com o botão "Emitir relatório" na tela: sumário executivo com leitura automática, evolução histórica, ponte do EBITDA, ajustes da Due Diligence e situação do OK, DRE reportada × ajustada, balanço e endividamento, capital de giro e prazos médios, indicadores e limitações
 - Valuation completo: sem companhias comparáveis carregadas, traz a referência Kinsey de múltiplos do setor aplicada ao EBITDA ajustado e o confronto do FCD moderado e otimista com o mercado; títulos das projeções não ficam soltos no fim da página

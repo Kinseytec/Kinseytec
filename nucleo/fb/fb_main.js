@@ -9,7 +9,7 @@ const KT_FB = !KT_AUTH ? null : {
     Store.me = {id: r.email, email: r.email, role: r.role, canEdit: r.role === "admin" || r.role === "editor", canWrite: true};
     Store.user = {profiles: async ids => Object.fromEntries(ids.map(i => [i, {name: i}]))};
     /* ---------- vários clientes: cada um com sua base; o administrador escolhe o cliente atual ---------- */
-    const SCOPED = ["suppliers", "evidences", "contracts", "pareceres", "operacoes"], CFGS = ["geral", "precos", "relatorio", "relatorio_log", "personalizado", "portal", "consultas"];
+    const SCOPED = ["suppliers", "evidences", "contracts", "pareceres", "operacoes", "prospects"], CFGS = ["geral", "precos", "relatorio", "relatorio_log", "personalizado", "portal", "consultas"];
     let clientes = [];
     if (r.role === "admin"){ try{ const q = await db.collection("clientes").get(); clientes = q.docs.map(d => ({id: d.id, ...d.data()})).sort((a, b) => (a.nome || "").localeCompare(b.nome || "")); }catch(e){} }
     let cid = "";
