@@ -19,7 +19,7 @@ if (window.KT_DD && window.KT_MATCH) (() => {
     let sc = m.score * .6 + (a ? 35 : 0) + (p === "ok" ? 5 : 0) + (TEMP[String(t.mapa?.temperatura || "").toLowerCase()] || 0);
     if (c && /Acima/i.test(c.txt || "")) sc -= 15; sc = Math.max(0, Math.min(100, Math.round(sc)));
     const segPts = m.M.find(x => x.crit === "Segmento")?.pts || 0, tese = !!a || segPts >= 15;
-    const motivos = [a && (a === "ligado no mapa" ? "já ligado no mapa M&A" : a), ...m.M.filter(x => x.pts === x.max && x.max >= 10 && !/n[aã]o (informad|definid)|sem dado/.test(x.txt)).map(x => `${x.crit.toLowerCase()}: ${x.txt}`), c?.txt && !/Sem valor/.test(c.txt) ? c.txt.toLowerCase() : ""].filter(Boolean);
+    const motivos = [a && (a === "ligado no mapa" ? "já ligado no mapa M&A" : a), ...m.M.filter(x => x.pts === x.max && x.max >= 10 && !/n[aã]o (informad|definid)|sem dado/.test(x.txt)).map(x => `${x.crit.toLowerCase()}: ${x.txt}`), c?.txt && !/Sem valor/.test(c.txt) ? c.txt.toLowerCase() : ""].filter(Boolean).filter((x, i, L) => !(/^segmento /.test(x) && L.some(y => /^segmento: /.test(y))));
     if (!tese) sc = Math.min(sc, 30);
     return {inv, t, sc, elim:false, motivos, m, a, p, c, ligado, tese, fora:p === "abaixo"};
   }
@@ -52,7 +52,8 @@ if (window.KT_DD && window.KT_MATCH) (() => {
           ${L.length ? `<div class="tbl"><table><tbody>${L.slice(0, MAX).map(x => linha(x, "inv")).join("")}</tbody></table></div>${L.length > MAX ? `<p class="sub" style="margin:0">+${L.length - MAX} target(s) aderente(s)</p>` : ""}` : `<p class="sub" style="margin:0">Nenhum target aderente na base. Use “Prospectar mais” para buscar empresas com os critérios da tese.</p>`}</div>`; }).join("");
       else corpo = N3().filter(t => !f || (t.nome + " " + (t.segmento || "") + " " + (t.uf || "")).toLowerCase().includes(f)).sort((a, b) => (b.mandato?.status === "assinado") - (a.mandato?.status === "assinado")).map(t => { const L = investidoresPara(t);
         return `<div class="card" style="display:flex;flex-direction:column;gap:6px"><div><h3 style="margin:0">${esc(t.nome)}</h3><p class="sub" style="margin:2px 0 0">${esc([t.perfil?.segmento || t.segmento, [t.municipio, t.uf].filter(Boolean).join("/"), t.mandato?.status === "assinado" ? "mandato assinado" : "", pol(t) === "abaixo" ? "fora da política" : ""].filter(Boolean).join(" · "))}</p></div>
-          ${L.length ? `<div class="tbl"><table><tbody>${L.slice(0, MAX).map(x => linha(x, "tgt")).join("")}</tbody></table></div>` : `<p class="sub" style="margin:0">Nenhum investidor aderente: revise a tese dos investidores ou cadastre novos.</p>`}</div>`; }).join("");
+          ${L.length ? `<div class="tbl"><table><tbody>${L.slice(0, MAX).map(x => linha(x, "tgt")).join("")}</tbody></table></div>` : `<p class="sub" style="margin:0">Nenhum investidor aderente na base.</p>`}
+          ${window.KT_PINV && D.ed() ? `<button type="button" class="btn sm" data-pq="${t.id}" style="align-self:flex-start">Consultar prováveis investidores no mercado</button>` : ""}</div>`; }).join("");
       host.innerHTML = tabs + `<p class="sub" style="margin:0">Pontuação de 0 a 100: aderência à tese (60%), o que o investidor compra (+35), política Kinsey (+5) e temperatura; menos 15 quando o valor passa da capacidade de compra. Investidores internacionais trazem notícias em inglês e movimentos no Brasil (versão publicada).</p>` + q + corpo;
       $$("[data-it]", host).forEach(b => b.onclick = () => { S.indTab = b.dataset.it; desenha(); });
       $("#ind-q").oninput = e => { S.indQ = e.target.value; clearTimeout(desenha._t); desenha._t = setTimeout(() => { desenha(); const i = $("#ind-q"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }, 250); };
@@ -60,9 +61,10 @@ if (window.KT_DD && window.KT_MATCH) (() => {
       $$("[data-abre]", host).forEach(b => b.onclick = () => { close(); openSupplier(b.dataset.abre, "dados"); });
       $$("[data-pros]", host).forEach(b => b.onclick = () => prospectar(supById(b.dataset.pros)));
       $$("[data-rexp]", host).forEach(b => b.onclick = () => cadencia(supById(b.dataset.rexp)));
+      $$("[data-pq]", host).forEach(b => b.onclick = () => { close(); KT_PINV.perguntar(supById(b.dataset.pq)); });
     };
     const linha = (x, modo) => { const o = modo === "inv" ? x.t : x.inv;
-      return `<tr><td style="min-width:180px"><a href="#" data-abre="${o.id}" onclick="return false" style="color:inherit"><b>${esc(modo === "inv" ? nomeT(o, x.inv) : o.nome)}</b></a><div class="sub" style="margin:0;font-size:11.5px">${modo === "inv" ? esc([o.perfil?.segmento || o.segmento, o.uf, o.mapa?.temperatura].filter(Boolean).join(" · ")) : infoInv(o)}</div></td>
+      return `<tr class="ind-l"><td style="min-width:150px"><a href="#" data-abre="${o.id}" onclick="return false" style="color:inherit"><b>${esc(modo === "inv" ? nomeT(o, x.inv) : o.nome)}</b></a><div class="sub" style="margin:0;font-size:11.5px">${modo === "inv" ? esc([o.perfil?.segmento || o.segmento, o.uf, o.mapa?.temperatura].filter(Boolean).join(" · ")) : infoInv(o)}</div></td>
         <td>${barra(x.sc)}</td><td style="font-size:12px;max-width:360px">${esc(x.motivos.slice(0, 3).join("; ") || "aderente pela tese")}${x.fora ? ` <span class="pill r-medio">fora da política</span>` : ""}</td>
         <td style="text-align:right;white-space:nowrap">${x.ligado ? `<span class="pill r-baixo">Indicado</span>` : D.ed() ? `<button type="button" class="btn sm" data-ind="${x.inv.id}|${x.t.id}">Indicar</button>` : ""}</td></tr>`; };
     desenha();
@@ -97,7 +99,7 @@ if (window.KT_DD && window.KT_MATCH) (() => {
     const pares = N1().flatMap(inv => targetsPara(inv).filter(x => !x.ligado && !x.fora).slice(0, 2)).sort((a, b) => b.sc - a.sc).slice(0, 4);
     const el = document.createElement("div"); el.className = "card"; el.id = "bi-ind"; el.style.cssText = "display:flex;flex-direction:column;gap:8px;margin-top:10px";
     el.innerHTML = `<div class="head" style="margin:0"><div><div class="eyebrow">Indicações do sistema</div><h3 style="margin:0">Principais targets para os investidores e vice-versa</h3></div><button type="button" class="btn sm primary" id="bi-indv">Ver indicações</button></div>
-      ${pares.length ? `<div class="tbl"><table><tbody>${pares.map(x => `<tr><td><b>${esc(x.inv.nome)}</b> → ${esc(nomeT(x.t, x.inv))}</td><td>${barra(x.sc)}</td><td class="sub" style="font-size:12px">${esc(x.motivos.slice(0, 2).join("; "))}</td></tr>`).join("")}</tbody></table></div>` : `<p class="sub" style="margin:0">Cadastre a tese dos investidores (o que compram) para o sistema indicar os targets.</p>`}`;
+      ${pares.length ? `<div style="display:flex;flex-direction:column">${pares.map(x => `<div style="border-top:1px solid var(--line);padding:8px 0;display:flex;flex-direction:column;gap:3px"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><span style="min-width:0"><b>${esc(x.inv.nome)}</b> → ${esc(nomeT(x.t, x.inv))}</span>${barra(x.sc)}</div><div class="sub" style="font-size:12px;margin:0">${esc(x.motivos.slice(0, 2).join(" · "))}</div></div>`).join("")}</div>` : `<p class="sub" style="margin:0">Cadastre a tese dos investidores (o que compram) para o sistema indicar os targets.</p>`}`;
     const ref = $("#bi-int"); if (ref) ref.before(el); else top.appendChild(el);
     $("#bi-indv", el).onclick = painel; return r; };
   /* dossiê do investidor internacional: notícias em inglês */
@@ -108,5 +110,6 @@ if (window.KT_DD && window.KT_MATCH) (() => {
     el.innerHTML = `<h3>Investidor internacional · ${esc(M.pais)}</h3>${[...(s.ext?.internacional?.aquisicoes || []).slice(0, 5), ...M.brasil.slice(0, 3)].map(n => `<div style="font-size:13px">• <a href="${esc(n.url || "#")}" target="_blank" rel="noopener" style="color:inherit">${esc(n.titulo)}</a> <span class="sub">${esc(n.fonte || "")} ${esc(n.data || "")}</span></div>`).join("") || `<p class="sub" style="margin:0">As notícias internacionais (aquisições e movimentos no Brasil) são buscadas na versão publicada ao cadastrar o investidor.</p>`}
       <div><b>Targets indicados:</b> ${targetsPara(s).slice(0, 5).map(x => esc(nomeT(x.t, s)) + ` (${x.sc})`).join(", ") || "nenhum aderente"}</div>`;
     b.appendChild(el); return r; };
+  const css = document.createElement("style"); css.textContent = `@media (max-width:760px){ tr.ind-l{display:flex;flex-wrap:wrap;gap:4px 10px;padding:8px 0;border-bottom:1px solid var(--line)} tr.ind-l td{display:block;padding:0!important;border:0!important;max-width:none!important;min-width:0!important} tr.ind-l td:first-child{flex:1 1 60%} tr.ind-l td:nth-child(3){flex:1 1 100%;order:3} tr.ind-l td:last-child{order:2} }`; document.head.appendChild(css);
   window.KT_IND = {par, targetsPara, investidoresPara, mercado, painel, prospectar, cadencia, filtrosDe};
 })();

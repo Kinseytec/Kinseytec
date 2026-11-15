@@ -1,5 +1,12 @@
 # Registro de versões
 
+## v2.24 — 2026-11-15 · Investidores prováveis do target e prospecção no mercado
+- No dossiê do target (aba M&A): lista de investidores prováveis com a situação do contato (a contatar, contatado, interessado, NDA enviado, NDA assinado, sem interesse) e com quem falou
+- "Você quer consultar prováveis investidores para este target?": consulta a base Kinsey (tese, aquisições recentes), o mercado (notícias de aquisições no setor por private equity, fundos e estratégicos, com o comprador extraído) e as bases Econodata, Ramper e Lemitti (empresas maiores do mesmo CNAE, com sócios e decisores)
+- Resultado resumido com orientação de contato para o consultor ou o SDR, botão para incluir cada um como provável (cria o N1 quando não existe) e PDF interno com as informações e os contatos
+- Função investidoresProvaveis no Firebase (notícias e APIs das bases); a versão local usa a base, as notícias guardadas e as listas importadas
+- Indicações do sistema: cartão e painel legíveis no celular (linhas empilhadas) e motivos sem repetição
+
 ## v2.23 — 2026-11-15 · Investigação do target preenchida automaticamente
 - A aba Investigação abre respondida pelo sistema, sem clique: situação na Receita, listas oficiais (CEIS/CNEP, MTE, IBAMA), mídia negativa nas notícias, CND e tributos ou encargos em atraso da due diligence, exposições registradas e processos da diligência jurídica, sempre com fonte e data
 - As respostas entram pelo motor automático do núcleo (gancho EXT_RESPINV): só substituem o que estava inconclusivo e o que o analista marca à mão prevalece

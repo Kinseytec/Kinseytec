@@ -6,6 +6,8 @@
    consultarEmpresa: ao cadastrar ou mudar o CNPJ de um investidor (N1) ou target (N3), e sob pedido do usuário:
                   CVM (companhia aberta e setor), B3 e DFP (pela base de comparáveis), cotação pública e notícias
                   (do N1, também as de aquisições) → suppliers/{id}.ext
+   investidoresProvaveis: para um target, notícias de aquisições no setor (private equity, fundos e estratégicos) e
+                  empresas maiores do mesmo CNAE nas bases contratadas (consolidadoras), para a prospecção de investidores
    lerSite      : lê o site da empresa (página inicial e até 3 páginas internas: quem somos, produtos, clientes) e guarda
                   título, descrição e trechos com números em suppliers/{id}.ext.site, para o teaser pós-NDA
    prospeccao   : busca e enriquecimento de empresas nas bases contratadas (Econodata, Ramper, Lemitti) pela API oficial
@@ -154,6 +156,18 @@ module.exports = ({db, logger, onSchedule, F}) => {
     const resumo = [...new Set([descricao, ...blocos.filter(x => /\d/.test(x)), ...blocos])].filter(Boolean).slice(0, 10);
     await db.doc("suppliers/" + id).set({ext:{site:{url, titulo, descricao, resumo, paginas:[url, ...extras], em:new Date().toISOString()}}}, {merge:true}); return {ok:true, n:resumo.length};
   }
+  /* ---------- investidores prováveis de um target: notícias de aquisições no setor e consolidadoras nas bases ---------- */
+  async function investidoresProvaveis(id){
+    const t = (await db.doc("suppliers/" + id).get()).data() || {}, seg = t.perfil?.segmento || t.segmento || "", desc = t.receita?.cnaeDesc || "", avisos = [];
+    const termo = (desc || seg).split(/[,;(]/)[0].trim(), Q = [`aquisição ${termo} private equity`, `adquire empresa de ${termo}`, `"${seg}" aquisição Brasil fundo`, `compra ${termo} Brasil consolidação`].filter((q, i, a) => q.trim() && a.indexOf(q) === i);
+    let noticias = []; for (const q of Q){ try{ noticias.push(...await rss(q, 10)); }catch(e){ avisos.push("notícias: " + e.message); } }
+    noticias = noticias.filter((n, i, a) => a.findIndex(m => m.titulo === n.titulo) === i).slice(0, 40);
+    let bases = []; const cn = String(t.receita?.cnae || "").replace(/\D/g, "");
+    for (const fonte of ["econodata", "ramper", "lemitti"]){ try{ const r = await prospeccao(fonte, "buscar", {cnaes:cn ? [cn.slice(0, 4)] : [], segmentos:[seg], fatMin:Math.max(100, Math.round((+t.fin?.receita || 15) * 2)), fatMax:10000}); bases.push(...r.lista.map(o => ({...o, fonte}))); }
+      catch(e){ if (!/configurad/.test(e.message || "")) avisos.push(`${fonte}: ${e.message}`); } }
+    if (!bases.length) avisos.push("Bases de prospecção sem API configurada: usando as listas importadas.");
+    return {ok:true, noticias, bases:bases.slice(0, 40), avisos};
+  }
   const precisa = s => s && ["N1","N3"].includes(s.nivel) && (!s.ext || s.ext.doc !== String(s.doc || "").replace(/\D/g, "") || s.ext.nome !== (s.nome || "") || Date.now() - new Date(s.ext.em).getTime() > 30 * 864e5);
   return {
     exports:{
@@ -167,6 +181,11 @@ module.exports = ({db, logger, onSchedule, F}) => {
         const u = await db.doc("users/" + req.auth.uid).get(); if (!u.exists || !["admin", "editor", "colaborador"].includes(u.data().role)) throw new HttpsError("permission-denied", "Sem acesso às bases de prospecção.");
         const {fonte, modo, filtros, cnpjs} = req.data || {}; if (!TOKENS[fonte]) throw new HttpsError("invalid-argument", "Fonte desconhecida.");
         return prospeccao(fonte, modo === "enriquecer" ? "enriquecer" : "buscar", filtros, cnpjs); }),
+      investidoresProvaveis:onCall({memory:"512MiB", timeoutSeconds:300, secrets:Object.values(TOKENS)}, async req => {
+        if (!req.auth || !req.auth.token.email_verified) throw new HttpsError("unauthenticated", "Entre no sistema.");
+        const u = await db.doc("users/" + req.auth.uid).get(); if (!u.exists || !["admin", "editor", "colaborador"].includes(u.data().role)) throw new HttpsError("permission-denied", "Sem acesso.");
+        const id = String(req.data?.id || ""); if (!id) throw new HttpsError("invalid-argument", "Informe o target.");
+        return investidoresProvaveis(id); }),
       lerSite:onCall({memory:"512MiB", timeoutSeconds:60}, async req => {
         if (!req.auth || !req.auth.token.email_verified) throw new HttpsError("unauthenticated", "Entre no sistema.");
         const u = await db.doc("users/" + req.auth.uid).get(); if (!u.exists || !["admin", "editor", "colaborador"].includes(u.data().role)) throw new HttpsError("permission-denied", "Sem acesso.");
