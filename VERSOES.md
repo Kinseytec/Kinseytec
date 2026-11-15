@@ -1,5 +1,16 @@
 # Registro de versões
 
+## v2.19 — 2026-11-15 · PPA avançado, checagens Kinsey e revisão automática de laudos
+- PPA (CPC 15 / IFRS 3) refeito com as técnicas de laudo: consideração transferida com parcelas diferidas a valor presente (Kd) e earn-out a valor justo (probabilidade × VP no WACC)
+- Carteira de clientes pelo MPEEM com encargos de ativos contributivos: capital de giro (Selic LP + spread, líquido), imobilizado (Kd), força de trabalho (WACC), não concorrência e marca/tecnologia pelo royalty; vida útil calculada até 90% do valor
+- Marca e tecnologia por relief-from-royalty (marca com vida definida ou indefinida; tecnologia com obsolescência), não concorrência pelo método com e sem (probabilidade de competir × receita exposta), força de trabalho pela abordagem de custo (fica no ágio)
+- TAB calculado por fórmula para cada vida útil e alíquota, com opção de desligar; alíquota única em todo o laudo
+- Reconciliação WARA × WACC com o retorno implícito do ágio, que precisa ser o maior; tabela de amortização dos intangíveis e IR diferido; compra vantajosa sinalizada
+- Checagens automáticas a partir dos checklists Kinsey de valuation e PPA (data, controle, regime e alíquota, ágio, vidas úteis, royalty × margem, imobilizado, contingências, preço diferido, histórico)
+- Revisão automática de laudos e modelos recebidos (PDF, DOCX, PPTX): datas divergentes, codinomes diferentes, anos projetados com rótulo errado, regime × alíquota, ágio com retorno menor que os intangíveis, nomes de outras empresas e marcações não preenchidas
+- PDF do PPA na estrutura de laudo: sumário, escopo e normas, transação, tangíveis, intangíveis, fluxo do lucro excedente, WARA, amortização e checagens
+- Leitura do mandato: retainer em parcelas mensais, prazo, cauda contada do término, bônus de desempenho, tributos por fora ou incluídos e situação (minuta, assinatura eletrônica ou fecho do contrato, com aviso para confirmar)
+
 ## v2.18 — 2026-11-15 · Política de abordagem e fontes de prospecção (Econodata, Lemitti, Ramper)
 - Política Kinsey: empresas com faturamento anual ou valuation abaixo de R$ 15 milhões ficam fora da abordagem; o target mostra "dentro", "fora" ou "sem dado" no cartão e no dossiê, a consulta da Órbita filtra por política e as importações deixam os fora da política de fora, salvo escolha
 - Leitura de faturamento em texto ("50MM", "R$ 500 milhões", "de 30 a 90 milhões", "R$ 1,2 bi")

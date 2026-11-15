@@ -22,17 +22,23 @@ if (window.KT_DD) (() => {
     if (pct){ const div = [...t.matchAll(/(\d{1,2}(?:[.,]\d{1,2})?)\s*%\s*(?:\([^)]{0,30}\))?[^.;]{0,60}?(?:devid[ao]s?|pag[oa]s?|caber[aá]|destinad[ao]s?)[^.;]{0,20}?(?:à|a|ao)\s+([A-ZÁ-Ú][A-ZÁ-Ú0-9 .&-]{3,60}?(?:LTDA|S\.?\/?A\.?|BR|ME)\b)/g)].map(x => `${x[1]}% ${x[2].trim()}`);
       m.success = `${pct[1].replace(".", ",")}% ${pct[0].replace(/^[^%]*%\s*(?:\([^)]*\)\s*)?/, "").split(/[,;]| exclusivamente| observad/)[0].trim()}`.slice(0, 90) + (div.length ? ` (${[...new Set(div)].slice(0, 3).join(" + ")})` : ""); achou.push("success fee"); }
     if (/n[aã]o sendo devida qualquer remunera[cç][aã]o fixa|sem (retainer|remunera[cç][aã]o fixa)|n[aã]o (ser[aá]|h[aá]) (devid[ao] )?(retainer|mensalidade)/i.test(t)){ m.retainer = "Sem retainer"; achou.push("retainer"); }
-    else { const r = t.match(/(?:retainer|remunera[cç][aã]o (?:fixa|mensal)|mensalidade)[^.;]{0,120}?R\$\s*([\d.]+(?:,\d{2})?)/i); if (r){ m.retainer = "R$ " + r[1]; achou.push("retainer"); } }
+    else { const pa = t.match(/(\d{1,2})\s*\([^)]{0,20}\)\s*parcelas,?\s*mensais[^.;]{0,80}?R\$\s*([\d.]+(?:,\d{2})?)/i), r = t.match(/(?:retainer|remunera[cç][aã]o (?:fixa|mensal)|mensalidade)[^.;]{0,160}?R\$\s*([\d.]+(?:,\d{2})?)/i);
+      if (pa){ m.retainer = `${pa[1]} parcelas mensais de R$ ${pa[2]}`; achou.push("retainer"); } else if (r){ m.retainer = "R$ " + r[1]; achou.push("retainer"); } }
     if (/n[aã]o[- ]exclusiv/i.test(t)){ m.exclusividade = "Não exclusivo"; achou.push("exclusividade"); } else if (/(car[aá]ter|regime|base) (de )?exclusiv|com exclusividade|exclusividade (pelo|durante|por)/i.test(t)){ m.exclusividade = "Exclusivo"; achou.push("exclusividade"); }
-    const pr = t.match(/(?:prazo de (?:vig[eê]ncia|dura[cç][aã]o)|vig[eê]ncia (?:deste contrato |do contrato )?(?:ser[aá] )?de|vigorar[aá] (?:pelo prazo de|por))\s*(\d{1,3})\s*(?:\([^)]{0,25}\))?\s*meses/i); if (pr){ m.prazo = pr[1]; achou.push("prazo"); }
-    const tl = t.match(/(?:ap[oó]s o (?:t[eé]rmino|encerramento|fim)|t[eé]rmino deste contrato)[^.]{0,160}?(\d{1,3})\s*(?:\([^)]{0,25}\))?\s*meses/i); if (tl){ m.tail = `${tl[1]} meses após o término`; achou.push("cauda"); }
+    const pr = t.match(/(?:prazo de (?:vig[eê]ncia|dura[cç][aã]o)|vig[eê]ncia (?:deste contrato |do contrato )?(?:ser[aá] )?de|vigorar[aá] (?:pelo prazo de|por)(?: o)?(?: prazo)?(?: de)?)\s*(\d{1,3})\s*(?:\([^)]{0,25}\))?\s*meses/i); if (pr){ m.prazo = pr[1]; achou.push("prazo"); }
+    const tl = t.match(/(?:ap[oó]s o (?:t[eé]rmino|encerramento|fim)|t[eé]rmino deste contrato)[^.]{0,160}?(\d{1,3})\s*(?:\([^)]{0,25}\))?\s*meses/i); const tl2 = !tl && t.match(/(\d{1,3})\s*(?:\([^)]{0,20}\))?\s*\(?meses\)?,?\s*contad[oa]s? da (?:data de )?t[eé]rmino/i);
+    if (tl){ m.tail = `${tl[1]} meses após o término`; achou.push("cauda"); } else if (tl2){ m.tail = `${tl2[1]} meses após o término`; achou.push("cauda"); }
+    const bo = t.match(/b[oô]nus de desempenho[^.]{0,160}?(\d{1,2})\s*%/i); if (bo){ m.incentivo = `até ${bo[1]}% sobre o valor negociado acima da avaliação`; achou.push("bônus de incentivo"); }
+    if (/(tributos|impostos)[^.]{0,220}?n[aã]o (est[aã]o |s[aã]o )?(inclus|contempl)/i.test(t)){ const pt = t.match(/(\d{1,2}(?:,\d{1,2})?)\s*%\s*adicionad/i); m.tributos = "Tributos por fora" + (pt ? ` (+${pt[1]}% sobre a remuneração fixa)` : ""); achou.push("tributos"); }
+    else if (/n[aã]o podendo qualquer imposto[^.]{0,80}ser acrescido|j[aá] constituem a remunera[cç][aã]o total/i.test(t)){ m.tributos = "Tributos incluídos no percentual"; achou.push("tributos"); }
     if (/(eliminar|excluir|sem|n[aã]o haver[aá]) (a )?remunera[cç][aã]o m[ií]nima/i.test(t)) { m.minimo = "Sem remuneração mínima"; achou.push("mínimo"); }
     else { const mn = t.match(/remunera[cç][aã]o (?:de sucesso )?m[ií]nima[^.;]{0,80}?R\$\s*([\d.,]+)\s*(milh[oõ]es|mil)?/i); if (mn){ m.minimo = `R$ ${mn[1]}${mn[2] ? " " + mn[2] : ""}`; achou.push("mínimo"); } }
     const part = t.match(/(\d{1,3}(?:[.,]\d+)?)\s*%\s*(?:\([^)]{0,30}\))?\s*(?:das|do) (quotas|a[cç][oõ]es|capital social|participa[cç][aã]o)/i); if (part){ m.participacao = `${part[1]}% ${part[2]}`; achou.push("participação"); }
-    const ass = /assinad[oa] (eletronicamente|digitalmente)|docusign|clicksign|d4sign|certificado digital icp|assinatura digital/i.test(t) && !/minuta|ajustes|proposta de redac|em negocia/i.test(t);
-    m.status = ass ? "assinado" : /ajuste|minuta|negocia|revis[aã]o|coment[aá]rio/i.test(n) ? "negociacao" : "enviado"; achou.push("situação");
-    const dt = t.match(/(\d{1,2}) de (janeiro|fevereiro|mar[cç]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro) de (20\d\d)/i);
-    if (ass && dt){ const mes = ["janeiro","fevereiro","marco","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"].indexOf(nrm(dt[2])) + 1; m.assinadoEm = `${dt[3]}-${String(mes).padStart(2, "0")}-${dt[1].padStart(2, "0")}`; }
+    const rascunho = /\bminuta\b|ajustes no mandato|precisa ficar|acrescentar uma cl[aá]usula|proposta de reda[cç][aã]o|retirar essas refer|recomendo|coment[aá]rio/i.test(t);
+    const eletr = /assinad[oa] (eletronicamente|digitalmente)|docusign|clicksign|d4sign|zapsign|certificado digital icp/i.test(t), assinam = /(as partes|partes) (assinam|firmam) o presente/i.test(t);
+    m.status = rascunho ? "negociacao" : eletr ? "assinado" : assinam ? "assinado" : "enviado"; if (m.status === "assinado" && !eletr) m.confirmar = "Assinatura inferida pelo fecho do contrato: confirmar as assinaturas"; achou.push("situação");
+    const dts = [...t.matchAll(/(\d{1,2}) de (janeiro|fevereiro|mar[cç]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro) de (20\d\d)/gi)], dt = dts[dts.length - 1];
+    if (m.status === "assinado" && dt){ const mes = ["janeiro","fevereiro","marco","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"].indexOf(nrm(dt[2])) + 1; m.assinadoEm = `${dt[3]}-${String(mes).padStart(2, "0")}-${dt[1].padStart(2, "0")}`; }
     const nomeAlvo = nrm(s?.nome || "").split(" ")[0];
     const co = [...new Set([...t.matchAll(/\b([A-ZÁ-Ú][A-ZÁ-Ú0-9.&-]+(?: [A-ZÁ-Ú0-9.&-]+){0,6} (?:LTDA|S\.?\/?A\.?))\b/g)].map(x => x[1].trim()))].filter(x => !/KINSEY/.test(x) && !(nomeAlvo && nrm(x).includes(nomeAlvo))).slice(0, 4);
     return {m, achou, co};
@@ -45,9 +51,10 @@ if (window.KT_DD) (() => {
   }
   const texto = async f => { try{ if (typeof DOCAN !== "undefined" && DOCAN.texto){ const t = await DOCAN.texto(f, f.name); if (t) return t; } }catch(e){}
     const buf = await f.arrayBuffer(), lin = L => (L || []).map(l => Array.isArray(l) ? l.join(" ") : String(l)).join("\n");
-    if (/\.docx$/i.test(f.name)){ const d = await IMP.lerDOCX(buf); return lin(d.linhas) + "\n" + lin(d.tabela); } if (/\.pdf$/i.test(f.name)) return lin(await IMP.lerPDF(buf)); return new TextDecoder().decode(buf); };
+    if (/\.docx$/i.test(f.name)){ const d = await IMP.lerDOCX(buf); return lin(d.linhas) + "\n" + lin(d.tabela); } if (/\.pdf$/i.test(f.name)) return lin(await IMP.lerPDF(buf)); if (/\.pptx$/i.test(f.name)){ const z = await IMP.unzip(buf), sl = Object.keys(z).filter(k => /^ppt\/slides\/slide\d+\.xml$/.test(k)).sort((x, y) => parseInt(x.match(/\d+/)) - parseInt(y.match(/\d+/))), out = [];
+      for (const k of sl){ const x = await z[k].get(); out.push([...x.matchAll(/<a:t>([^<]*)<\/a:t>/g)].map(m => m[1]).join(" ")); } return out.join("\n"); } return new TextDecoder().decode(buf); };
   const escolher = (accept, fn) => { const i = document.createElement("input"); i.type = "file"; i.accept = accept; i.onchange = () => i.files[0] && fn(i.files[0]); i.click(); };
-  const ROT = {status:"Situação", success:"Success fee", retainer:"Retainer", exclusividade:"Exclusividade", prazo:"Prazo (meses)", tail:"Cauda", minimo:"Mínimo", participacao:"Participação", assinadoEm:"Assinado em"};
+  const ROT = {status:"Situação", success:"Success fee", retainer:"Retainer", exclusividade:"Exclusividade", prazo:"Prazo (meses)", tail:"Cauda", minimo:"Mínimo", participacao:"Participação", assinadoEm:"Assinado em", incentivo:"Bônus de incentivo", tributos:"Tributos", confirmar:"Atenção"};
   const STN = {assinado:"Assinado", negociacao:"Em negociação", enviado:"Enviado ao target", minuta:"Minuta em preparação"};
 
   async function importarMandato(s){
