@@ -39,6 +39,7 @@ if (window.KT_DD) (() => {
         ${sel("pj-sinv", "Sócio que trouxe o investidor", eq(P.socioInvestidor))}${sel("pj-par", "Parceiro ou intermediador (N2)", `<option value="">—</option>${opt(N2.map(x => [x.id, x.nome]), s.parentId)}`)}
         ${sel("pj-inv", "Investidores (N1)", opt(N1.map(x => [x.id, x.nome]), "").replace(/<option value="([^"]+)"/g, (a, v) => (s.investidores || []).includes(v) ? `<option selected value="${v}"` : a), {full:1, multi:Math.min(6, Math.max(3, N1.length)), hint:"marque um ou mais; investidor novo pelo campo abaixo"})}
         ${f("pj-ninv", "Investidor novo (nome)", "", {full:1, ph:"cadastra como N1 ligado ao projeto"})}
+        <div class="fld full"><label for="pj-soc">Contrato social, última alteração, ficha da Junta ou cartão CNPJ</label><input id="pj-soc" type="file" multiple accept=".pdf,.docx,.txt"><span class="hint">o sistema lê sócios, quotas, capital, administração e cláusulas, consulta a Receita e já responde a diligência jurídica</span></div>
         ${sec("3 · Mandato")}
         ${sel("pj-mst", "A Kinsey tem mandato?", opt([["", "Ainda não"], ["negociacao", "Em negociação"], ["enviado", "Enviado ao target"], ["assinado", "Sim, assinado"]], m.status))}
         <div class="fld"><label for="pj-mf">Anexar mandato (PDF ou Word)</label><input id="pj-mf" type="file" accept=".pdf,.docx,.txt"><span class="hint">vai direto ao Jurídico e preenche o mandato</span></div>
@@ -82,6 +83,8 @@ if (window.KT_DD) (() => {
           await Store.set("contracts", cid, {supplierId:nid, tipo:`Mandato de assessoria${r.m.status === "assinado" ? "" : " (não assinado)"}`, numero:"", contraparte:nome, inicio:r.m.assinadoEm || "", fim:"", volume:"", preco:"", obs:`Anexado no cadastro do projeto (${mf.name}). Campos lidos: ${r.achou.join(", ")}.`, texto:t.slice(0, 60000), arquivo:mf.name, file:null, criadoEm:nowISO()});
           const mm = {...r.m, fonte:"documento", doc:cid}; if (!v("pj-mst")) mm.status = r.m.status; await Store.update("suppliers", nid, {mandato:mm}); avisos.push("mandato lido e enviado ao Jurídico"); }
         catch(e){ avisos.push("mandato anexado sem leitura do texto"); } }
+      /* documentos societários: leitura e diligência jurídica automática */
+      for (const fs of [...($f("pj-soc")?.files || [])]){ if (!window.KT_JAUTO) break; try{ const x = await KT_JAUTO.importar(ss(), fs); avisos.push(`${x.tipo} lido`); }catch(e){ avisos.push(`${fs.name}: não lido`); } }
       /* balanços ou balancetes: importa cada arquivo na Due Diligence */
       const bals = [...$f("pj-bal").files], bal = {}, falhas = [];
       for (const fb of bals){ try{ const contas = await D.lerArquivo(fb); const y = (fb.name.match(/(20\d\d)/) || [])[1] || String(ano - 1), mesN = (fb.name.match(/(?:^|[^\d])(0[1-9]|1[0-2])[-_. ]?(20\d\d)/) || [])[1];

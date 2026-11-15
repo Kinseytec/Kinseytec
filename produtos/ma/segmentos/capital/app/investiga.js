@@ -25,10 +25,12 @@ if (window.KT_DD) (() => {
     const nt = [...(s.ext?.noticias || []), ...(s.ext?.aquisicoes || [])];
     if (s.ext?.noticias){ const neg = nt.filter(n => NEG.test(n.titulo || "")); set("midia", neg.length ? "sim" : "nao", neg.length ? `Notícias: ${neg.slice(0, 2).map(n => `"${n.titulo}"`).join("; ")}` : `${nt.length} notícia(s) verificadas, sem termos negativos (${dBR(s.ext.em)})`);
       if (!o.rj && nt.some(n => /recupera[cç][aã]o judicial|fal[eê]ncia/i.test(n.titulo || ""))) set("rj", "sim", "Notícias mencionam recuperação judicial ou falência: confirmar"); }
+    const sn = (s.ext?.socios || []).flatMap(x => (x.noticias || []).filter(n => NEG.test(n.titulo || "")).map(n => `${x.nome}: "${n.titulo}"`));
+    if (sn.length) set("midia", "sim", `Notícias sobre sócios: ${sn.slice(0, 2).join("; ")}`);
     /* due diligence: procedimentos do último balancete */
-    try{ const per = D.periodos(s).slice(-1)[0], b = per && s.dd?.bal?.[per];
+    try{ const per = [...D.periodos(s)].sort().pop(), b = per && s.dd?.bal?.[per];
       if (b){ const K = D.calc(b), R = Object.fromEntries(D.PROCS.map(p => [p.id, p.f(K, b, s)]));
-        const cnd = R.x_cont?.txt || "", semDiv = /sem (execu[cç][oõ]es ou )?d[ií]vida ativa|nada consta|certid[aã]o negativa(?! com efeitos)/i.test(cnd);
+        const cnd = String(R.x_cont?.txt || "").replace(/^(Autom[aá]tico: )?(Due diligence \([^)]*\): )+/i, "").replace(/^[\s\S]*?(?=CND|Certid[aã]o|Sem execu)/i, ""), semDiv = /sem (execu[cç][oõ]es ou )?d[ií]vida ativa|nada consta|certid[aã]o negativa(?! com efeitos)/i.test(cnd);
         if (!semDiv && /inscri[cç][oõ]es em d[ií]vida ativa|d[ií]vida ativa da uni|em d[ií]vida ativa/i.test(cnd)) set("divida", "sim", `Due diligence (${per}): ${cnd.slice(0, 160)}`); else if (semDiv) set("divida", "nao", `Due diligence (${per}): ${cnd.slice(0, 120)}`);
         if (R.x_atraso?.st === "achado" || R.x_parc?.st === "achado") set("proc_trib", "sim", `Due diligence (${per}): ${(R.x_atraso?.st === "achado" ? R.x_atraso.txt : R.x_parc.txt).slice(0, 160)}`);
         if (R.t_enc?.st === "achado") set("proc_trab", "sim", `Due diligence (${per}): ${R.t_enc.txt.slice(0, 160)}`); } }catch(e){}

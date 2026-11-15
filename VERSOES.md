@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v2.26 — 2026-11-15 · Diligência jurídica automática
+- Contrato social, última alteração, ficha da Junta ou cartão CNPJ anexados no cadastro do projeto ou no Jurídico são lidos: sócios e quotas, capital, administração, registro na Junta, cláusulas de preferência, tag/drag along, lock-up, ônus sobre quotas, procuradores, filiais, participações e espólio; o CNPJ lido completa o cadastro e dispara as consultas
+- Questionário jurídico respondido pelo sistema com a fonte: documento societário, QSA da Receita (com aviso de divergência), contratos analisados (mudança de controle, exclusividade, não concorrência, multas, garantias, dívida), processos, CND e PJ da due diligence, investigação (CEIS/CNEP, PEP, IBAMA) e licenças exigidas pelo CNAE
+- O advogado complementa: resposta ou observação à mão prevalece sobre a automática
+- Consulta de notícias dos sócios do target (versão publicada) alimenta a mídia negativa da investigação
+
 ## v2.25 — 2026-11-15 · Target em consulta único em todas as áreas
 - A empresa escolhida na busca da Órbita (ou na faixa, no globo, no dossiê) vira o target em consulta de Due Diligence, Análises financeiras, Valuation, Apresentação, Jurídico e Pós-aquisição
 - Trocar em qualquer área (Pasta de análise · Trocar, ou a faixa "Em consulta" com busca por nome, codinome ou CNPJ) vale para todas; a escolha fica guardada no aparelho

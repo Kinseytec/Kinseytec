@@ -112,6 +112,9 @@ module.exports = ({db, logger, onSchedule, F}) => {
     const nome = limpaNome(s.nome);
     if (nome.length >= 3 && !/^EXEMPLO/i.test(s.nome || "")){
       ext.noticias = (await tenta("noticias", () => rss(`"${nome}"`, 8))) || [];
+      if (s.nivel === "N3"){ /* sócios do target: notícias com termos de risco (processos, investigação, falência) */
+        const soc = (s.receita?.socios || []).map(q => String(q.nome || "").trim()).filter(n => n.split(" ").length >= 2).slice(0, 4);
+        ext.socios = []; for (const n of soc){ const L = (await tenta("socio " + n, () => rss(`"${n}" (processo OR investigação OR fraude OR falência OR condenado OR preso OR denúncia)`, 5))) || []; ext.socios.push({nome:n, noticias:L}); } }
       if (s.nivel === "N1") ext.aquisicoes = (await tenta("aquisicoes", () => rss(`"${nome}" (aquisição OR adquire OR adquiriu OR compra OR incorporação)`, 10))) || [];
       if (s.nivel === "N1" && s.pais && !/brasil|brazil/i.test(s.pais)){ /* investidor internacional: notícias em inglês e movimentos no Brasil */
         ext.internacional = {pais:s.pais, aquisicoes:(await tenta("aquisicoes_en", () => rss(`"${nome}" (acquisition OR acquires OR acquired OR "agreed to buy")`, 10, true))) || [],
