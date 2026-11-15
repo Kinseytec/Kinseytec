@@ -459,7 +459,8 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
   }
   function bindRel(host, s, R){
     $$("[data-vrel]", host).forEach(b => b.onclick = async () => { if (!window.KT_REL){ toast("Módulo de relatórios indisponível."); return; }
-      try{ await KT_REL.valuation(s, b.dataset.vrel); up(s, {dd:{vl:{emissoes:{["e" + Date.now().toString(36)]:{em:nowISO(), fmt:b.dataset.vrel, por:Store.me?.email || "", faixa:`${mi(R.rec[0])} a ${mi(R.rec[1])}`}}}}}); }catch(e){ console.error(e); toast("Não foi possível gerar o relatório."); } });
+      const emite = async md => { await KT_REL.valuation(s, b.dataset.vrel, md); up(s, {dd:{vl:{emissoes:{["e" + Date.now().toString(36)]:{em:nowISO(), fmt:b.dataset.vrel, por:Store.me?.email || "", faixa:`${mi(R.rec[0])} a ${mi(R.rec[1])}`}}}}}); };
+      try{ if (b.dataset.vrel === "pdf" && window.KT_GRAF) KT_GRAF.modo("Valuation · " + s.nome, emite); else await emite("completo"); }catch(e){ console.error(e); toast("Não foi possível gerar o relatório."); } });
   }
   window.KT_VAL = {cmpEbitda, resumo, contexto, historico, cenario, wacc, comparaveis, transacoes, alertas, podeEmitir, base, perfilFalta, editarPerfil, linhasDe};
 })();

@@ -112,11 +112,21 @@ if (window.KT_DD && window.KT_VAL) (() => {
     if (/lorem ipsum|\[inserir|\[preencher|\bXXX\b|\bTBD\b|a definir pelo/i.test(T)) A.push("Há marcações de modelo não preenchidas (ex.: [inserir], XXX, TBD).");
     return A;
   }
-  async function ppaPdf(s){
-    const Z = ppa(s), Rl = KT_REL, P = KTPdf(), C = checks(s, Z), x = v => mi(v);
+  async function ppaPdf(s, modo = "completo"){
+    const Z = ppa(s), Rl = KT_REL, P = KTPdf(), C = checks(s, Z), x = v => mi(v), G = window.KT_GRAF;
     Rl.capa(P, "Laudo de alocação do preço de compra (CPC 15 / IFRS 3)", s.nome, [["Data de aquisição", Z.q.data || "a definir"], ["Participação adquirida", pc(Z.pct, 0)], ["Consideração transferida", x(Z.preco)], ["Ágio (goodwill)", x(Z.goodwill)], ["Emitido em", new Date().toLocaleDateString("pt-BR")]]);
     Rl.sec(P, 1, "Sumário executivo");
+    if (G){ Rl.kpisPdf(P, [["Consideração", x(Z.preco), Z.fonte], ["Intangíveis", x(Z.intang), `${Math.round(Z.intang / Z.preco * 100)}% do preço`], ["Ágio", x(Z.goodwill), `${Math.round(Z.goodwill / Z.preco * 100)}% do preço`], ["Retorno do ágio", Z.rGw != null ? pc(Z.rGw) : "—", `WACC ${pc(Z.wacc)}`]]);
+      G.rosca(P, "Alocação do preço de compra (100% = consideração + não controladores)", [{l:"Ativos líquidos a valor justo (exceto intangíveis)", v:Z.liqVJ - Z.intang}, {l:"Carteira de clientes", v:Z.vC}, {l:"Marca", v:Z.vM}, {l:"Tecnologia", v:Z.vT}, {l:"Não concorrência", v:Z.vNc}, {l:"Ágio (goodwill)", v:Z.goodwill, c:G.NAVY}], v => mi(v, 1), [mi(Z.preco + Z.nci, 1), "alocado"]);
+      G.cascata(P, "Do patrimônio líquido à consideração", [{l:"PL contábil", v:Z.plContabil, tipo:"base"}, {l:"Ajustes DD", v:Z.ajDD, tipo:"delta"}, {l:"Mais-valias tangíveis", v:Z.imob + Z.est, tipo:"delta"}, {l:"Intangíveis", v:Z.intang, tipo:"delta"}, {l:"Contingências", v:-Z.cont, tipo:"delta"}, {l:"IR diferido", v:-Z.irDif, tipo:"delta"}, {l:"Ativos líquidos VJ", v:Z.liqVJ, tipo:"total"}, {l:"Ágio", v:Z.goodwill, tipo:"delta"}, {l:"Consideração + NCI", v:Z.preco + Z.nci, tipo:"total"}].filter(p => p.tipo !== "delta" || Math.abs(p.v) > 1), v => mi(v, 1)); }
     Rl.tab(P, ["Componente", "Valor"], linhasPpa(Z), [.7, .3]);
+    if (modo === "resumo" && G){
+      Rl.sec(P, 2, "Intangíveis, taxas e checagens");
+      Rl.tab(P, ["Intangível", "Método", "Vida", "Valor justo"], [["Carteira de clientes", "MPEEM", `${Z.vidaC} anos`, x(Z.vC)], ["Marca", "Relief-from-royalty", Z.vidaM > 0 ? `${Z.vidaM} anos` : "indefinida", x(Z.vM)], ["Tecnologia", "Relief-from-royalty", `${Z.vidaT} anos`, x(Z.vT)], ["Não concorrência", "Com e sem", `${Z.nNc} anos`, x(Z.vNc)]], [.3, .3, .2, .2]);
+      G.barrasH(P, "Retorno exigido por ativo (WARA)", [...Z.wara.map(w => ({l:w[0], v:w[2], txt:pc(w[2])})), ...(Z.rGw != null ? [{l:"Ágio (retorno implícito)", v:Z.rGw, txt:pc(Z.rGw), c:G.NAVY}] : [])], v => pc(v), {v:Z.wacc, l:`WACC ${pc(Z.wacc)}`});
+      const ok = C.filter(c => c.c === "ok").length; Rl.par(P, `Checagens automáticas: ${ok} de ${C.length} itens OK. A revisar: ${C.filter(c => c.c !== "ok").map(c => c.t).join("; ") || "nenhum"}.`, {size:9.5});
+      Rl.par(P, "Trabalho preliminar, sujeito à revisão do auditor e a laudo independente. Memória de cálculo completa no relatório completo e na planilha da base dos cálculos.", {size:8.5, color:[90,101,120]});
+      await rptSave(P.out(`PPA · ${s.nome}`, Rl.T(`Kinsey Capital · PPA (resumo) · ${s.nome} · confidencial`)), Rl.arq(s, "PPA_resumo", "pdf"), "application/pdf"); return; }
     Rl.sec(P, 2, "Escopo, normas e limitações");
     Rl.par(P, `Alocação do preço de compra conforme CPC 15 (R1) – Combinação de Negócios, CPC 46 – Mensuração do Valor Justo, CPC 04 (R1) – Ativo Intangível, CPC 27 – Ativo Imobilizado e CPC 32 – Tributos sobre o Lucro. Base: balancetes de ${s.nome} ajustados pela Due Diligence e projeções do cenário moderado do valuation. Trabalho preliminar, sujeito à revisão do auditor e a laudo independente; não constitui opinião de auditoria.`, {size:9.5});
     Rl.sec(P, 3, "Transação e consideração transferida");
@@ -132,8 +142,10 @@ if (window.KT_DD && window.KT_VAL) (() => {
       ["Força de trabalho", "Custo de reposição", `recrutamento, treinamento e perda de produtividade sobre a folha de ${x(Z.folha)}; com gross-up do IR`, "no ágio", x(Z.wf)]], [.16, .2, .4, .1, .14]);
     Rl.par(P, "TAB (benefício fiscal da amortização) calculado por fórmula: n ÷ (n − t × fator de anuidade a meio de ano). Força de trabalho não é reconhecida separadamente (CPC 15 B37); entra como ativo contributivo.", {size:8.5, color:[90,101,120]});
     Rl.sec(P, 6, "Carteira de clientes · fluxo do lucro excedente");
+    if (G) G.colunas(P, "Receita da base atual e lucro excedente", Z.anosC.slice(0, 10).map(a => String(a.y)), [{n:"Receita base", v:Z.anosC.slice(0, 10).map(a => a.r), c:G.ACC}, {n:"Lucro excedente", v:Z.anosC.slice(0, 10).map(a => a.exc), c:G.VERDE}], v => mi(v, 1));
     Rl.tab(P, ["Ano", "Receita", "NOPAT", "Encargos", "Excedente", "VP"], Z.anosC.slice(0, 12).map(a => [String(a.y), x(a.r), x(a.nopat), x(a.cNcg + a.cImob + a.cWf + a.cM + a.cT + a.cNc), x(a.exc), x(a.pv)]), [.1, .18, .18, .18, .18, .18]);
     Rl.sec(P, 7, "Taxa de desconto e reconciliação (WARA)");
+    if (G) G.barrasH(P, "Retorno exigido por ativo", [...Z.wara.map(w => ({l:w[0], v:w[2], txt:pc(w[2])})), ...(Z.rGw != null ? [{l:"Ágio (retorno implícito)", v:Z.rGw, txt:pc(Z.rGw), c:G.NAVY}] : [])], v => pc(v), {v:Z.wacc, l:`WACC ${pc(Z.wacc)}`});
     Rl.tab(P, ["Ativo", "Valor justo", "Retorno", "Peso"], [...Z.wara.map(w => [w[0], x(w[1]), pc(w[2]), pc(div(w[1], Z.bev), 0)]), ["Ágio residual", x(Z.gwResto), Z.rGw != null ? pc(Z.rGw) : "—", pc(div(Z.gwResto, Z.bev), 0)], ["Valor da empresa (100%) = WACC", x(Z.bev), pc(Z.wacc), "100%"]], [.4, .2, .2, .2]);
     Rl.sec(P, 8, "Amortização dos intangíveis");
     Rl.tab(P, ["Ano", "Clientes", "Marca", "Tecnologia", "Não concorrência", "Total", "IR diferido realizado"], Z.amort.map(a => [String(a.y), x(a.cli), x(a.marca), x(a.tec), x(a.nc), x(a.tot), x(a.ir)]), [.08, .15, .13, .15, .17, .14, .18]);
@@ -265,7 +277,7 @@ if (window.KT_DD && window.KT_VAL) (() => {
     $$("[data-pt]", host).forEach(b => b.onclick = () => { S.posTab = b.dataset.pt; renderView(); });
     $$("[data-mm]", host).forEach(b => b.onclick = () => montar(s, b.dataset.mm));
     const a = $("#pm-add", host); if (a) a.onclick = novoModelo;
-    const pp = $("#ppa-pdf", host); if (pp) pp.onclick = () => ppaPdf(s).catch(e => { console.error(e); toast("Não foi possível gerar o PDF."); });
+    const pp = $("#ppa-pdf", host); if (pp) pp.onclick = () => window.KT_GRAF ? KT_GRAF.modo("PPA · " + s.nome, md => ppaPdf(s, md)) : ppaPdf(s).catch(e => { console.error(e); toast("Não foi possível gerar o PDF."); });
     const xl = $("#ppa-xl", host); if (xl) xl.onclick = () => ppaXlsx(s).catch(e => { console.error(e); toast("Não foi possível gerar a planilha."); });
     const chi = $("#ppa-ch", host); if (chi) chi.onchange = async () => { const fl = chi.files[0]; if (!fl) return; try{ const buf = await fl.arrayBuffer(), L = /\.xlsx$/i.test(fl.name) ? await IMP.lerXLSX(buf) : new TextDecoder().decode(buf).split(/\r?\n/).map(l => l.split(/[;\t]/));
         const r = churnBase(L); await D.up(s, {pos:{ppa:{churn:+(r.media * 100).toFixed(2), churnCalc:{...r, anos:`${r.anos[0]}–${r.anos[r.anos.length - 1]}`, arquivo:fl.name, em:nowISO()}}}}); toast(`Perda de clientes calculada: ${pc(r.media, 1)} a.a.`); }
@@ -276,5 +288,5 @@ if (window.KT_DD && window.KT_VAL) (() => {
     const f = $("#fppa", host); if (f) f.onsubmit = e => { e.preventDefault(); const o = {}; [...$$("#fppa input[data-k]")].filter(i => i.id !== "pp-dt").map(i => [i.id, i.dataset.k]).forEach(([id, k]) => { o[k] = n($("#" + id).value); });
       Object.keys(o).forEach(k => { if (o[k] == null || isNaN(o[k]) || $("#fppa [data-k=" + k + "]").value.trim() === "") delete o[k]; }); o.data = $("#pp-dt").value; o.tab = $("#pp-tab").checked; D.up(s, {pos:{ppa:o}}).then(() => toast("Premissas do PPA salvas")); };
   };
-  window.KT_POS = {ppa, modelos, checks, revisarTexto, tabF, churnBase, sensib, impair, ppaXlsx};
+  window.KT_POS = {ppa, modelos, checks, revisarTexto, tabF, churnBase, sensib, impair, ppaXlsx, ppaPdf};
 })();

@@ -11,7 +11,8 @@ if (window.KT_DD && window.KT_VAL) (() => {
   function conteudo(s, fase){
     const pre = fase === "pre", p = s.perfil || {}, t = s.teaser || {}, seg = p.segmento || s.segmento || "", tem = D.temBal(s);
     const R = tem ? V.resumo(s) : null, X = R?.X, C = R?.C, Bs = V.base();
-    const codinome = s.mandato?.codinome || `Projeto ${seg || "Kinsey"}`;
+    const NOMES = ["Ipê", "Jatobá", "Aroeira", "Cedro", "Jacarandá", "Peroba", "Angico", "Sucupira", "Cumaru", "Imbuia", "Guarantã", "Pequi"], hs = [...String(s.id || s.nome)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+    const codinome = s.mandato?.codinome || `Projeto ${NOMES[hs % NOMES.length]}`, dc = pre ? 0 : 1;
     const dec = p.fundacao ? `fundada nos anos ${String(p.fundacao).slice(0, 3)}0` : "";
     const subtitulo = pre ? [seg, regiao(s.uf) ? "região " + regiao(s.uf) : "", dec].filter(Boolean).join(" · ") : [seg, s.municipio && `${s.municipio}/${s.uf}`, p.fundacao && `desde ${p.fundacao}`, p.funcionarios && `${p.funcionarios} funcionários`].filter(Boolean).join(" · ");
     const transacao = s.mandato?.participacao ? `Transação: venda de ${s.mandato.participacao}` : "Transação: busca de investidor estratégico ou financeiro";
@@ -20,10 +21,10 @@ if (window.KT_DD && window.KT_VAL) (() => {
       const an = X.H.anuais, rl = X.bp.rl, eb = X.bp.eb, cg = X.total;
       kpis.push([pre ? "Receita líquida (aprox.)" : "Receita líquida", pre ? "~" + mi(arred(rl), 0) : mi(rl), String(X.y0)], ["Margem EBITDA", pc(div(eb, rl), pre ? 0 : 1), pre ? "ajustada" : `EBITDA ajustado ${mi(eb)}`],
         ["Crescimento da receita", cg ? pc(cg.nom, pre ? 0 : 1) + " a.a." : "—", cg ? `${pc(cg.real, pre ? 0 : 1)} acima da inflação` : ""], ["Dívida líquida / EBITDA", xx(div(X.dl, eb)), pre ? "" : `dívida líquida ${mi(X.dl)}`]);
-      an.forEach(a => serie.push({ano:String(a.ano), rl:pre ? Math.round(a.rl / 1e6) * 1e6 : a.rl, eb:pre ? Math.round(a.eb / 1e6) * 1e6 : a.eb}));
-      if (cg && an.length > 1) destaques.push(`Receita cresceu ${pc(cg.nom)} ao ano entre ${an[0].ano} e ${an[an.length - 1].ano}, ${pc(cg.real)} acima da inflação.`);
-      const best = Object.entries(X.histL).filter(([, h]) => h).sort((a, b) => b[1].real - a[1].real)[0]; if (best && best[1].real > 0) destaques.push(`${best[0]}: crescimento real de ${pc(best[1].real)} ao ano.`);
-      if (C?.mg) destaques.push(`Margem EBITDA de ${pc(div(eb, rl))}${X.mgHist > C.mg.med ? `, acima da mediana das companhias abertas do setor (${pc(C.mg.med)})` : ""}.`);
+      an.forEach(a => serie.push({ano:String(a.ano), rl:pre ? Math.round(a.rl / 1e6) * 1e6 : a.rl, eb:pre ? Math.round(a.eb / 1e6) * 1e6 : a.eb, mg:div(a.eb, a.rl)}));
+      if (cg && an.length > 1) destaques.push(`Receita cresceu ${pc(cg.nom, dc)} ao ano entre ${an[0].ano} e ${an[an.length - 1].ano}, ${pc(cg.real, dc)} acima da inflação.`);
+      const best = Object.entries(X.histL).filter(([, h]) => h).sort((a, b) => b[1].real - a[1].real)[0]; if (best && best[1].real > 0 && Object.keys(X.histL).length > 1) destaques.push(`${best[0]}: crescimento real de ${pc(best[1].real, dc)} ao ano.`);
+      if (C?.mg) destaques.push(`Margem EBITDA de ${pc(div(eb, rl), dc)}${X.mgHist > C.mg.med ? `, acima da mediana das companhias abertas do setor (${pc(C.mg.med)})` : ""}.`);
       const r = div(X.dl, eb); if (r != null && r < 2) destaques.push(`Endividamento moderado: dívida líquida de ${xx(r)} o EBITDA.`);
       X.H.comp.forEach(g => { const a = g[g.length - 2], b = g[g.length - 1], v = b.rl / a.rl - 1; if (v > 0) destaques.push(`Receita dos ${b.meses} meses até ${String(b.mes).padStart(2, "0")}/${b.ano} ${pc(v)} acima do mesmo período de ${a.ano}.`); });
       if (C?.eb) mercado.push(`Companhias abertas de ${seg.toLowerCase()} e setores semelhantes negociam a ${xx(C.eb.med)} o EBITDA (mediana de ${C.eb.n} companhias).`);
@@ -37,7 +38,24 @@ if (window.KT_DD && window.KT_VAL) (() => {
     const noticias = ((S.mercado?.noticias_seg || {})[seg] || []).filter(n => POS.test(n.titulo)).slice(0, pre ? 3 : 6);
     const materiais = pre ? [] : S.evidences.filter(e => e.supplierId === s.id && /apresenta|release|institucional|teaser|comunicado/i.test(e.tipo + " " + (e.nome || ""))).map(e => `${e.tipo}${e.nome ? ": " + e.nome : ""}`);
     const valor = !pre && t.mostrarValor && R ? `Faixa indicativa (cenário moderado): enterprise value de ${mi(R.rec[0])} a ${mi(R.rec[1])}; equity value de ${mi(R.rec[0] - X.dl)} a ${mi(R.rec[1] - X.dl)}, líquido da dívida de ${mi(X.dl)}.` : "";
-    return {codinome, subtitulo, transacao, kpis, serie, destaques:[...new Set(destaques)].slice(0, 8), mercado, linhas, noticias, materiais, dd, valor, descricao:pre ? (t.descricaoPre || "") : (p.descricao || ""), pesquisa:pre ? "" : [t.pesquisa, t.regiao].filter(Boolean).join("\n\n")};
+    /* estrutura do teaser Kinsey: sumário, companhia, operações, portfólio, destaques financeiros, tese, transação e próximos passos */
+    const rg = regiao(s.uf), fat = X && !X.vazio ? (pre ? "~" + mi(arred(X.bp.rl), 0) : mi(X.bp.rl)) : "";
+    const sumario = [pre ? `Empresa de ${seg.toLowerCase() || "serviços"}${rg ? " com sede na região " + rg : ""}${dec ? ", " + dec : ""}${fat ? `, com receita líquida de ${fat} em ${X.y0}` : ""}${X && !X.vazio ? ` e margem EBITDA ajustada de ${pc(div(X.bp.eb, X.bp.rl), dc)}` : ""}.` : (p.descricao || `${s.nome}: ${seg}.`),
+      s.mandato?.participacao ? `Os acionistas avaliam a venda de ${s.mandato.participacao} do capital.` : "Os acionistas avaliam a entrada de um investidor estratégico ou financeiro.", "A Kinsey Capital é a assessora exclusiva da transação."].join(" ");
+    const companhia = [["Fundação", p.fundacao ? (pre ? dec.replace("fundada nos ", "") : String(p.fundacao)) : "—"], ["Sede", pre ? (rg ? "Região " + rg : "—") : [s.municipio, s.uf].filter(Boolean).join("/") || "—"], ["Setor", seg || "—"], ...(pre ? [] : [["Atuação", p.atuacao || "—"]]), ["Colaboradores", p.funcionarios ? (pre ? "~" + (Math.round(+p.funcionarios / 50) * 50 || p.funcionarios) : p.funcionarios) : "—"]];
+    const operacoes = [p.atuacao && !pre ? `Atuação: ${p.atuacao}.` : "", p.clientes && !/a levantar/i.test(p.clientes) ? `Clientes: ${p.clientes}.` : "", p.sazonalidade && !/a levantar/i.test(p.sazonalidade) ? `Sazonalidade: ${p.sazonalidade}.` : "", ...(t.operacoes || "").split("\n").map(x => x.trim())].filter(Boolean);
+    const tese = []; if (X && !X.vazio){ const cg = X.total, r = div(X.dl, X.bp.eb);
+      if (cg?.real > .05) tese.push(`Crescimento acima do mercado: ${pc(cg.real, dc)} ao ano acima da inflação no período analisado.`);
+      if (C?.mg && X.mgHist > C.mg.med) tese.push(`Rentabilidade superior aos pares: margem EBITDA de ${pc(div(X.bp.eb, X.bp.rl), dc)} contra ${pc(C.mg.med, dc)} das companhias abertas do setor.`);
+      if (r != null && r < 1.5) tese.push(`Balanço leve: dívida líquida de ${xx(r)} o EBITDA, com capacidade para alavancar a expansão.`);
+      tese.push(`Plataforma para consolidação em ${seg.toLowerCase() || "seu setor"}: base de clientes, operação e equipe prontas para receber aquisições complementares.`);
+      if (C?.eb) tese.push(`Referência de mercado: companhias comparáveis negociam a ${xx(C.eb.med)} o EBITDA.`); }
+    (t.tese || "").split("\n").map(x => x.trim()).filter(Boolean).forEach(x => tese.unshift(x));
+    const passos = pre ? ["Assinatura do acordo de confidencialidade (NDA)", "Envio da apresentação completa e do information memorandum", "Reunião com os acionistas e a administração", "Proposta não vinculante (NBO)", "Due diligence e proposta vinculante", "Negociação dos documentos definitivos (SPA) e fechamento"] : ["Reunião com os acionistas e a administração", "Acesso ao data room", "Proposta não vinculante (NBO) com faixa de valor e estrutura", "Due diligence confirmatória", "Proposta vinculante, SPA e fechamento"];
+    const mat = t.material || null, site = s.ext?.site || t.site || null;
+    const pares = (C?.ok || []).filter(c => c.evEb > 0 && c.evEb < 60).sort((a, b) => b.evEb - a.evEb).slice(0, 10).map(c => ({nome:c.nome, evEb:c.evEb, mg:c.mg}));
+    const instit = pre ? [] : [...(mat?.resumo || []), ...(site?.resumo || [])].filter(Boolean).slice(0, 8);
+    return {sumario, companhia, operacoes, tese, passos, pares, instit, mat, site, codinome, subtitulo, transacao, kpis, serie, destaques:[...new Set(destaques)].slice(0, 8), mercado, linhas, noticias, materiais, dd, valor, descricao:pre ? (t.descricaoPre || "") : (p.descricao || ""), pesquisa:pre ? "" : [t.pesquisa, t.regiao].filter(Boolean).join("\n\n")};
   }
 
   /* ---------------- gráficos em SVG (tela) ---------------- */
@@ -91,7 +109,9 @@ if (window.KT_DD && window.KT_VAL) (() => {
     </div></div>`;
     sd.bind(host);
     $$("[data-tz]", host).forEach(b => b.onclick = () => { S.tzFase = b.dataset.tz; renderView(); });
-    $$("[data-tzr]", host).forEach(b => b.onclick = () => KT_REL.teaser(s, S.tzFase, b.dataset.tzr).catch(e => { console.error(e); toast("Não foi possível gerar o arquivo."); }));
+    $$("[data-tzr]", host).forEach(b => b.onclick = () => b.dataset.tzr === "pdf" && window.KT_GRAF ? KT_GRAF.modo((S.tzFase === "pre" ? "Teaser · " : "Apresentação pós-NDA · ") + (S.tzFase === "pre" ? conteudo(s, "pre").codinome : s.nome), md => KT_REL.teaser(s, S.tzFase, "pdf", md)) : KT_REL.teaser(s, S.tzFase, b.dataset.tzr).catch(e => { console.error(e); toast("Não foi possível gerar o arquivo."); }));
+    const mt = $("#tz-mat", host); if (mt) mt.onchange = () => mt.files[0] && importarMaterial(s, mt.files[0]);
+    const st = $("#tz-site", host); if (st) st.onclick = () => lerSite(s, $("#tz-url", host).value);
     const f = $("#ftz", host); if (f) f.onsubmit = e => { e.preventDefault(); const v = id => $("#" + id).value.trim();
       D.up(s, {teaser:{destaques:v("tz-d"), setor:v("tz-s"), pesquisa:v("tz-p"), regiao:v("tz-r"), descricaoPre:v("tz-dp"), mostrarValor:$("#tz-v").checked, em:nowISO(), por:Store.me?.email || ""}}).then(() => toast("Conteúdo da apresentação salvo")); };
   };
@@ -104,7 +124,22 @@ if (window.KT_DD && window.KT_VAL) (() => {
       <div class="fld full"><label for="tz-p">Pesquisa sobre a empresa (depois do NDA): site, imprensa, prêmios, clientes</label><textarea id="tz-p" rows="4" ${ed}>${esc(t.pesquisa || "")}</textarea></div>
       <div class="fld full"><label for="tz-r">Região onde a empresa opera (depois do NDA)</label><textarea id="tz-r" rows="3" ${ed}>${esc(t.regiao || "")}</textarea></div>
       <label class="check"><input type="checkbox" id="tz-v" ${t.mostrarValor ? "checked" : ""} ${ed}> Mostrar a faixa indicativa de valor (moderada) na apresentação pós-NDA</label></div>
-      ${D.ed() ? `<button type="submit" class="btn primary" style="align-self:flex-start">Salvar conteúdo</button>` : ""}</form>`;
+      ${D.ed() ? `<button type="submit" class="btn primary" style="align-self:flex-start">Salvar conteúdo</button>` : ""}</form>
+      <div class="card" style="display:flex;flex-direction:column;gap:10px"><h3>Material institucional e site da empresa</h3><p class="sub" style="margin:0">Importe o release, a apresentação institucional ou o folder (PDF, PPTX ou DOCX): o sistema extrai a descrição, os números e os destaques para a apresentação pós-NDA. O site da empresa é lido na versão publicada (título, descrição, quem somos, produtos e clientes).</p>
+        ${t.material ? `<div class="banner" style="display:flex;flex-direction:column;gap:4px"><b>${esc(t.material.arquivo)}</b> · importado em ${dt(t.material.em)}${(t.material.resumo || []).slice(0, 4).map(x => `<span style="font-size:13px">• ${esc(x)}</span>`).join("")}</div>` : ""}
+        ${s.ext?.site || t.site ? `<div class="banner" style="display:flex;flex-direction:column;gap:4px"><b>Site: ${esc((s.ext?.site || t.site).url || "")}</b>${((s.ext?.site || t.site).resumo || []).slice(0, 4).map(x => `<span style="font-size:13px">• ${esc(x)}</span>`).join("")}</div>` : ""}
+        ${D.ed() ? `<div class="form"><div class="fld full"><label for="tz-url">Site da empresa</label><input id="tz-url" placeholder="https://www.empresa.com.br" value="${esc((s.ext?.site || t.site)?.url || s.mapa?.site || "")}"></div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><label class="btn sm primary">Importar release ou apresentação<input type="file" id="tz-mat" accept=".pdf,.pptx,.docx,.txt" hidden></label><button type="button" class="btn sm" id="tz-site">Ler o site</button></div>` : ""}</div>`;
   }
-  window.KT_TEASER = {conteudo};
+  /* extrai do material institucional: descrição, números e destaques */
+  function resumir(txt){ const L = String(txt || "").replace(/\r/g, "").split(/\n+|(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚ])/).map(x => x.replace(/\s+/g, " ").trim()).filter(x => x.length >= 40 && x.length <= 260 && !/https?:|@|cnpj|telefone|whatsapp|copyright|todos os direitos/i.test(x));
+    const num = L.filter(x => /\d/.test(x) && /(clientes?|unidades|lojas|colaboradores|funcion|anos|estados|cidades|toneladas|m²|milh|bilh|%|faturamento|receita|crescimento|frota|filiais|pa[ií]ses)/i.test(x));
+    return [...new Set([...L.slice(0, 2), ...num])].slice(0, 10); }
+  async function importarMaterial(s, f){ try{ const tx = await KT_AUTO.texto(f), r = resumir(tx); if (!r.length){ toast("Não encontrei texto aproveitável no arquivo."); return; }
+      await D.up(s, {teaser:{material:{arquivo:f.name, em:nowISO(), resumo:r, texto:String(tx).slice(0, 30000)}}}); toast(`Material importado: ${r.length} trecho(s) para a apresentação`); }
+    catch(e){ console.error(e); toast("Não foi possível ler o arquivo."); } }
+  async function lerSite(s, url){ url = String(url || "").trim(); if (!url){ toast("Informe o endereço do site."); return; } if (!/^https?:\/\//.test(url)) url = "https://" + url;
+    if (!(window.firebase?.functions && Store.db)){ await D.up(s, {teaser:{site:{url, em:nowISO(), resumo:[]}}}); toast("Site guardado. A leitura automática roda na versão publicada; aqui, cole os trechos em “Pesquisa sobre a empresa”."); return; }
+    try{ toast("Lendo o site…"); await firebase.app().functions("southamerica-east1").httpsCallable("lerSite", {timeout:60000})({id:s.id, url}); toast("Site lido: veja o resumo abaixo"); }catch(e){ toast("Não consegui ler o site: " + (e.message || "erro")); } }
+  window.KT_TEASER = {conteudo, resumir, importarMaterial, lerSite};
 })();

@@ -80,6 +80,10 @@ function KTPdf(){
     page(){ ops = []; pages.push(ops); y = M + 18; return api; },
     text(x, yy, s, sz=9.5, b=false, c=[27,36,51]){ ops.push(`BT /${b ? "F2" : "F1"} ${sz} Tf ${rgb(c)} rg ${x.toFixed(2)} ${(H - yy).toFixed(2)} Td (${esc(s)}) Tj ET`); },
     rect(x, yy, w, h, c){ ops.push(`${rgb(c)} rg ${x.toFixed(2)} ${(H - yy - h).toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)} re f`); },
+    poly(pts, c){ if (pts.length < 3) return; ops.push(`${rgb(c)} rg ${pts.map(([px, py], i) => `${px.toFixed(2)} ${(H - py).toFixed(2)} ${i ? "l" : "m"}`).join(" ")} h f`); },
+    pie(cx, cy, r, a0, a1, c, r0=0){ const n = Math.max(2, Math.ceil(Math.abs(a1 - a0) / .06)), P1 = [], P2 = [];
+      for (let k = 0; k <= n; k++){ const a = a0 + (a1 - a0) * k / n; P1.push([cx + r * Math.sin(a), cy - r * Math.cos(a)]); if (r0) P2.unshift([cx + r0 * Math.sin(a), cy - r0 * Math.cos(a)]); }
+      api.poly(r0 ? [...P1, ...P2] : [[cx, cy], ...P1], c); },
     line(x1, y1, x2, y2, c=[213,220,230], lw=.6){ ops.push(`${rgb(c)} RG ${lw} w ${x1.toFixed(2)} ${(H - y1).toFixed(2)} m ${x2.toFixed(2)} ${(H - y2).toFixed(2)} l S`); },
     wrap(s, sz, b, mw){ const out = []; String(s ?? "").split("\n").forEach(par => { let cur = ""; par.split(/\s+/).filter(Boolean).forEach(w => {
         while (wid(w, sz, b) > mw){ let i = w.length; while (i > 1 && wid(w.slice(0, i), sz, b) > mw) i--; if (cur){ out.push(cur); cur = ""; } out.push(w.slice(0, i)); w = w.slice(i); }

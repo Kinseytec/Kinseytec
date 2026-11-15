@@ -175,7 +175,7 @@ if (window.KT_DD) (() => {
     $$("[data-jev]", host).forEach(b => b.onclick = () => openEvidenceForm(s.id, /contrat/i.test(b.dataset.jev) ? "Contrato" : "Outro"));
     if (typeof bindEvCards === "function" && S.jddTab === "evid") bindEvCards(host);
     const adv = $("#j-adv", host); if (adv) adv.onchange = () => up({adv:adv.value.trim()});
-    const pdf = $("#j-pdf", host); if (pdf) pdf.onclick = () => relatorio(s).catch(e => { console.error(e); toast("Não foi possível gerar o PDF."); });
+    const pdf = $("#j-pdf", host); if (pdf) pdf.onclick = () => window.KT_GRAF ? KT_GRAF.modo("Diligência jurídica · " + s.nome, md => relatorio(s, md)) : relatorio(s).catch(e => { console.error(e); toast("Não foi possível gerar o PDF."); });
   }
   function formContrato(s, id){
     const c = id ? contratos(s).find(x => x.id === id) : {}, evs = S.evidences.filter(e => e.supplierId === s.id);
@@ -214,11 +214,16 @@ if (window.KT_DD) (() => {
   }
 
   /* ---------------- RELATÓRIO ---------------- */
-  async function relatorio(s){
+  async function relatorio(s, modo = "completo"){
     const Rl = KT_REL, P = KTPdf(), j = s.jdd || {}, q = j.q || {}, C = contratos(s).filter(c => noPeriodo(s, c)), cg = contingencias(s), R = recomendacoes(s), pend = QS.filter(x => !q[x.id]?.v).length;
     Rl.capa(P, "Relatório de diligência jurídica" + (pend ? " · versão preliminar" : ""), s.nome, [["Período analisado", `contratos dos últimos ${anos(s)} anos e vigentes`], ["Visão", s.lado === "compra" ? "Kinsey assessora do comprador" : "Kinsey assessora do vendedor"], ["Advogado responsável", j.adv || "a definir"], ["Emitido em", new Date().toLocaleDateString("pt-BR")]]);
     Rl.sec(P, 1, "Sumário e recomendações"); Rl.kpisPdf(P, [["Pontos de risco", String(QS.filter(x => x.risco && q[x.id]?.v === x.risco).length), `${QS.length - pend} de ${QS.length} respostas`], ["Contratos analisados", String(C.length), `${C.filter(c => c.flags.coc).length} com mudança de controle`], ["Contingência provável", mi(cg.provavel), `possível ${mi(cg.possivel)}`]]);
+    const G = window.KT_GRAF; if (G && cg.n){ G.rosca(P, "Processos por prognóstico (valor em discussão)", [{l:"Provável", v:cg.provavel, c:G.VERM}, {l:"Possível", v:cg.possivel, c:G.GOLD}, {l:"Remota", v:cg.remota, c:G.VERDE}], v => mi(v, 1), [String(cg.n), "processos"]);
+      G.barrasH(P, "Valor em discussão por área", Object.entries(cg.area).map(([a, v]) => ({l:a, v:v.provavel + v.possivel + v.remota, txt:`${mi(v.provavel + v.possivel + v.remota, 1)} · ${v.n} proc.`})), v => mi(v, 1)); }
+    if (G){ const resp = QS.filter(x => q[x.id]?.v), risco = QS.filter(x => x.risco && q[x.id]?.v === x.risco).length; G.barrasH(P, "Questionário jurídico", [{l:"Respondidas", v:resp.length, txt:`${resp.length} de ${QS.length}`, c:G.ACC}, {l:"Com ponto de risco", v:risco, txt:String(risco), c:G.VERM}, {l:"Pendentes", v:pend, txt:String(pend), c:G.CINZA}], v => String(v)); }
     P.h2("Recomendações para o contrato"); R.length ? R.forEach((x, i) => Rl.par(P, `${i + 1}. ${x}`, {size:9.5})) : Rl.par(P, "Sem recomendações registradas.");
+    if (modo === "resumo"){ P.y += 20; P.ensure(50); P.line(P.M, P.y + 20, P.M + 240, P.y + 20, [1,31,75], .6); P.text(P.M, P.y + 32, Rl.T(j.adv || "Advogado responsável (OAB)"), 9, false, [90,101,120]);
+      await rptSave(P.out(`Diligência jurídica (resumo) · ${s.nome}`, Rl.T(`Kinsey Capital · Diligência jurídica (resumo) · ${s.nome} · confidencial`)), Rl.arq(s, "diligencia_juridica_resumo", "pdf"), "application/pdf"); return; }
     Rl.sec(P, 2, "Questionário de diligência jurídica"); JQ.forEach(g => { P.h2(Rl.T(g.g)); Rl.tab(P, ["Pergunta", "Resposta", "Observação"], g.items.map(([id, t, rk]) => { const c = q[id] || {}; return [t, {t:{sim:"Sim", nao:"Não", na:"N/A"}[c.v] || "Pendente", b:rk && c.v === rk, c:rk && c.v === rk ? [198,40,40] : undefined}, c.n || ""]; }), [.58, .12, .3]); });
     Rl.sec(P, 3, `Contratos (últimos ${anos(s)} anos)`); C.length ? Rl.tab(P, ["Contraparte", "Tipo", "Vigência", "Cláusulas críticas"], C.map(c => [c.contraparte, c.tipo, `${c.assinatura || "-"} a ${c.fim || "indet."}`, FLAGS.filter(([k]) => c.flags[k]).map(f => f[1]).join(", ") || "-"]), [.3, .18, .2, .32]) : Rl.par(P, "Nenhum contrato registrado.");
     Rl.sec(P, 4, "Processos e contingências"); Rl.tab(P, ["Área", "Provável", "Possível", "Remota", "Processos"], Object.entries(cg.area).map(([a, v]) => [a, mi(v.provavel), mi(v.possivel), mi(v.remota), String(v.n)]), [.28, .18, .18, .18, .18]);

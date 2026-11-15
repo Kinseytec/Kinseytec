@@ -54,7 +54,11 @@ if (window.KT_DD) (() => {
         ["nome","cnae","fat","func","uf","cid","site"].forEach(k => { if (!o[k] && c[k] >= 0 && r[c[k]]) o[k] = String(r[c[k]]).trim(); });
         const p = {nome:c.socio >= 0 ? String(r[c.socio] || "").trim() : "", cargo:c.cargo >= 0 ? String(r[c.cargo] || "").trim() : "", email:c.mail.map(k => r[k]).filter(Boolean).join(", "), cel:c.cel.map(k => r[k]).filter(Boolean).join(", ")};
         if (p.nome || p.email || p.cel) o.pessoas.push(p); });
-      const L = Object.values(reg), exist = L.filter(o => S.suppliers.some(s => dig(s.doc) === o.d)), novos = L.filter(o => !S.suppliers.some(s => dig(s.doc) === o.d));
+      revisarLista(fonte, Object.values(reg), invId, f.name); };
+    i.click(); }
+  /* revisão e gravação de uma lista (arquivo exportado ou resposta da API da fonte) */
+  function revisarLista(fonte, L, invId, arq){ const f = {name:arq};
+      const exist = L.filter(o => S.suppliers.some(s => dig(s.doc) === o.d)), novos = L.filter(o => !S.suppliers.some(s => dig(s.doc) === o.d));
       const fora = novos.filter(o => { const v = emMi(o.fat); return v != null && v < MIN; }), dentro = novos.filter(o => !fora.includes(o));
       const inv = invId && supById(invId), N1 = S.suppliers.filter(x => x.nivel === "N1").sort((a, b) => (a.nome || "").localeCompare(b.nome || ""));
       const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Fonte de prospecção · ${esc(fonte)}</div><h2>Importar lista</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
@@ -77,8 +81,7 @@ if (window.KT_DD) (() => {
             enriq:{fat:o.fat, funcionarios:o.func, fontes:enr(o)}, ...(v != null ? {fin:{receita:Math.round(v * 100) / 100, ano:new Date().getFullYear() - 1, fonte:fonte + " (estimado)"}} : {}), ...(iv ? {investidores:[iv]} : {})};
           if (window.KT_MAPA?.coords){ const [lat, lng] = KT_MAPA.coords(base); base.lat = lat; base.lng = lng; }
           await Store.set("suppliers", "e" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), {parentId:"", answers:{}, docs:{}, insp:{}, balanco:{}, invest:{}, criadoEm:agora, ...base}); n++; }
-        close(); toast(`${fonte}: ${exist.length} enriquecida(s), ${n} nova(s)${iv ? " ligada(s) ao investidor" : ""}; consultas dos CNPJs em andamento`); renderAll(); }; };
-    i.click(); }
+        close(); toast(`${fonte}: ${exist.length} enriquecida(s), ${n} nova(s)${iv ? " ligada(s) ao investidor" : ""}; consultas dos CNPJs em andamento`); renderAll(); }; }
 
   /* contatos enriquecidos no dossiê (aba Dados) */
   const _b2 = renderSupBody;
@@ -97,5 +100,5 @@ if (window.KT_DD) (() => {
     const p = it.querySelector("p.sub"); if (p) p.innerHTML = `Importe as listas exportadas do <b>Econodata</b> (empresas, CNAE, faturamento, funcionários, sócios, decisores e e-mails), do <b>Lemitti</b> (celulares dos sócios) ou do <b>Ramper</b>. Quem já está na base é enriquecido pelo CNPJ; os novos entram como prospecção (podendo ser ligados a um investidor) e o sistema consulta cada CNPJ. Política Kinsey: empresas com faturamento ou valuation abaixo de R$ ${MIN} mi ficam fora, salvo escolha.`;
     return r; };
 
-  window.KT_POL = {MIN, politica, emMi, fatMi, importarLista};
+  window.KT_POL = {MIN, politica, emMi, fatMi, importarLista, revisarLista};
 })();

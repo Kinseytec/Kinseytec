@@ -119,6 +119,21 @@ if (window.KT_DD) (() => {
 
   const css = document.createElement("style");
   css.textContent = `
+/* tipografia padronizada no celular: mais informação visível por tela, sem zoom dos campos no iOS */
+@media (max-width:760px){
+  body{font-size:13.5px}
+  .pad{padding-left:12px!important;padding-right:12px!important}
+  .card{padding:12px!important}
+  .card h3,.head h3{font-size:15px!important;line-height:1.3}
+  h2{font-size:18px} .sheet-h h2{font-size:17px!important;line-height:1.25}
+  .sub{font-size:12px} .eyebrow{font-size:9.5px!important;letter-spacing:.1em}
+  .dd-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+  .dd-k{padding:9px 10px!important;min-width:0} .dd-k b{font-size:16px!important;line-height:1.2} .dd-k span{font-size:9.5px!important} .dd-k small{font-size:11px!important}
+  table,.tbl td,td{font-size:12.5px!important} th,td{padding:6px 7px!important} th{font-size:10.5px!important}
+  .btn{font-size:13px} .btn.sm{font-size:12px} .fbtn{font-size:12px!important;padding:6px 10px!important}
+  .banner{font-size:12.5px} label{font-size:12px} .fld .hint{font-size:11px}
+  input,select,textarea{font-size:16px}
+}
 .dos-res{display:flex;flex-wrap:wrap;gap:6px;padding:8px 18px;border-bottom:1px solid var(--line);flex-shrink:0}
 .dos-res span{font-size:11.5px;border:1px solid var(--line-2);border-radius:999px;padding:3px 9px;color:var(--fog);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .dos-res span b{color:var(--muted);font-weight:600;margin-right:4px}

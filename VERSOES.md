@@ -1,5 +1,14 @@
 # Registro de versões
 
+## v2.21 — 2026-11-15 · Relatórios com gráficos (resumo ou completo), teaser robusto, indicações e prospecção
+- Todas as áreas emitem "Resumo para apresentação" ou "Relatório completo": due diligence, valuation, diligência jurídica, PPA e teaser (one-pager ou completo)
+- Gráficos vetoriais nos PDFs, com todos os valores escritos: rosca (alocação do PPA, exposições por área, processos por prognóstico), cascata (ponte do EBITDA, EV → equity, dívida líquida, PL → consideração), barras horizontais (exposições, comparáveis com o múltiplo do target, WARA × WACC, custo de capital), colunas com linha de margem e mapa de calor da sensibilidade do EV ao WACC
+- Teaser na estrutura Kinsey: capa, sumário executivo, companhia, operações, portfólio, destaques financeiros (evolução com margem), tese, setor e mercado (comparáveis), transação e próximos passos; nome-código automático e números arredondados antes do NDA
+- Teaser: importação do release, apresentação institucional ou folder (PDF, PPTX, DOCX) com extração da descrição, números e destaques; leitura do site da empresa (página inicial e páginas internas) na versão publicada
+- Indicações do sistema: principais targets para cada investidor e investidores para cada target (tese, o que compra, política, temperatura e capacidade), com aquisições recentes e, para investidores internacionais, notícias em inglês e movimentos no Brasil; indicar com um clique e lista para cadência no Ramper
+- Prospecção pelas APIs oficiais do Econodata, Ramper e Lemitti (versão publicada, token no Secret Manager, endereço e campos em config/integracoes); sem API, critérios da tese para filtrar e importar o arquivo exportado
+- Celular: tipografia padronizada (títulos, indicadores em 2 colunas, tabelas e botões menores), sem zoom nos campos
+
 ## v2.20 — 2026-11-15 · Base dos cálculos em Excel, exposições e relatório de due diligence no padrão Kinsey
 - PPA: "Base dos cálculos (Excel)" com 15 abas (resumo, premissas, consideração, carteira de clientes ano a ano, perda de clientes, encargos contributivos, marca, tecnologia, não concorrência, força de trabalho, WARA, amortização, sensibilidade, impairment e checagens), gerada sem bibliotecas externas
 - PPA: perda de clientes calculada pela base de clientes (receita por cliente e ano), por faixa (10% maiores, 40% seguintes, 50% menores), com média ponderada pela receita usada no MPEEM

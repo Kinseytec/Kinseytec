@@ -6,10 +6,19 @@
    consultarEmpresa: ao cadastrar ou mudar o CNPJ de um investidor (N1) ou target (N3), e sob pedido do usuário:
                   CVM (companhia aberta e setor), B3 e DFP (pela base de comparáveis), cotação pública e notícias
                   (do N1, também as de aquisições) → suppliers/{id}.ext
-   Fontes públicas; o único dado enviado para fora é o nome da empresa na busca de notícias. */
+   lerSite      : lê o site da empresa (página inicial e até 3 páginas internas: quem somos, produtos, clientes) e guarda
+                  título, descrição e trechos com números em suppliers/{id}.ext.site, para o teaser pós-NDA
+   prospeccao   : busca e enriquecimento de empresas nas bases contratadas (Econodata, Ramper, Lemitti) pela API oficial
+                  de cada uma, com o token guardado no Secret Manager (ECONODATA_TOKEN, RAMPER_TOKEN, LEMITTI_TOKEN). Endereço,
+                  cabeçalho e mapeamento dos campos ficam em config/integracoes (preenchidos pelo administrador a partir da
+                  documentação entregue pela fonte). Nenhuma senha de usuário é usada ou guardada.
+   Fontes públicas; o único dado enviado para fora é o nome da empresa na busca de notícias. Nas bases contratadas, só os
+   filtros da busca (CNAE, UF, faixa de faturamento) ou os CNPJs a enriquecer. */
 "use strict";
 const {onDocumentWritten} = require("firebase-functions/v2/firestore");
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
+const {defineSecret} = require("firebase-functions/params");
+const TOKENS = {econodata:defineSecret("ECONODATA_TOKEN"), ramper:defineSecret("RAMPER_TOKEN"), lemitti:defineSecret("LEMITTI_TOKEN")};
 module.exports = ({db, logger, onSchedule, F}) => {
   const SGS = (s, q = "ultimos/1") => `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${s}/dados/${q}?formato=json`;
   const num = v => { const n = parseFloat(String(v).replace(",", ".")); return isFinite(n) ? n : null; };
@@ -27,8 +36,8 @@ module.exports = ({db, logger, onSchedule, F}) => {
     const x = await (await F.pega(`https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value_month=${ym}`)).text();
     const v = [...x.matchAll(/<d:BC_10YEAR[^>]*>([\d.]+)</g)].map(m => +m[1]); return v.length ? v[v.length - 1] : null;
   }
-  async function rss(q, n = 8){
-    const x = await (await F.pega(`https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=pt-BR&gl=BR&ceid=BR:pt-419`)).text();
+  async function rss(q, n = 8, en = false){
+    const x = await (await F.pega(`https://news.google.com/rss/search?q=${encodeURIComponent(q)}&${en ? "hl=en-US&gl=US&ceid=US:en" : "hl=pt-BR&gl=BR&ceid=BR:pt-419"}`)).text();
     return [...x.matchAll(/<item>([\s\S]*?)<\/item>/g)].slice(0, n).map(m => { const g = t => (m[1].match(new RegExp(`<${t}[^>]*>([\\s\\S]*?)</${t}>`)) || [])[1] || "";
       const titulo = F.txt(g("title").replace(/<!\[CDATA\[|\]\]>/g, "")), fonte = F.txt(g("source")); return {titulo:titulo.replace(new RegExp(" - " + fonte.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$"), ""), url:F.txt(g("link")), fonte, data:new Date(g("pubDate")).toISOString().slice(0, 10)}; });
   }
@@ -102,9 +111,48 @@ module.exports = ({db, logger, onSchedule, F}) => {
     if (nome.length >= 3 && !/^EXEMPLO/i.test(s.nome || "")){
       ext.noticias = (await tenta("noticias", () => rss(`"${nome}"`, 8))) || [];
       if (s.nivel === "N1") ext.aquisicoes = (await tenta("aquisicoes", () => rss(`"${nome}" (aquisição OR adquire OR adquiriu OR compra OR incorporação)`, 10))) || [];
+      if (s.nivel === "N1" && s.pais && !/brasil|brazil/i.test(s.pais)){ /* investidor internacional: notícias em inglês e movimentos no Brasil */
+        ext.internacional = {pais:s.pais, aquisicoes:(await tenta("aquisicoes_en", () => rss(`"${nome}" (acquisition OR acquires OR acquired OR "agreed to buy")`, 10, true))) || [],
+          brasil:(await tenta("brasil_en", () => rss(`"${nome}" (Brazil OR Brasil OR "Latin America")`, 6, true))) || []}; }
     }
     if (!ext.erros.length) delete ext.erros;
     await ref.set({ext}, {merge:true}); logger.info("consultarEmpresa", {id, erros:ext.erros || []}); return {ok:true, erros:ext.erros || []};
+  }
+  /* ---------- bases contratadas (Econodata, Ramper, Lemitti) ---------- */
+  const caminho = (o, c) => String(c || "").split(".").filter(Boolean).reduce((a, k) => a == null ? a : a[k], o);
+  const normal = (r, M) => { const g = k => { const c = M?.[k]; if (!c) return ""; const v = Array.isArray(c) ? c.map(x => caminho(r, x)).find(x => x != null && x !== "") : caminho(r, c); return v == null ? "" : v; };
+    const pessoas = (caminho(r, M?.pessoas) || []).slice?.(0, 20).map(p => ({nome:String(caminho(p, M?.pessoaNome || "nome") || ""), cargo:String(caminho(p, M?.pessoaCargo || "cargo") || ""), email:String(caminho(p, M?.pessoaEmail || "email") || ""), cel:String(caminho(p, M?.pessoaCel || "celular") || "")})) || [];
+    return {d:String(g("cnpj")).replace(/\D/g, ""), nome:String(g("nome")), cnae:String(g("cnae")), fat:String(g("fat")), func:String(g("func")), uf:String(g("uf")), cid:String(g("cid")), site:String(g("site")), pessoas}; };
+  async function prospeccao(fonte, modo, filtros, cnpjs){
+    const cfg = ((await db.doc("config/integracoes").get()).data() || {})[fonte], tok = TOKENS[fonte]?.value();
+    if (!tok || /^nao.configurado$/i.test(tok)) throw new HttpsError("failed-precondition", `Token da API ${fonte} não configurado (Secret Manager).`);
+    const url0 = modo === "enriquecer" ? cfg?.urlCnpj : cfg?.urlBusca; if (!url0) throw new HttpsError("failed-precondition", `Endereço da API ${fonte} não configurado em config/integracoes.`);
+    const head = {[cfg.header || "Authorization"]:(cfg.prefixo ?? "Bearer ") + tok, "Content-Type":"application/json", Accept:"application/json"};
+    const pede = async (url, corpo) => { const r = await fetch(url, {method:corpo ? (cfg.metodo || "POST") : "GET", headers:head, body:corpo ? JSON.stringify(corpo) : undefined, signal:AbortSignal.timeout(30000)});
+      if (!r.ok) throw new HttpsError("unavailable", `${fonte} respondeu ${r.status}`); return r.json(); };
+    let lista = [];
+    if (modo === "enriquecer"){ for (const c of (cnpjs || []).slice(0, 200)){ const j = await pede(url0.replace("{cnpj}", String(c).replace(/\D/g, ""))); const x = cfg.lista ? caminho(j, cfg.lista) : j; lista.push(...(Array.isArray(x) ? x : [x])); await new Promise(r => setTimeout(r, cfg.pausaMs ?? 1100)); } }
+    else { const f = filtros || {}, corpo = JSON.parse(JSON.stringify(cfg.corpo || {}).replace(/"\{(\w+)\}"/g, (m, k) => JSON.stringify(f[k] ?? null)));
+      const url = url0.replace(/\{(\w+)\}/g, (m, k) => encodeURIComponent(Array.isArray(f[k]) ? f[k].join(",") : f[k] ?? ""));
+      const j = await pede(url, cfg.metodo === "GET" ? null : corpo); const x = cfg.lista ? caminho(j, cfg.lista) : j; lista = Array.isArray(x) ? x : []; }
+    const out = lista.map(r => normal(r, cfg.campos || {})).filter(o => o.d.length === 14).slice(0, 500);
+    logger.info("prospeccao", {fonte, modo, n:out.length}); return {ok:true, fonte, lista:out};
+  }
+  /* ---------- site da empresa (para o teaser pós-NDA) ---------- */
+  const hostOk = h => /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(h) && !/^(localhost|.*\.local|.*\.internal|metadata\.google\.internal)$/i.test(h) && !/^\d+\.\d+\.\d+\.\d+$/.test(h);
+  const limpaHtml = h => String(h).replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<noscript[\s\S]*?<\/noscript>/gi, " ");
+  async function pagina(url){ const u = new URL(url); if (!/^https?:$/.test(u.protocol) || !hostOk(u.hostname)) throw new HttpsError("invalid-argument", "Endereço inválido.");
+    const r = await fetch(u, {redirect:"follow", signal:AbortSignal.timeout(15000), headers:{"User-Agent":"Mozilla/5.0 (compatible; KinseyTec/1.0)"}}); if (!r.ok) throw new Error("site respondeu " + r.status);
+    const ct = r.headers.get("content-type") || ""; if (!/html/i.test(ct)) throw new Error("conteúdo não é uma página"); return (await r.text()).slice(0, 800000); }
+  async function lerSite(id, url){
+    const h = limpaHtml(await pagina(url)), base = new URL(url), tx = t => F.txt(String(t || "").replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
+    const titulo = tx((h.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1]), descricao = tx((h.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)/i) || [])[1]);
+    const links = [...h.matchAll(/<a[^>]+href=["']([^"'#]+)["'][^>]*>([\s\S]*?)<\/a>/gi)].map(m => ({u:m[1], t:tx(m[2]).toLowerCase()})).filter(l => /(sobre|quem somos|empresa|institucional|hist[oó]ria|about|clientes|solu[cç][oõ]es|produtos|servi[cç]os)/.test(l.t + " " + l.u.toLowerCase()))
+      .map(l => { try{ return new URL(l.u, base).href; }catch(e){ return null; } }).filter(u => u && new URL(u).hostname === base.hostname); const extras = [...new Set(links)].slice(0, 3);
+    let corpo = h; for (const u of extras){ try{ corpo += " " + limpaHtml(await pagina(u)); }catch(e){} }
+    const blocos = [...corpo.matchAll(/<(h1|h2|h3|p|li)[^>]*>([\s\S]*?)<\/\1>/gi)].map(m => tx(m[2])).filter(x => x.length >= 40 && x.length <= 300 && !/cookie|pol[ií]tica de privacidade|todos os direitos|@|whatsapp/i.test(x));
+    const resumo = [...new Set([descricao, ...blocos.filter(x => /\d/.test(x)), ...blocos])].filter(Boolean).slice(0, 10);
+    await db.doc("suppliers/" + id).set({ext:{site:{url, titulo, descricao, resumo, paginas:[url, ...extras], em:new Date().toISOString()}}}, {merge:true}); return {ok:true, n:resumo.length};
   }
   const precisa = s => s && ["N1","N3"].includes(s.nivel) && (!s.ext || s.ext.doc !== String(s.doc || "").replace(/\D/g, "") || s.ext.nome !== (s.nome || "") || Date.now() - new Date(s.ext.em).getTime() > 30 * 864e5);
   return {
@@ -114,6 +162,16 @@ module.exports = ({db, logger, onSchedule, F}) => {
         if (!req.auth || !req.auth.token.email_verified) throw new HttpsError("unauthenticated", "Entre no sistema.");
         const u = await db.doc("users/" + req.auth.uid).get(); if (!u.exists || u.data().role === "fornecedor") throw new HttpsError("permission-denied", "Sem acesso a esta consulta.");
         return consultarEmpresa(String(req.data?.id || "")); }),
+      prospeccao:onCall({memory:"512MiB", timeoutSeconds:300, secrets:Object.values(TOKENS)}, async req => {
+        if (!req.auth || !req.auth.token.email_verified) throw new HttpsError("unauthenticated", "Entre no sistema.");
+        const u = await db.doc("users/" + req.auth.uid).get(); if (!u.exists || !["admin", "editor", "colaborador"].includes(u.data().role)) throw new HttpsError("permission-denied", "Sem acesso às bases de prospecção.");
+        const {fonte, modo, filtros, cnpjs} = req.data || {}; if (!TOKENS[fonte]) throw new HttpsError("invalid-argument", "Fonte desconhecida.");
+        return prospeccao(fonte, modo === "enriquecer" ? "enriquecer" : "buscar", filtros, cnpjs); }),
+      lerSite:onCall({memory:"512MiB", timeoutSeconds:60}, async req => {
+        if (!req.auth || !req.auth.token.email_verified) throw new HttpsError("unauthenticated", "Entre no sistema.");
+        const u = await db.doc("users/" + req.auth.uid).get(); if (!u.exists || !["admin", "editor", "colaborador"].includes(u.data().role)) throw new HttpsError("permission-denied", "Sem acesso.");
+        const {id, url} = req.data || {}; if (!id || !url) throw new HttpsError("invalid-argument", "Informe a empresa e o site.");
+        try{ return await lerSite(String(id), String(url)); }catch(e){ if (e instanceof HttpsError) throw e; throw new HttpsError("unavailable", e.message || "site indisponível"); } }),
       mercado:onSchedule({schedule:"40 7 * * *", timeZone:"America/Sao_Paulo", memory:"512MiB", timeoutSeconds:300}, () => gravarMercado()),
       comparaveis:onSchedule({schedule:"20 6 5 * *", timeZone:"America/Sao_Paulo", memory:"2GiB", timeoutSeconds:540}, () => gravarComparaveis())
     },

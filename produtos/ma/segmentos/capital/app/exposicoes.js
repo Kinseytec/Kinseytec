@@ -58,13 +58,32 @@ if (window.KT_DD) (() => {
   }
 
   /* ---------------- RELATÓRIO DE DUE DILIGENCE (estrutura Kinsey) ---------------- */
-  async function ddPdf(s, per){
+  async function ddPdf(s, per, modo = "completo"){
     const R = KT_REL, {T, capa, par, tab, kpisPdf} = R, P = KTPdf(), b = s.dd.bal[per], K = D.calc(b), AJ = D.ajustes(s, per), A = D.soma(AJ.filter(D.okFin)), I = D.indic(K, A), L = R.papeis(s, per);
     const prelim = L.some(p => p.tipo === "Mínimo do consultor" && p.st === "pendente") || AJ.some(D.pendFin), pj = s.projeto || {}, pd = pj.periodo || {}, ate = anoDB(s, per);
     const cliente = (s.investidores || []).map(i => supById(i)?.nome).filter(Boolean)[0] || "Cliente", cod = s.mandato?.codinome || s.nome, nRel = `${String(Date.now()).slice(-4)}-${new Date().getFullYear()}`;
     const br = d => d ? String(d).slice(0, 10).split("-").reverse().join("/") : "—", n2 = (v, x = 1e3) => v == null ? "—" : fmt(Math.round(v / x) || 0, 0);
     let ns = 0; const sec = t => { ns++; P.page(); P.h1(ns, T(t)); }, sub = t => { P.ensure(90); P.h2(T(t)); };
     capa(P, "Serviços de Due Diligence" + (prelim ? " · versão preliminar" : ""), s.nome, [["Cliente", cliente], ["Projeto", cod], ["Data-base", br(b.dataBase)], ["Relatório", `nº ${nRel}`], ["Emitido em", new Date().toLocaleDateString("pt-BR")]]);
+    const G = window.KT_GRAF, EXg = lista(s).map(e => ({e, c:calc(e, ate)})), porArea = {}; EXg.forEach(({e, c}) => { porArea[AREA[e.area] || e.area] = (porArea[AREA[e.area] || e.area] || 0) + (c.max || 0); });
+    const pontePer = q => [{l:"EBITDA reportado", v:q.k.ebitda, tipo:"base"}, ...q.ok.filter(a => Math.abs(D.soma([a]).ebitda) > 1).map(a => ({l:a.titulo, v:D.soma([a]).ebitda, tipo:"delta"})), {l:"EBITDA ajustado", v:q.k.ebitda + q.a.ebitda, tipo:"total"}];
+    const graf = Q => { if (!G) return;
+      if (EXg.length){ G.rosca(P, "Exposição máxima por área (MR$)", Object.entries(porArea).map(([l, v]) => ({l, v})), v => n2(v), [n2(EXg.reduce((a, x) => a + (x.c.max || 0), 0)), "MR$ máximo"]);
+        G.barrasH(P, "Exposições por item · mínimo e máximo (MR$)", EXg.filter(x => x.c.max).map(({e, c}) => ({l:e.titulo, v:c.max, txt:`${fmtMil(c.min)} a ${fmtMil(c.max)}`, c:e.aval === "provavel" ? G.VERM : e.aval === "possivel" ? G.GOLD : G.VERDE})), v => n2(v)); }
+      const ul = Q[Q.length - 1]; if (ul) G.cascata(P, `Ponte do EBITDA · ${ul.rot}`, pontePer(ul), v => mi(v, 1)); };
+    if (modo === "resumo"){
+      const pers0 = [...D.periodos(s).filter(p => /-12$/.test(p)).slice(-(pd.contabil || 3)), per].filter((x, i, a) => a.indexOf(x) === i).sort(), Q0 = pers0.map(p => { const bb = s.dd.bal[p], k = D.calc(bb), aj = D.ajustes(s, p), ok = aj.filter(D.okFin); return {p, k, ok, a:D.soma(ok), rot:p.slice(5) === "12" ? `Dez/${p.slice(2, 4)}` : `${p.slice(5)}/${p.slice(2, 4)}`}; });
+      sec("Sumário executivo");
+      par(P, `Due diligence ${prelim ? "preliminar " : ""}de ${s.nome} para ${cliente}: período fiscal e trabalhista de ${pd.fiscalDe ? br(pd.fiscalDe) + " a " + br(pd.fiscalAte) : "5 anos"} e saldos contábeis até ${br(b.dataBase)}.`, {size:10});
+      const tt0 = k => EXg.reduce((a, x) => a + (x.c[k] || 0), 0);
+      kpisPdf(P, [["Exposição mínima", `MR$ ${n2(tt0("min"))}`, `${EXg.length} itens`], ["Exposição máxima", `MR$ ${n2(tt0("max"))}`, "multa de ofício 75%"], ["EBITDA ajustado", mi(I.ebitda), `reportado ${mi(K.ebitda)}`], ["Dívida líquida ajustada", mi(I.dl), `reportada ${mi(K.dl)}`]]);
+      graf(Q0);
+      if (G) G.colunas(P, "EBITDA reportado × ajustado e margem ajustada", Q0.map(q => q.rot), [{n:"Reportado", v:Q0.map(q => q.k.ebitda), c:G.CINZA}, {n:"Ajustado", v:Q0.map(q => q.k.ebitda + q.a.ebitda), c:G.ACC}], v => mi(v, 1), {n:"Margem ajustada", v:Q0.map(q => (q.k.ebitda + q.a.ebitda) / (q.k.recLiq || 1))});
+      sec("Principais pontos e recomendações");
+      tab(P, ["Riscos e contingências (MR$)", "Mínimo", "Máximo", "Avaliação"], EXg.map(({e, c}, i) => [`${i + 1}. ${e.titulo}`, fmtMil(c.min), fmtMil(c.max), AVAL[e.aval] || "NQ"]), [.58, .14, .14, .14]);
+      const ach0 = L.filter(p => p.st === "achado").slice(0, 10); if (ach0.length){ P.h2("Achados dos procedimentos"); ach0.forEach(p => par(P, `• ${D.areaNome(p.area)} · ${p.titulo}: ${p.resultado}`, {size:9})); }
+      par(P, "Resumo para apresentação. O relatório completo traz carta, limitações, decadência, grupo econômico, balanço reclassificado, capital de giro, dívida líquida, procedimentos por área e equipe.", {size:8.5, color:[90,101,120]});
+      await rptSave(P.out(`Due Diligence (resumo) · ${s.nome}`, T(`Kinsey · Due Diligence (resumo) · ${cod} · data-base ${br(b.dataBase)} · confidencial`)), R.arq(s, "due_diligence_resumo", "pdf"), "application/pdf"); return; }
     sec("Mensagem importante a pessoas não autorizadas");
     par(P, `Este memorando${prelim ? " preliminar" : ""} de due diligence é somente para informação e uso interno de ${cliente} ("Cliente"), em conexão com a due diligence financeira e contábil, tributária, trabalhista e previdenciária de ${s.nome}. ${prelim ? "Itens pendentes aparecem entre colchetes e dependem de documentação ainda não disponibilizada pela administração do target; reservamo-nos o direito de alterar o conteúdo. " : ""}Além do Cliente, nenhuma outra parte deve ter acesso a este documento, total ou parcial, sem autorização escrita da Kinsey. ${pj.ddJur === "cliente" ? "Este memorando não contempla os resultados da due diligence legal, em execução pelos assessores jurídicos do Cliente, que podem impactar os comentários apresentados. " : ""}Apenas a cópia final assinada deve ser considerada definitiva.`);
     sub("Carta de apresentação");
@@ -80,6 +99,7 @@ if (window.KT_DD) (() => {
     sec("Sumário executivo das potenciais exposições");
     kpisPdf(P, [["Exposição mínima", `MR$ ${n2(tt("min"))}`, "multa de mora 20% + Selic"], ["Exposição máxima", `MR$ ${n2(tt("max"))}`, "multa de ofício 75%"], ["EBITDA ajustado", mi(I.ebitda), `reportado ${mi(K.ebitda)}`], ["Dívida líquida ajustada", mi(I.dl), `reportada ${mi(K.dl)}`]]);
     tab(P, ["Riscos e contingências (MR$)", "Área", "Mínimo", "Máximo", "Qualif.", "Avaliação"], [...EX.map(({e, c}, i) => [`${i + 1}. ${e.titulo}${c.decaido ? " (decaído)" : ""}`, AREA[e.area] || e.area, fmtMil(c.min), fmtMil(c.max), fmtMil(c.qual), AVAL[e.aval] || "NQ"]), ["Total geral", "", n2(tt("min")), n2(tt("max")), n2(tt("qual")), ""]], [.42, .13, .11, .11, .11, .12]);
+    if (G && EXg.length){ G.rosca(P, "Exposição máxima por área (MR$)", Object.entries(porArea).map(([l, v]) => ({l, v})), v => n2(v), [n2(tt("max")), "MR$ máximo"]); G.barrasH(P, "Exposições por item · mínimo e máximo (MR$)", EXg.filter(x => x.c.max).map(({e, c}) => ({l:e.titulo, v:c.max, txt:`${fmtMil(c.min)} a ${fmtMil(c.max)}`, c:e.aval === "provavel" ? G.VERM : e.aval === "possivel" ? G.GOLD : G.VERDE})), v => n2(v)); }
     par(P, "Metodologia (regra geral): pagamento espontâneo com multa de 20% (Lei 9.430/96, art. 61); auto de infração com multa de 75% (art. 44, I); multa qualificada de 150% quando a operação é considerada evasão (art. 44, §1º); atualização pela Selic. MR$ = milhares de reais; NQ = não quantificado; NA = não aplicável.", {size:8.5, color:[90,101,120]});
     sec("Decadência dos riscos");
     par(P, `Em regra (Código Civil e CTN, art. 150, §4º e art. 173), o fisco tem 5 anos para constituir o crédito tributário a partir do fato gerador; nas verbas trabalhistas a prescrição é de 5 anos no curso do contrato (CF, art. 7º, XXIX). Valores em MR$ por ano do fato gerador, com a data em que deixam de ser exigíveis.`, {size:9.5});
@@ -98,11 +118,13 @@ if (window.KT_DD) (() => {
     tab(P, cols, [["Capital de giro líquido", ...Q.map(q => n2(q.k.ncg))], ["Imobilizado e intangível (capex)", ...Q.map(q => n2(q.capex))], ["Outros ativos e passivos, líquidos", ...Q.map(q => n2(q.outros))], ["(−) Dívida líquida", ...Q.map(q => n2(-q.k.dl))], ["Patrimônio líquido", ...Q.map(q => n2(q.k.PL))], ["Ativo total", ...Q.map(q => n2(q.k.AT))]], w);
     sec("Performance do negócio");
     sub("EBITDA reportado e ajustado");
+    if (G){ G.colunas(P, "EBITDA reportado × ajustado e margem ajustada", Q.map(q => q.rot), [{n:"Reportado", v:Q.map(q => q.k.ebitda), c:G.CINZA}, {n:"Ajustado", v:Q.map(q => q.k.ebitda + q.a.ebitda), c:G.ACC}], v => mi(v, 1), {n:"Margem ajustada", v:Q.map(q => (q.k.ebitda + q.a.ebitda) / (q.k.recLiq || 1))}); G.cascata(P, `Ponte do EBITDA · ${Q[Q.length - 1].rot}`, pontePer(Q[Q.length - 1]), v => mi(v, 1)); }
     const adds = [...new Set(Q.flatMap(q => q.ok.filter(a => D.soma([a]).ebitda).map(a => a.titulo)))];
     tab(P, cols, [["Receita líquida", ...Q.map(q => n2(q.k.recLiq))], ["EBITDA reportado", ...Q.map(q => n2(q.k.ebitda))], ...adds.map(t => [`(+/−) ${t}`.slice(0, 60), ...Q.map(q => { const a = q.ok.find(x => x.titulo === t); return a ? n2(D.soma([a]).ebitda) : "—"; })]), ["EBITDA ajustado", ...Q.map(q => n2(q.k.ebitda + q.a.ebitda))], ["Margem EBITDA ajustada", ...Q.map(q => pc((q.k.ebitda + q.a.ebitda) / (q.k.recLiq || 1)))]], w);
     sub("Capital de giro líquido");
     tab(P, cols, [["Capital de giro reportado", ...Q.map(q => n2(q.k.ncg))], ["(+/−) Ajustes de due diligence", ...Q.map(q => n2(q.a.ncg))], ["Capital de giro ajustado", ...Q.map(q => n2(q.k.ncg + q.a.ncg))], ["Prazo médio de recebimento (dias)", ...Q.map(q => fmt(q.k.pmr, 0))], ["Prazo médio de estocagem (dias)", ...Q.map(q => fmt(q.k.pme, 0))], ["Prazo médio de pagamento (dias)", ...Q.map(q => fmt(q.k.pmp, 0))]], w);
     sub("Dívida líquida");
+    if (G){ const u = Q[Q.length - 1]; G.cascata(P, `Dívida líquida · ${u.rot}`, [{l:"Empréstimos e financiamentos", v:u.k.divBruta, tipo:"base"}, {l:"Caixa", v:-u.k.caixa, tipo:"delta"}, {l:"Itens equivalentes a dívida", v:u.a.divida, tipo:"delta"}, {l:"Dívida líquida ajustada", v:u.k.dl + u.a.divida, tipo:"total"}].filter(p => p.tipo !== "delta" || Math.abs(p.v) > 1), v => mi(v, 1)); }
     tab(P, cols, [["Empréstimos e financiamentos", ...Q.map(q => n2(q.k.divBruta))], ["(−) Caixa e equivalentes", ...Q.map(q => n2(-q.k.caixa))], ["Dívida líquida reportada", ...Q.map(q => n2(q.k.dl))], ["(+) Itens equivalentes a dívida (due diligence)", ...Q.map(q => n2(q.a.divida))], ["Dívida líquida ajustada", ...Q.map(q => n2(q.k.dl + q.a.divida))], ["Dívida líquida / EBITDA ajustado", ...Q.map(q => fmt((q.k.dl + q.a.divida) / ((q.k.ebitda + q.a.ebitda) || 1), 1) + "x")]], w);
     /* tributário e trabalhista */
     [["tributaria", "Aspectos tributários", ["tributaria"]], ["trabalhista", "Aspectos trabalhistas e previdenciários", ["trabalhista", "previdenciaria"]]].forEach(([area, tit, ars]) => { sec(tit);
