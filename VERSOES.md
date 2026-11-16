@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v2.47 — 2026-11-16 · Cores da marca Kinsey BR nos relatórios
+- Relatórios em PDF e PowerPoint com o azul Kinsey BR dos modelos oficiais: #0070C0 nas capas, títulos de seção e cabeçalhos de tabela; azul escuro #085090 nos títulos e valores; azul claro #DDEBF7 nos destaques e linhas alternadas; filete ciano #00B0F0
+- Capas com a assinatura KINSEY BR · Audit | Consulting | M&A | BPO | ESG
+- Gráficos mantêm as cores vivas da paleta
+
 ## v2.46 — 2026-11-16 · Demonstrações financeiras nos relatórios
 - Novo bloco de demonstrações nos relatórios de Due Diligence, Análises financeiras e Valuation, depois dos sumários e gráficos (modelos Kinsey Mão Colorida e CPL Medicals):
   - DRE histórica por período com margens; balanço patrimonial (ativo e passivo) classificado em capital de giro, endividamento líquido, capex e outros; indicadores econômico-financeiros por período
