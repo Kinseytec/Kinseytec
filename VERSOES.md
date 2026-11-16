@@ -1,5 +1,13 @@
 # Registro de versões
 
+## v2.50 — 2026-11-16 · Planilhas padronizadas Kinsey (valuation e PPA) com fórmulas
+- Gerador de Excel passa a gravar fórmulas vivas, estilos da marca (entradas em azul sobre Fog, cabeçalhos Navy, histórico em cinza e projetado em Acent), painéis congelados e recálculo ao abrir
+- Planilha padronizada de valuation (modelo dos trabalhos Kinsey): Resumo, Premissas (cadastro, macro, crescimento moderado e otimista, % operacionais, dias de capital de giro, tributação, ponte para o equity, ajuste de WACC ±3 p.p.), WACC pelo CAPM, Histórico (DRE e balanço dos balancetes), DRE projetada (lucro real ou presumido), Capital de giro em dias, FCD (meio do período, Gordon, sensibilidade WACC × g), Múltiplos, Conferências e Plano de contas
+- Planilha padronizada de PPA (CPC 15 / IFRS 3): PPA Goodwill, Premissas PPA, CAC, carteira de clientes (MPEEM com churn e TAB), marca e tecnologia (relief-from-royalty), não concorrência (com e sem), força de trabalho (custo de reposição), contingências, earn-out por cenários ponderados e Monte Carlo (1.000 simulações, meta mínima/teto, correção pelo CDI), WARA, conferências e classes de intangíveis
+- Já saem preenchidas com o cadastro e os números do sistema; "Importar planilha do consultor" lê os resultados da versão revisada e mostra a conferência sistema × consultor (Valuation > Relatório e Pós-aquisição)
+- Motor de valuation alinhado aos modelos Kinsey: desconto no meio do período e perpetuidade de Gordon com o capital de giro crescendo à taxa g; PPA usa o capital de giro normalizado no encargo dos ativos contributivos
+- Validação: planilhas recalculadas sem erro de fórmula; valuation da planilha a 2,3% do sistema e intangíveis do PPA a menos de 2%
+
 ## v2.49 — 2026-11-16 · Relatórios no padrão do branding book Kinsey BR
 - Cores oficiais do branding book: Navy #011F4B (capas, títulos e cabeçalhos de tabela), Acent #0473C3 (numeração de seções, filetes, destaques e demonstrações projetadas), Fog #E6E8EC (quadros de indicadores e linhas alternadas), Gray #7F7F7F (demonstrações históricas) e White; substitui o azul provisório #0070C0
 - Logotipo oficial KINSEY BR (Audit / Consulting / M&A / BPO / ESG): versão branca nas capas sobre o navy e versão navy, pequena, no topo das páginas internas, respeitando a margem de segurança

@@ -156,7 +156,7 @@ if (window.KT_DD) (() => {
     const X = Rz.X, W = X.W, sub = t => { titulo(P, t, TIT_P); }; MODO = "p";
     const det = c => { let rlAnt = X.bp.rl, ncg = X.bp.K.ncg, fixo = (X.bp.K.G.imobilizado || 0) + (X.bp.K.G.deprec || 0) + (X.bp.K.G.intangivel || 0), dl = X.dl, pl = X.bp.K.PL;
       return c.anos.map(a => { const da = a.rl * X.capex, ebit = a.eb - da, ir = Math.max(0, ebit) * W.t, capex = a.rl * X.capex, dncg = (a.rl - rlAnt) * X.ncgp, fcl = a.eb - ir - capex - dncg, ll = ebit - ir;
-        ncg += dncg; dl -= fcl; pl += ll; rlAnt = a.rl; const fd = 1 / Math.pow(1 + c.w, a.t); return {...a, da, ebit, ir, capex, dncg, fcl, ll, ncg, fixo, dl, pl, fd, vp:fcl * fd}; }); };
+        ncg += dncg; dl -= fcl; pl += ll; rlAnt = a.rl; const fd = 1 / Math.pow(1 + c.w, a.t - .5); return {...a, da, ebit, ir, capex, dncg, fcl, ll, ncg, fixo, dl, pl, fd, vp:fcl * fd}; }); };
     const hist = X.H.anuais.slice(-2);
     [["mod", "moderado (crescimento histórico)", Rz.mod.c], ["ot", "otimista (premissas justificadas)", Rz.ot.c]].forEach(([k, rot, c], i) => { if (i === 1 && o.soModerado) return; const A = det(c);
       sub(`Demonstração do resultado projetada · cenário ${rot}`);
@@ -168,12 +168,12 @@ if (window.KT_DD) (() => {
         ["Dívida líquida (caixa líquido entre parênteses)", m(X.dl), ...A.map(a => m(a.dl))], ["Patrimônio líquido", m(X.bp.K.PL), ...A.map(a => m(a.pl))]], ws(1 + A.length));
       sub(`Fluxo de caixa livre projetado · cenário ${rot}`);
       tab(P, ["R$ mil", ...A.map(a => a.y + "E"), "Perpetuidade"], [[B("EBITDA"), ...A.map(a => B(m(a.eb))), ""], ["(-) IRPJ e CSLL sobre o EBIT", ...A.map(a => m(-a.ir)), ""], ["(-) Investimentos (capex)", ...A.map(a => m(-a.capex)), ""], ["(-) Variação do capital de giro", ...A.map(a => m(-a.dncg)), ""],
-        [Bv("Fluxo de caixa livre"), ...A.map(a => Bv(m(a.fcl))), Bv(m(A[4] ? A[4].fcl * (1 + c.g) : 0))], ["Fator de desconto", ...A.map(a => a.fd.toFixed(3).replace(".", ",")), ""], ["Valor presente", ...A.map(a => m(a.vp)), m(c.vtv)]], ws(A.length + 1));
+        [Bv("Fluxo de caixa livre"), ...A.map(a => Bv(m(a.fcl))), Bv(m(c.fclP ?? (A[4] ? A[4].fcl * (1 + c.g) : 0)))], ["Fator de desconto", ...A.map(a => a.fd.toFixed(3).replace(".", ",")), ""], ["Valor presente", ...A.map(a => m(a.vp)), m(c.vtv)]], ws(A.length + 1));
       tab(P, ["Valor", "R$ mil"], [["Soma do valor presente dos fluxos", m(c.ev - c.vtv)], ["Valor presente da perpetuidade", m(c.vtv)], [Bv("Enterprise value"), Bv(m(c.ev))], ["(-) Dívida líquida ajustada", m(-X.dl)], [Bv("Equity value"), Bv(m(c.eq))],
         ["WACC · crescimento na perpetuidade", `${p1(c.w)} · ${p1(c.g)}`], ["EV / EBITDA implícito", x2(c.mult)]], [.6, .4]); });
     MODO = "h";
     R().par(P, "Período histórico/realizado com cabeçalho em cinza; projetado em azul.", {size:8, color:MUT});
-    R().par(P, "Projeção sem financiamento (fluxo de caixa livre para a firma): o caixa gerado reduz a dívida líquida e o lucro operacional líquido aumenta o patrimônio líquido. Capex igual à depreciação; capital de giro pela relação histórica com a receita.", {size:8, color:MUT});
+    R().par(P, "Projeção sem financiamento (fluxo de caixa livre para a firma): o caixa gerado reduz a dívida líquida e o lucro operacional líquido aumenta o patrimônio líquido. Capex igual à depreciação; capital de giro pela relação normalizada com a receita; desconto no meio do período e perpetuidade de Gordon com o capital de giro crescendo à taxa g (padrão dos modelos Kinsey).", {size:8, color:MUT});
   }
 
   window.KT_DEM = {historico, resumo, projetadas, base};

@@ -30,7 +30,7 @@ if (window.KT_DD && window.KT_VAL) (() => {
     /* taxas: WACC; intangíveis = WACC + prêmio; capital de giro = (Selic LP + spread) líquido; imobilizado = Kd */
     const premI = v0("taxaAdic", 1) / 100, rI = wacc + premI, rNcg = W.kdLiq, rImob = W.kd;
     const imobBook = Math.max(0, (G.imobilizado || 0) + (G.deprec || 0)), imobMV = v0("imob", 0) * 1e6, imobVJ = imobBook + imobMV;
-    const ncgV = Math.max(0, K.ncg || ncgP * rl0), imobR = div(imobVJ, rl0) || 0, depR = capexP;
+    const ncgV = Math.max(0, ncgP * rl0 || K.ncg || 0), imobR = div(imobVJ, rl0) || 0, depR = capexP;
     /* força de trabalho (abordagem de custo) */
     const folha = q.folha != null ? q.folha * 1e6 : Math.max(0, ((G.pessoal || 0) + (G.prolabore || 0)) * f);
     const rec = v0("recrut", 3) / 100, trein = v0("trein", 1.5) / 100, prod = v0("prod", 80) / 100, mesesP = v0("mesesProd", 5);

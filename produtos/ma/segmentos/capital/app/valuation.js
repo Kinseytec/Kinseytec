@@ -167,9 +167,11 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
       let rl = rb * fRL, eb = rl * mg, novos = 0;
       if (tipo === "ot") Object.values(vl.novos || {}).filter(Boolean).forEach(nv => { const ini = +nv.inicio || 1; if (t < ini) return; let r = (+nv.rec1 || 0) * 1e6; for (let k = ini; k < t; k++) r *= (1 + (+nv.cresc || 0) / 100); let idx = 1; for (let k = 1; k <= t; k++) idx *= 1 + ipcaAno(Bs, X.y0 + k); r *= idx; novos += r; eb += r * (+nv.margem || 0) / 100; });
       rl += novos; const da = rl * X.capex, ebit = eb - da, ir = Math.max(0, ebit) * W.t, dncg = (rl - rlAnt) * X.ncgp, fcl = eb - ir - rl * X.capex - dncg;
-      vp += fcl / Math.pow(1 + w, t); anos.push({t, y, rl, eb, mg:div(eb, rl), fcl, novos, cres:div(rl, rlAnt) - 1}); rlAnt = rl; }
-    const tv = w > g ? anos[4].fcl * (1 + g) / (w - g) : 0, vtv = tv / Math.pow(1 + w, 5), ev = vp + vtv;
-    return {anos, ev, vtv, g, w, mg, eq:ev - X.dl, mult:div(ev, bp.eb)};
+      vp += fcl / Math.pow(1 + w, t - .5); anos.push({t, y, rl, eb, mg:div(eb, rl), fcl, novos, cres:div(rl, rlAnt) - 1}); rlAnt = rl; }
+    /* perpetuidade (Gordon) com o capital de giro crescendo à taxa g e desconto no meio do período, como nos modelos Kinsey */
+    const u = anos[4], fclP = u.eb * (1 + g) - Math.max(0, u.eb - u.rl * X.capex) * (1 + g) * W.t - u.rl * X.capex * (1 + g) - u.rl * X.ncgp * g;
+    const tv = w > g ? fclP / (w - g) : 0, vtv = tv / Math.pow(1 + w, 4.5), ev = vp + vtv;
+    return {anos, ev, vtv, g, w, mg, fclP, eq:ev - X.dl, mult:div(ev, bp.eb)};
   }
   const faixa = (X, tipo) => { const c = cenario(X, tipo), a = cenario(X, tipo, .01), b = cenario(X, tipo, -.01); return {c, min:Math.min(a.ev, b.ev), max:Math.max(a.ev, b.ev)}; };
 
@@ -280,8 +282,9 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
     const mg = vl.mgPrev != null ? vl.mgPrev / 100 : (C.mg?.med || REF_MG[seg] || .12), fonteMg = vl.mgPrev != null ? "informada pelo consultor" : C.mg ? `mediana de ${C.mg.n} comparáveis` : `referência Kinsey para ${seg}`;
     const capex = .03, ncgp = .10, g = (1 + Bs.P.gReal.v / 100) * (1 + Bs.P.infBR.v / 100) - 1, w = W.wacc, y0 = new Date().getFullYear() - 1;
     let rl = fat * 1e6, rlAnt = rl, vp = 0; const anos = [];
-    for (let t = 1; t <= 5; t++){ rl *= 1 + ipcaAno(Bs, y0 + t); const eb = rl * mg, ir = Math.max(0, eb - rl * capex) * W.t, fcl = eb - ir - rl * capex - (rl - rlAnt) * ncgp; vp += fcl / Math.pow(1 + w, t); anos.push({y:y0 + t, rl, eb, fcl}); rlAnt = rl; }
-    const tv = w > g ? anos[4].fcl * (1 + g) / (w - g) : 0, vtv = tv / Math.pow(1 + w, 5), ev = vp + vtv, eb0 = fat * 1e6 * mg;
+    for (let t = 1; t <= 5; t++){ rl *= 1 + ipcaAno(Bs, y0 + t); const eb = rl * mg, ir = Math.max(0, eb - rl * capex) * W.t, fcl = eb - ir - rl * capex - (rl - rlAnt) * ncgp; vp += fcl / Math.pow(1 + w, t - .5); anos.push({y:y0 + t, rl, eb, fcl}); rlAnt = rl; }
+    const u = anos[4], fclP = u.eb * (1 + g) - Math.max(0, u.eb - u.rl * capex) * (1 + g) * W.t - u.rl * capex * (1 + g) - u.rl * ncgp * g;
+    const tv = w > g ? fclP / (w - g) : 0, vtv = tv / Math.pow(1 + w, 4.5), ev = vp + vtv, eb0 = fat * 1e6 * mg;
     return {Bs, W, C, vl, seg, rl:fat * 1e6, mg, fonteMg, eb:eb0, ev, vtv, mult:div(ev, eb0), g, anos, fonteF:s.fin?.fonte || (s.mapa?.fat ? "mapa M&A" : "cadastro")};
   }
   function waccRows(W, Bs, vl){ const P = Bs.P;
