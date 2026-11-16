@@ -1,13 +1,8 @@
 # Registro de versões
 
-## v2.58 — 2026-11-16 · Novo sistema KinseyTec – SDR (prospecção comercial)
-- Produto novo `produtos/sdr/segmentos/comercial` (KinseyTec – SDR, projeto Firebase próprio `kinseytec-sdr`), com acesso e endereço separados do M&A
-- Usa o mesmo motor de prospecção do M&A, em modo "sdr" (campo `compartilha` do seg.json, uma só fonte): listas de qualquer origem, busca na plataforma, celulares sem duplicar, consulta geral e rápida, frequência no sistema
-- Serviços: auditoria e contabilidade, consultoria e BPO, Due Diligence e Valuation; contato registra proposta enviada e serviço fechado com serviço e valor
-- Reuniões agendadas pelas SDRs para o sócio ou o comercial (quem conduz); exclusividade só entre SDRs; papel "Comercial" na equipe
-- Painel comercial: ligações por dia (meta diária, dia útil sem ligação em vermelho), semana a semana, mês a mês, funil e vendas (contatos, ligações, reuniões agendadas e realizadas, comparecimento, propostas, fechados por serviço), comissão de SDR de 5% sobre os serviços fechados das reuniões que ela agendou, comparativo da equipe, agenda e horários, frequência (só sócios)
-- Ponte com o M&A: "Interesse em M&A" marca o lead; "Leads para o M&A" gera o arquivo no formato de importação da Prospecção do M&A, que entra sem duplicar, com a origem e a SDR que indicou
-- Construtor: módulos compartilhados entre produtos (`compartilha`) e módulo `sdr_cfg.js` na ordem de carga
+## v2.59 — 2026-11-16 · KinseyTec SDR sai deste repositório
+- O sistema de SDRs passa a ser desenvolvido à parte, como KinseyTec SDR (outra base e outro projeto), ligado ao M&A só pela ponte de prospects
+- Desfeita a v2.58: produto `sdr` removido, motor da Prospecção do M&A sem o modo SDR, construtor sem módulos compartilhados; o M&A fica exatamente como na v2.57 (painel de novos negócios, frequência, consultas geral e rápida, importar listas)
 
 ## v2.57 — 2026-11-16 · Frequência no sistema, consulta geral e consulta rápida
 - Frequência de uso: o sistema conta, minuto a minuto, o tempo em que cada pessoa está ativa (computador ou celular), por dia, hora, aparelho e tempo na Prospecção; a pessoa não vê, só os sócios (administradores)

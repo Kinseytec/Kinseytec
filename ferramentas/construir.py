@@ -63,9 +63,6 @@ def construir(produto, seg):
     if 'function CLI(' not in data: data += '\n' + COMMON
     open(W + 'app/data.js', 'w').write(data)
     shutil.copy(SD + 'seed.js', W + 'app/seed.js')
-    # módulos compartilhados com outro produto (ex.: o KinseyTec – SDR usa o motor de prospecção do M&A): uma só fonte
-    for src, dst in cfg.get('compartilha', []):
-        os.makedirs(os.path.dirname(W + dst), exist_ok=True); shutil.copy(PROD + src, W + dst)
     for extra in sorted(os.listdir(SD)):              # arquivos extras do segmento substituem os do núcleo (ex.: app/cobre.js)
         if os.path.isdir(SD + extra) and extra in ('app', 'portal', 'fb'):
             shutil.copytree(SD + extra, W + extra, dirs_exist_ok=True)
