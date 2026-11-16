@@ -94,7 +94,7 @@ def construir(produto, seg):
     import re as _re
     h = open(OUT + '/kinseytec.html').read()
     if _re.search(r'google\.com/maps/(kg|sc|lata|@@)|earth\.google\.com/web/(kg|sc|lata)', h) or 'mapaSat(' not in h: print('ATENÇÃO: links de mapa alterados'); sys.exit(1)
-    md = open(NUC + 'fb/COMO_PUBLICAR.md').read()
+    md = open(SD + 'fb/COMO_PUBLICAR.md' if os.path.isfile(SD + 'fb/COMO_PUBLICAR.md') else NUC + 'fb/COMO_PUBLICAR.md').read()   # guia próprio do segmento, se houver
     for a, b in PT: md = md.replace(a, b)
     open(OUT + '/firebase/COMO_PUBLICAR.md', 'w').write(md)
 

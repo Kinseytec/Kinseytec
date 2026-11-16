@@ -1,5 +1,9 @@
 # Registro de versões
 
+## v2.60 — 2026-11-16 · Pacote de publicação do M&A com guia próprio
+- Guia "como publicar e instalar" próprio do KinseyTec M&A (produtos/ma/segmentos/capital/fb/COMO_PUBLICAR.md): preparação do Firebase, publicação pelo Cloud Shell, chaves das integrações da Prospecção (Econodata, Ramper, Lemitti) no Secret Manager, perfis do time, instalação no iPhone, Android e computador, conferência pós-publicação e mensagens prontas
+- Construtor usa o guia do segmento quando existir (os demais produtos seguem com o guia do núcleo)
+
 ## v2.59 — 2026-11-16 · KinseyTec SDR sai deste repositório
 - O sistema de SDRs passa a ser desenvolvido à parte, como KinseyTec SDR (outra base e outro projeto), ligado ao M&A só pela ponte de prospects
 - Desfeita a v2.58: produto `sdr` removido, motor da Prospecção do M&A sem o modo SDR, construtor sem módulos compartilhados; o M&A fica exatamente como na v2.57 (painel de novos negócios, frequência, consultas geral e rápida, importar listas)
