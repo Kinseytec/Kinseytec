@@ -241,4 +241,4 @@ const VAL_BASE = {
 const SEG_SIM = {Alimentos:["Agro","Varejo"], Agro:["Alimentos"], Tecnologia:["Serviços","Educação"], Saúde:["Serviços","Educação"], Educação:["Serviços","Saúde"], Industrial:["Construção","Energia"], Energia:["Industrial"], Logística:["Industrial","Varejo"], Varejo:["Alimentos","Serviços"], Construção:["Industrial"], Serviços:["Tecnologia"], Outros:[]};
 
 /* Equipe de M&A da Kinsey: responsáveis pelos OKs da diligência, do valuation e do jurídico */
-const EQUIPE_KINSEY = [["Samuel Lima","Sócio de M&A e finanças"],["Newton KA Oliveira","Sócio de M&A e de auditoria de diligências"],["Juçara Haverot","Sócia de M&A, auditoria e diligências"],["Monica Flissak","Diretora de novos negócios e captação"],["Camilla Pazzini","Advogada · diligência jurídica"]];
+const EQUIPE_KINSEY = [["Samuel Lima","Sócio de M&A e finanças"],["Newton KA Oliveira","Sócio de M&A e de auditoria de diligências"],["Juçara Haverot","Sócia de M&A, auditoria e diligências"],["Monica Flissak","Diretora de novos negócios e captação"],["Camilla Pazzini","Advogada · diligência jurídica"],["Giovana","SDR · pré-vendas"],["Andressa","SDR · pré-vendas"]];

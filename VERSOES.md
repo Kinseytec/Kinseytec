@@ -1,5 +1,16 @@
 # Registro de versões
 
+## v2.56 — 2026-11-16 · Importar listas de qualquer origem, busca na plataforma e celulares sem duplicar
+- "Importar listas" aceita qualquer origem (arquivo CSV ou Excel); Econodata, Lemitti e Ramper aparecem como sugestão, com a orientação de como filtrar e exportar; "Outra plataforma" com o nome da origem
+- Aba "Buscar na plataforma": a pessoa descreve as empresas (ex.: indústrias têxteis do Sudeste, frigoríficos do Sul), CNAE, região, UFs, cidade, faixa de faturamento e de funcionários; na versão publicada o sistema busca pela API oficial com a chave da Kinsey guardada no servidor (ninguém digita senha); na versão local, copia os critérios para buscar na plataforma
+- Aba "Celulares dos sócios": consulta o Lemitti pelos CNPJs dos prospects (sem celular ou todos) ou exporta os CNPJs e importa o arquivo devolvido
+- Mesma empresa não duplica: contatos, celulares, e-mails, funcionários e dados vazios são somados ao prospect existente, com a fonte de cada contato; todos os telefones da linha e a coluna de funcionários são lidos
+
+## v2.55 — 2026-11-16 · Evolução mês a mês, comparativo da equipe, horários e SDR
+- Painel de novos negócios com abas: semana a semana, mês a mês (6 meses, gráfico e tabela com variação), comparativo da equipe (mês atual contra o anterior, por pessoa) e agenda e horários (atividades com data e hora e contatos por horário)
+- Cada contato registra a hora; a reunião registra data, hora e quem conduz (padrão: novos negócios)
+- SDRs (Giovana e Andressa) na equipe: painel de ligações e reuniões agendadas para o M&A; podem registrar contatos e agendar reuniões nos prospects de novos negócios sem tirar a exclusividade; quem conduz e fecha é o profissional de novos negócios
+
 ## v2.54 — 2026-11-16 · Controle de novos negócios na Prospecção
 - Painel "Evolução" no topo da Prospecção, por pessoa (padrão: novos negócios): abordagens e reuniões por semana nas últimas 12 semanas, com meta semanal (15 abordagens e 1 reunião); semana fechada com zero fica em vermelho
 - Alerta "Necessidade de prospecção" quando passam 7 dias sem abordagem ou sem reunião
