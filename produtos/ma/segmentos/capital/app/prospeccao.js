@@ -416,7 +416,7 @@ if (window.KT_DD) (() => {
     const alvosCel = () => S.prospects.filter(p => !["promovido", "arquivado"].includes(p.status) && dig(p.doc).length === 14 && (!$("#pc-r").value || p.responsavel === $("#pc-r").value) && ($("#pc-q").value === "todos" || !(p.contatos || []).some(c => dig(c.cel).length >= 10)));
     const contaCel = () => { const n = alvosCel().length; $("#pc-n").textContent = `${n} prospect(s) com CNPJ para consultar.`; }; $("#pc-r").onchange = contaCel; $("#pc-q").onchange = contaCel; contaCel();
     $("#pc-ex").onclick = () => { const L = alvosCel(); if (!L.length) return toast("Nenhum prospect com CNPJ para consultar."); const csv = "CNPJ;Empresa\n" + L.map(p => `${dig(p.doc)};"${String(p.nome).replace(/"/g, '""')}"`).join("\n");
-      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["﻿" + csv], {type:"text/csv"})); a.download = `cnpjs_para_lemitti_${new Date().toISOString().slice(0, 10)}.csv`; a.click(); };
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["\uFEFF" + csv], {type:"text/csv"})); a.download = `cnpjs_para_lemitti_${new Date().toISOString().slice(0, 10)}.csv`; a.click(); };
     const pi2 = $("#pc-imp"); if (pi2) pi2.onclick = () => { aba("arq"); $("#pi-o").value = "Lemitti"; dica(); };
     const pg = $("#pc-go"); if (pg) pg.onclick = () => celulares(alvosCel(), close);
   }
@@ -489,7 +489,7 @@ if (window.KT_DD) (() => {
     const L = S.prospects.filter(p => !["promovido", "arquivado"].includes(p.status) && aderentes(p).some(x => x.inv.id === inv.id)), q = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
     if (!L.length){ toast("Nenhum prospect aderente a este investidor ainda."); return; }
     const linhas = [["CNPJ", "Empresa", "Atividade", "Cidade", "UF", "Contato", "Cargo", "E-mail", "Telefone", "Responsável", "Investidor"].join(";"), ...L.map(p => { const c = (p.contatos || [])[0] || {}; return [p.doc, p.nome, p.segmento || p.cnae, p.municipio, p.uf, c.nome, c.cargo, c.email, c.cel, p.responsavel, inv.nome].map(q).join(";"); })];
-    rptSave(new TextEncoder().encode("﻿" + linhas.join("\n")), `Ramper_cadencia_${(inv.nome || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w]+/g, "_").slice(0, 30)}.csv`, "text/csv"); toast(`${L.length} prospect(s) na lista para o Ramper`);
+    rptSave(new TextEncoder().encode("\uFEFF" + linhas.join("\n")), `Ramper_cadencia_${(inv.nome || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w]+/g, "_").slice(0, 30)}.csv`, "text/csv"); toast(`${L.length} prospect(s) na lista para o Ramper`);
   }
   /* ---------------- equipe e regras de mérito ---------------- */
   function equipeRegras(){
