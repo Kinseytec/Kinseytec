@@ -116,7 +116,7 @@
 - Due Diligence > Visão geral: "Exportar planilha modelo" ao lado de "Importar workbook"; o Excel já vem com o cadastro do cliente (razão social, CNPJ, CNAE, cidade, segmento, regime, data-base, períodos contratados, diligência jurídica, sócio, consultores e sócios da Receita), o resumo dos balancetes, os procedimentos do sistema com o resultado automático e as sugestões de ajustes e achados
 - Abas de preenchimento (Ajustes, Contingências, Conferências, Pontos) com os cabeçalhos que a importação reconhece; abas informativas não são importadas, sem duplicar o que o sistema já tem
 - Modelo provisório, a ser substituído pelo modelo de workbook da Kinsey
-- Segmento: CNAE da Receita prevalece sobre o texto do mapa (ex.: Tallenty em Serviços, administradoras de benefícios em Saúde); "folha de pagamento" e "recursos humanos" passam a ser Serviços
+- Segmento: CNAE da Receita prevalece sobre o texto do mapa (ex.: terceirização de mão de obra em Serviços, administradoras de benefícios em Saúde); "folha de pagamento" e "recursos humanos" passam a ser Serviços
 
 ## v2.33 — 2026-11-15 · Órbita com nomes curtos e legenda por tipo
 - Rótulos da Órbita e da faixa de empresas sem o nível (N1, N2, N3) e só com o nome fantasia ou o primeiro nome (ex.: Ruplast, Agrolave, Fiedler, All Care, Ivory Serviços); o nome completo fica no dossiê
