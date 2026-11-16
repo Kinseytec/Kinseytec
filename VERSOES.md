@@ -1,5 +1,13 @@
 # Registro de versões
 
+## v2.57 — 2026-11-16 · Frequência no sistema, consulta geral e consulta rápida
+- Frequência de uso: o sistema conta, minuto a minuto, o tempo em que cada pessoa está ativa (computador ou celular), por dia, hora, aparelho e tempo na Prospecção; a pessoa não vê, só os sócios (administradores)
+- Aba "Frequência no sistema" no painel de novos negócios (só para sócios): horas hoje, na semana e no mês, média por dia, dias úteis sem acesso em vermelho, % no celular e na Prospecção, gráfico dos últimos 14 dias (computador e celular), horas por mês e tabela com entrada, saída e horas de cada dia
+- Coleção nova "presenca" com regra própria: cada pessoa só soma os próprios minutos; só administradores leem
+- Consulta geral: empresa, CNPJ, site, local e endereço, atividade e tipo de negócio, porte, faturamento, funcionários, sócios, diretores e decisores, e-mails e telefones e fontes
+- Consulta rápida (pensada para o celular): cartões com empresa, local, faturamento, funcionários, sócios e botões de ligar, WhatsApp e e-mail; botão "Consulta rápida" no topo da Prospecção
+- Ficha do prospect com "Sócios, diretores e decisores" e as ações de contato; leitura de listas com coluna de sócios, todos os e-mails, endereço, porte e tipo de negócio; o celular tem prioridade sobre o fixo no WhatsApp
+
 ## v2.56 — 2026-11-16 · Importar listas de qualquer origem, busca na plataforma e celulares sem duplicar
 - "Importar listas" aceita qualquer origem (arquivo CSV ou Excel); Econodata, Lemitti e Ramper aparecem como sugestão, com a orientação de como filtrar e exportar; "Outra plataforma" com o nome da origem
 - Aba "Buscar na plataforma": a pessoa descreve as empresas (ex.: indústrias têxteis do Sudeste, frigoríficos do Sul), CNAE, região, UFs, cidade, faixa de faturamento e de funcionários; na versão publicada o sistema busca pela API oficial com a chave da Kinsey guardada no servidor (ninguém digita senha); na versão local, copia os critérios para buscar na plataforma

@@ -39,7 +39,7 @@ const muniOf = (name, uf) => MUNI.find(m => m[0].toLowerCase()===String(name||""
 const ADMINS = ["ia@kinsey.com.br", "newton.kao@kinsey.com.br"];
 const PORTAL_URL = location.origin + "/portal.html";
 const APP_URL = location.origin;
-const COLS = ["suppliers","evidences","contracts","pareceres","config","operacoes","prospects"];
+const COLS = ["suppliers","evidences","contracts","pareceres","config","operacoes","prospects","presenca"];
 /* Extensões por segmento (ex.: cadeia do cobre): abas extras no dossiê, riscos extras e quadros na Auditoria */
 const EXT_TABS = {}, EXT_RISKS = [], EXT_AUD = [], EXT_QUEST = [], EXT_DOCS = [], EXT_TOUCH = [], EXT_VIEWS = {}, EXT_EVID = [], EXT_JUR = [], EXT_INV = [], EXT_EVVIEW = [], EXT_CAD = [], EXT_ORB = [], EXT_TARGET = [];
 const LV_NOME = Object.fromEntries(["N1","N2","N3"].map(l => [l, l==="N1"?"Traders":l==="N2"?"Fornecedores":"Produtores"]));
