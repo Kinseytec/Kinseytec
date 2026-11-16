@@ -1,5 +1,12 @@
 # Registro de versões
 
+## v2.49 — 2026-11-16 · Relatórios no padrão do branding book Kinsey BR
+- Cores oficiais do branding book: Navy #011F4B (capas, títulos e cabeçalhos de tabela), Acent #0473C3 (numeração de seções, filetes, destaques e demonstrações projetadas), Fog #E6E8EC (quadros de indicadores e linhas alternadas), Gray #7F7F7F (demonstrações históricas) e White; substitui o azul provisório #0070C0
+- Logotipo oficial KINSEY BR (Audit / Consulting / M&A / BPO / ESG): versão branca nas capas sobre o navy e versão navy, pequena, no topo das páginas internas, respeitando a margem de segurança
+- Motor de PDF passa a aceitar imagens JPEG (logotipo)
+- Tipografia: textos dos PDFs em Helvetica, equivalente métrica da Arial (fonte secundária oficial para textos longos); a interface já usa Montserrat
+- Gráficos mantêm as cores vivas
+
 ## v2.48 — 2026-11-16 · Histórico em cinza, projetado em azul
 - Demonstrações históricas e realizadas (DRE, balanços, indicadores, EBITDA, capital de giro, endividamento, pro forma e contingências) com títulos em cinza-escuro e cabeçalhos de tabela em cinza
 - Demonstrações projetadas do valuation (DRE, balanço e fluxo de caixa livre) com títulos e cabeçalhos em azul Kinsey; nas tabelas que juntam histórico e projeção, as colunas históricas (H e base) ficam em cinza e as projetadas (E) em azul, como no laudo de avaliação Kinsey

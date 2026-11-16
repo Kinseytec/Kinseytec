@@ -19,7 +19,7 @@ if (window.KT_DD) (() => {
   const dd = v => v == null || !isFinite(v) ? "-" : Math.round(v) + " dias";
   const B = t => ({t, b:true}), Bv = t => ({t, b:true, bg:[234,241,250]});
   /* histórico/realizado em cinza; projetado em azul Kinsey (padrão do laudo de avaliação Kinsey) */
-  const CINZA = [89,89,89], AZUL = [0,112,192], TIT_H = [64,64,64], TIT_P = [0,112,192];
+  const CINZA = [127,127,127], AZUL = [4,115,195], TIT_H = [127,127,127], TIT_P = [4,115,195]; /* Gray e Acent oficiais */
   let MODO = "h";
   const tab = (P, cols, rows, ws) => { if (rows.length <= 22) P.ensure(rows.length * 19 + 34); const w = ws || cols.map(() => 1 / cols.length);
     return P.table(cols.map((c, i) => ({t:T(c), w:w[i], hb:MODO === "p" ? (/^\d{4}H$|^Base /.test(String(c)) ? CINZA : AZUL) : null})), rows.map(r => r.map(c => c && typeof c === "object" ? {...c, t:T(c.t)} : T(c))), {head:MODO === "p" ? AZUL : CINZA}); };

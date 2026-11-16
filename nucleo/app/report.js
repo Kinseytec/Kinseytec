@@ -76,7 +76,9 @@ function KTPdf(){
   const wid = (s, sz, b) => { const t = RPT_W[b ? "b" : "n"]; let w = 0; for (const ch of enc(s)){ const c = ch.charCodeAt(0); w += t[c - 32] || 556; } return w * sz / 1000; };
   const esc = s => enc(s).replace(/[\\()]/g, m => "\\" + m).replace(/[\x80-\xff]/g, m => "\\" + m.charCodeAt(0).toString(8).padStart(3, "0"));
   const rgb = c => c.map(v => (v/255).toFixed(3)).join(" ");
+  const imgs = []; /* imagens JPEG (DCTDecode): {data:string binária, w, h} */
   const api = {W, H, M, CW, get y(){ return y; }, set y(v){ y = v; },
+    image(x, yy, w, h, im){ if (!im || !im.data) return; let k = imgs.indexOf(im); if (k < 0){ imgs.push(im); k = imgs.length - 1; } ops.push(`q ${w.toFixed(2)} 0 0 ${h.toFixed(2)} ${x.toFixed(2)} ${(H - yy - h).toFixed(2)} cm /Im${k + 1} Do Q`); },
     page(){ ops = []; pages.push(ops); y = M + 18; return api; },
     text(x, yy, s, sz=9.5, b=false, c=[27,36,51]){ ops.push(`BT /${b ? "F2" : "F1"} ${sz} Tf ${rgb(c)} rg ${x.toFixed(2)} ${(H - yy).toFixed(2)} Td (${esc(s)}) Tj ET`); },
     rect(x, yy, w, h, c){ ops.push(`${rgb(c)} rg ${x.toFixed(2)} ${(H - yy - h).toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)} re f`); },
@@ -108,7 +110,8 @@ function KTPdf(){
       function api_footer(p, n, N){ ops = p; api.line(M, H - M + 2, M + CW, H - M + 2); api.text(M, H - M + 14, foot, 7.5, false, [90,101,120]); const t = `Página ${n} de ${N}`; api.text(M + CW - wid(t, 7.5), H - M + 14, t, 7.5, false, [90,101,120]); }
       const objs = [], add = s => { objs.push(s); return objs.length; };
       add("<< /Type /Catalog /Pages 2 0 R >>"); add(""); add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>"); add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>");
-      const kids = pages.map(p => { const c = p.join("\n"), ci = add(`<< /Length ${c.length} >>\nstream\n${c}\nendstream`); return add(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${ci} 0 R >>`); });
+      const xo = imgs.map(im => add(`<< /Type /XObject /Subtype /Image /Width ${im.w} /Height ${im.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${im.data.length} >>\nstream\n${im.data}\nendstream`)), xr0 = xo.length ? ` /XObject << ${xo.map((o, i) => `/Im${i + 1} ${o} 0 R`).join(" ")} >>` : "";
+      const kids = pages.map(p => { const c = p.join("\n"), ci = add(`<< /Length ${c.length} >>\nstream\n${c}\nendstream`); return add(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >>${xr0} >> /Contents ${ci} 0 R >>`); });
       objs[1] = `<< /Type /Pages /Kids [${kids.map(k => k + " 0 R").join(" ")}] /Count ${kids.length} >>`;
       const hx = t => "<FEFF" + [...String(t)].map(ch => ch.codePointAt(0) > 65535 ? "003F" : ch.codePointAt(0).toString(16).toUpperCase().padStart(4, "0")).join("") + ">";
       const info = add(`<< /Title ${hx(title)} /Author (Kinsey BR) /Creator (KinseyTec) /Producer (KinseyTec) /CreationDate (D:${new Date().toISOString().replace(/[-:T]/g, "").slice(0,14)}) >>`);

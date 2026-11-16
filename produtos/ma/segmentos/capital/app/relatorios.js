@@ -30,7 +30,7 @@ if (window.KT_DD) (() => {
 
   /* ---------------- PDF: blocos ---------------- */
   function capa(P, eyebrow, titulo, linhas){
-    P.page(); P.rect(0, 0, P.W, 300, NAVY); P.rect(0, 300, P.W, 4, [127,184,230]); P.text(P.M, 46, "KINSEY BR", 15, true, [255,255,255]); P.text(P.M, 60, "Audit | Consulting | M&A | BPO | ESG", 8, false, [255,255,255]);
+    P.page(); P.rect(0, 0, P.W, 300, NAVY); P.rect(0, 300, P.W, 4, ACC); if (!(P.logoCapa && P.logoCapa(P.M, 30, 170))){ P.text(P.M, 46, "KINSEY BR", 15, true, [255,255,255]); P.text(P.M, 60, "Audit | Consulting | M&A | BPO | ESG", 8, false, [255,255,255]); }
     P.text(P.M, 90, T(eyebrow), 11, true, [127,184,230]);
     P.wrap(T(titulo), 26, true, P.CW).forEach((l, i) => P.text(P.M, 130 + i * 32, l, 26, true, [255,255,255]));
     let y = 360; linhas.forEach(([k, v]) => { P.text(P.M, y, T(k).toUpperCase(), 8.5, true, MUT); P.text(P.M, y + 15, T(v), 12.5, true, NAVY); y += 40; });
@@ -249,7 +249,7 @@ if (window.KT_DD) (() => {
       const G = window.KT_GRAF, evol = () => Z.serie.length && (G ? G.colunas(P, "Evolução da empresa · receita líquida, EBITDA ajustado e margem", Z.serie.map(a => a.ano), [{n:"Receita líquida", v:Z.serie.map(a => a.rl), c:ACC}, {n:"EBITDA ajustado", v:Z.serie.map(a => a.eb), c:G.VERDE}], v => mi(v, pre ? 0 : 1), {n:"Margem EBITDA", v:Z.serie.map(a => a.mg ?? a.eb / (a.rl || 1))}) : barrasPdf(P, "Receita líquida e EBITDA ajustado", Z.serie.map(a => a.ano), [{n:"Receita líquida", v:Z.serie.map(a => a.rl), c:ACC}, {n:"EBITDA ajustado", v:Z.serie.map(a => a.eb), c:GOLD}], v => mi(v, 0), 120));
       const paresG = () => G && Z.pares.length && G.barrasH(P, "Setor · EV/EBITDA de companhias abertas comparáveis", Z.pares.map(c => ({l:c.nome, v:c.evEb, txt:xx(c.evEb)})), v => xx(v));
       if (modo === "resumo"){ /* one-pager */
-        P.page(); P.rect(0, 0, P.W, 118, NAVY); P.rect(0, 118, P.W, 4, [127,184,230]);
+        P.page(); P.rect(0, 0, P.W, 118, NAVY); P.rect(0, 118, P.W, 4, ACC);
         P.text(P.M, 34, T(pre ? "OPORTUNIDADE DE INVESTIMENTO · ONE-PAGER" : "APRESENTAÇÃO CONFIDENCIAL (NDA) · RESUMO"), 9, true, [127,184,230]);
         P.text(P.M, 66, T(nome), 24, true, [255,255,255]); P.text(P.M, 86, T(Z.subtitulo).slice(0, 100), 10, false, [201,214,234]); P.text(P.M, 104, T(Z.transacao).slice(0, 100), 9.5, true, [242,193,78]); P.y = 136;
         par(P, Z.sumario, {size:9.5}); kpisPdf(P, Z.kpis.slice(0, 4)); evol();
@@ -259,7 +259,7 @@ if (window.KT_DD) (() => {
         if (pre) par(P, "Documento sem identificação da empresa. Não constitui oferta. Todo contato é feito pela Kinsey Capital.", {size:7.5, color:MUT});
         await rptSave(P.out(`One-pager · ${nome}`, T(`Kinsey Capital · ${pre ? "One-pager" : "Resumo pós-NDA"} · ${nome} · confidencial`)), arq(s, pre ? "one_pager" : "resumo_NDA", "pdf"), "application/pdf"); return; }
       /* capa */
-      P.page(); P.rect(0, 0, P.W, P.H, NAVY); P.rect(0, P.H * .62, P.W, 4, [127,184,230]);
+      P.page(); P.rect(0, 0, P.W, P.H, NAVY); P.rect(0, P.H * .62, P.W, 4, ACC); if (P.logoCapa) P.logoCapa(P.M, 40, 160);
       P.text(P.M, 120, T(pre ? "OPORTUNIDADE DE INVESTIMENTO · TEASER" : "APRESENTAÇÃO DA EMPRESA · CONFIDENCIAL (NDA)"), 11, true, [127,184,230]);
       P.wrap(T(nome), 34, true, P.CW).forEach((l, k) => P.text(P.M, 175 + k * 40, l, 34, true, [255,255,255]));
       P.text(P.M, 250, T(Z.subtitulo).slice(0, 95), 13, false, [201,214,234]); P.text(P.M, 275, T(Z.transacao).slice(0, 95), 12, true, [242,193,78]);
