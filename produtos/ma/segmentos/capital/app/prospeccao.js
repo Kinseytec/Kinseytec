@@ -43,6 +43,14 @@ if (window.KT_DD) (() => {
     const naBase = S.suppliers.find(s => (d.length === 14 && dig(s.doc) === d) || (n && nrm(s.nome) === n));
     const naPros = S.prospects.find(p => p.id !== o.id && ((d.length === 14 && dig(p.doc) === d) || (n && nrm(p.nome) === n)));
     return {naBase, naPros}; }
+  const N1s = () => S.suppliers.filter(x => x.nivel === "N1" && !(window.KT_DECL && KT_DECL.dec(x)));
+  const alvo = p => ({nivel:"N3", id:"pros:" + p.id, nome:p.nome, doc:p.doc || "", uf:p.uf || "", municipio:p.municipio || "", segmento:p.segmento || "", cnae:dig(p.cnae).slice(0, 7), mapa:{segmentoTxt:[p.segmento, p.cnae].filter(Boolean).join(" "), fat:p.fat || ""}, investidores:p.investidores || []});
+  const ADER = new WeakMap();
+  function aderentes(p){ if (ADER.has(p)) return ADER.get(p); const t = alvo(p), L = [];
+    N1s().forEach(inv => { let m = null; if ((p.investidores || []).includes(inv.id)) m = "prospectado para o investidor"; else { try{ m = window.KT_ORBINV ? KT_ORBINV.aderente(inv, t) : null; }catch(e){} } if (m) L.push({inv, m}); });
+    ADER.set(p, L); return L; }
+  const publicado = () => !!(window.firebase?.functions && Store.db);
+  const FONTES = {Econodata:"econodata", Lemitti:"lemitti", Ramper:"ramper"};
   const salvar = (id, o) => save(Store.set("prospects", id, o));
   const atualizar = (p, patch) => save(Store.update("prospects", p.id, patch));
 
@@ -53,26 +61,27 @@ if (window.KT_DD) (() => {
     nav.prepend(b);
     const v = $("#v-cadeia"); if (v) v.insertAdjacentHTML("afterend", `<section class="view" id="v-prospeccao" data-view="prospeccao" hidden><div class="pad" id="prospeccao"></div></section>`);
     [0, 300, 700, 1500].forEach(t => setTimeout(() => { if (nav.firstElementChild !== b) nav.prepend(b); }, t)); })();
-  S.prosF = S.prosF || {q:"", st:"ativos", or:"", resp:""};
+  S.prosF = S.prosF || {q:"", st:"ativos", or:"", resp:"", inv:""};
 
   EXT_VIEWS.prospeccao = function(){
     const host = $("#prospeccao"); if (!host) return; const F = S.prosF, R = regras();
     const all = S.prospects.slice().sort((a, b) => String(ultimo(b)?.em || b.criadoEm).localeCompare(ultimo(a)?.em || a.criadoEm));
     const L = all.filter(p => (F.st === "ativos" ? !["promovido", "arquivado"].includes(p.status) : F.st === "livres" ? livre(p) && !["promovido", "arquivado"].includes(p.status) : !F.st || p.status === F.st)
-      && (!F.or || p.origem === F.or) && (!F.resp || p.responsavel === F.resp) && (!F.q || nrm([p.nome, p.doc, p.segmento, p.cnae, p.municipio, p.uf, p.responsavel].join(" ")).includes(nrm(F.q))));
+      && (!F.or || p.origem === F.or) && (!F.resp || p.responsavel === F.resp) && (!F.inv || aderentes(p).some(x => x.inv.id === F.inv)) && (!F.q || nrm([p.nome, p.doc, p.segmento, p.cnae, p.municipio, p.uf, p.responsavel].join(" ")).includes(nrm(F.q))));
     const c = st => all.filter(p => p.status === st).length, k = (l, v, sm) => `<div class="dd-k"><span>${l}</span><b>${v}</b>${sm ? `<small>${sm}</small>` : ""}</div>`;
     const resps = [...new Set(all.map(p => p.responsavel).filter(Boolean))].sort();
     host.innerHTML = `<div class="head"><div><div class="eyebrow">KinseyTec – M&A · primeiro passo</div><h2>Prospecção</h2><p class="sub">Leads do SDR, da área de novos negócios e das listas do Econodata, do Lemitti e do Ramper. Quando o lead fica quente (reunião concluída, proposta de serviços ou mandato em negociação), o consultor de M&A aprova e a empresa vai sozinha para o cadastro M&A: Base inicial, Órbita, cadastro inicial e demais áreas.</p></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">${ed() ? `<button type="button" class="btn primary" id="pr-novo">+ Cadastro de prospecção</button><button type="button" class="btn" id="pr-imp">Importar lista</button>` : ""}<button type="button" class="btn" id="pr-mem">Equipe M&A e SDR</button><button type="button" class="btn" id="pr-eq">Regras de mérito</button></div></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">${ed() ? `<button type="button" class="btn primary" id="pr-novo">+ Cadastro de prospecção</button><button type="button" class="btn" id="pr-inv">Prospectar para investidor</button><button type="button" class="btn" id="pr-imp">Importar lista</button>` : ""}<button type="button" class="btn" id="pr-mem">Equipe M&A e SDR</button><button type="button" class="btn" id="pr-eq">Regras de mérito</button></div></div>
       <div class="dd-kpis" style="margin-bottom:12px">${k("Em prospecção", all.filter(p => !["promovido", "arquivado"].includes(p.status)).length, `${all.filter(p => livre(p) && !["promovido", "arquivado"].includes(p.status)).length} livres`)}${k("Em abordagem", c("abordagem"))}${k("Reuniões marcadas", c("marcada"))}${k("Aguardando aprovação M&A", c("realizada"), "leads quentes")}${k("Aprovados", c("promovido"), "no cadastro M&A")}</div>
       <div class="card" style="display:flex;flex-direction:column;gap:10px">
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input id="pr-q" placeholder="Buscar por nome, CNPJ, segmento, cidade ou responsável" value="${esc(F.q)}" style="flex:1 1 220px;min-width:0" aria-label="Buscar">
           <select id="pr-or" aria-label="Origem"><option value="">Todas as origens</option>${ORIGENS.map(o => `<option ${o === F.or ? "selected" : ""}>${o}</option>`).join("")}</select>
+          <select id="pr-iv" aria-label="Investidor"><option value="">Todos os investidores</option>${N1s().sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt")).map(i => `<option value="${i.id}" ${i.id === F.inv ? "selected" : ""}>${esc(i.nome)}</option>`).join("")}</select>
           <select id="pr-rs" aria-label="Responsável"><option value="">Todos os responsáveis</option>${resps.map(o => `<option ${o === F.resp ? "selected" : ""}>${esc(o)}</option>`).join("")}</select>
           <label class="sub" style="display:flex;gap:6px;align-items:center;margin:0">Sou <select id="pr-eu" aria-label="Quem está usando">${equipe().map(e => `<option ${e.nome === eu() ? "selected" : ""}>${esc(e.nome)}</option>`).join("")}</select></label></div>
         <div class="dd-tabs">${[["ativos", "Ativos"], ["livres", "Livres"], ["novo", "Novos"], ["abordagem", "Em abordagem"], ["marcada", "Reunião marcada"], ["realizada", "Aguardando aprovação"], ["promovido", "Aprovados"], ["arquivado", "Arquivados"]].map(([v, l]) => `<button type="button" class="fbtn" data-prst="${v}" aria-pressed="${F.st === v}">${l}</button>`).join("")}</div>
         ${L.length ? `<div class="tbl"><table class="pr-t"><thead><tr><th>Empresa</th><th>Origem</th><th>Responsável</th><th>Último toque</th><th>Situação</th><th></th></tr></thead><tbody>${L.slice(0, 300).map(p => { const u = ultimo(p), ex = exclusivoAte(p), lv = livre(p);
-          return `<tr class="mb-row" data-pr="${p.id}"><td style="min-width:200px"><b>${esc(p.nome)}</b>${p.temperatura ? ` <span class="tp tp-${nrm(p.temperatura)}" style="font-size:10px">${esc(p.temperatura)}</span>` : ""}<div class="sub" style="margin:0;font-size:11.5px">${esc([p.segmento || p.cnae, [p.municipio, p.uf].filter(Boolean).join("/"), p.fat ? "fat. " + p.fat : "", p.doc].filter(Boolean).join(" · "))}</div></td>
+          return `<tr class="mb-row" data-pr="${p.id}"><td style="min-width:200px"><b>${esc(p.nome)}</b>${p.temperatura ? ` <span class="tp tp-${nrm(p.temperatura)}" style="font-size:10px">${esc(p.temperatura)}</span>` : ""}<div class="sub" style="margin:0;font-size:11.5px">${esc([p.segmento || p.cnae, [p.municipio, p.uf].filter(Boolean).join("/"), p.fat ? "fat. " + p.fat : "", p.doc].filter(Boolean).join(" · "))}</div>${(() => { const A = aderentes(p); return A.length ? `<div style="font-size:11.5px;margin-top:2px;color:var(--glow)">◆ ${esc(A.slice(0, 2).map(x => x.inv.nome).join(", "))}${A.length > 2 ? ` +${A.length - 2}` : ""}</div>` : ""; })()}</td>
             <td style="font-size:12px">${esc(p.origem || "")}${p.lista ? `<div class="sub" style="margin:0;font-size:11px">${esc(p.lista)}</div>` : ""}</td>
             <td style="font-size:12px">${p.responsavel ? `${esc(p.responsavel)}<div class="sub" style="margin:0;font-size:11px">${lv ? "<b style='color:var(--warn)'>exclusividade vencida</b>" : `exclusivo até ${ex ? ex.toLocaleDateString("pt-BR") : "—"}`}</div>` : `<span class="sub">livre</span>`}</td>
             <td style="font-size:12px">${u ? `${dt(u.em)} · ${esc(u.canal)}<div class="sub" style="margin:0;font-size:11px">${esc(u.resultado)}${u.por ? " · " + esc(u.por) : ""}</div>` : `<span class="sub">—</span>`}</td>
@@ -80,7 +89,8 @@ if (window.KT_DD) (() => {
             <td style="text-align:right">${p.status === "realizada" && ed() ? `<button type="button" class="btn sm primary" data-prpro="${p.id}">Aprovar</button>` : ""}</td></tr>`; }).join("")}</tbody></table></div>${L.length > 300 ? `<p class="sub" style="margin:0">Mostrando 300 de ${L.length}. Use a busca e os filtros.</p>` : ""}` : `<div class="empty">Nenhum prospect${F.q || F.or || F.resp ? " com esses filtros" : ""}. Importe uma lista do Econodata, do Lemitti ou do Ramper, ou inclua um prospect.</div>`}
         <p class="sub" style="margin:0;font-size:12px">Exclusividade de ${R.exclusivDias} dias sem contato: depois disso a empresa fica livre para outra pessoa assumir. Contatos ficam só para uso interno.</p></div>`;
     const q = $("#pr-q", host); q.oninput = () => { F.q = q.value; clearTimeout(S.prT); S.prT = setTimeout(() => { renderView(); const n = $("#pr-q"); if (n){ n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }, 250); };
-    $("#pr-or", host).onchange = e => { F.or = e.target.value; renderView(); }; $("#pr-rs", host).onchange = e => { F.resp = e.target.value; renderView(); };
+    $("#pr-or", host).onchange = e => { F.or = e.target.value; renderView(); }; $("#pr-rs", host).onchange = e => { F.resp = e.target.value; renderView(); }; $("#pr-iv", host).onchange = e => { F.inv = e.target.value; renderView(); };
+    const pi = $("#pr-inv", host); if (pi) pi.onclick = () => paraInvestidor(F.inv);
     $("#pr-eu", host).onchange = e => { S.prosEu = e.target.value; try{ localStorage.setItem("kt-pros-eu", S.prosEu); }catch(x){} };
     $$("[data-prst]", host).forEach(b => b.onclick = () => { F.st = b.dataset.prst; renderView(); });
     $$("[data-pr]", host).forEach(r => r.onclick = () => ficha(S.prospects.find(p => p.id === r.dataset.pr)));
@@ -98,6 +108,7 @@ if (window.KT_DD) (() => {
         ${naBase && p.status !== "promovido" ? `<div class="banner"><b>Já está na base como ${esc(naBase.nome)}.</b> Não promova de novo: registre a abordagem no dossiê do target.</div>` : ""}
         <dl class="kv">${[["CNPJ", p.doc], ["Atividade", [p.cnae, p.segmento].filter(Boolean).join(" · ")], ["Local", [p.municipio, p.uf].filter(Boolean).join(" / ")], ["Faturamento", p.fat], ["Site", p.site], ["Situação", ST[p.status] || "Novo"],
           ["Responsável", p.responsavel ? `${p.responsavel} (${PAPEL[papelDe(p.responsavel)] || "—"}) · ${lv ? "exclusividade vencida" : "exclusivo até " + (ex ? ex.toLocaleDateString("pt-BR") : "—")}` : "livre"], ["Desde", dt(p.desde || p.criadoEm)]].filter(x => x[1]).map(([a, b]) => `<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join("")}</dl>
+        ${(() => { const A = aderentes(p); return A.length ? `<div><b style="font-size:13px">Investidores da Órbita com essa intenção (${A.length})</b>${A.slice(0, 8).map(x => `<div style="font-size:12.5px">◆ ${esc(x.inv.nome)} <span class="sub" style="font-size:11.5px">· ${esc(x.m)}</span></div>`).join("")}</div>` : `<div class="sub" style="margin:0;font-size:12.5px">Nenhum investidor da Órbita com tese aderente a esta empresa.</div>`; })()}
         ${(p.contatos || []).length ? `<div><b style="font-size:13px">Contatos</b>${p.contatos.slice(0, 8).map(c => `<div style="font-size:13px">${esc([c.nome, c.cargo, c.email, c.cel].filter(Boolean).join(" · "))}</div>`).join("")}</div>` : ""}
         <div><b style="font-size:13px">Histórico de abordagem (${(p.toques || []).length})</b>${(p.toques || []).slice().sort((a, b) => String(b.em).localeCompare(a.em)).map(t => `<div style="font-size:12.5px;border-top:1px solid var(--line);padding:5px 0">${dt(t.em)} · <b>${esc(t.canal)}</b> · ${esc(t.resultado)} · ${esc(t.por || "")}${t.nota ? `<div class="sub" style="margin:0">${esc(t.nota)}</div>` : ""}</div>`).join("") || `<p class="sub" style="margin:0">Nenhum toque registrado.</p>`}</div>
         ${ed() && !["promovido", "arquivado"].includes(p.status) ? `<form class="card" id="pt-f" style="display:flex;flex-direction:column;gap:8px;padding:12px"><b style="font-size:13px">Registrar toque</b><div class="form">
@@ -185,26 +196,66 @@ if (window.KT_DD) (() => {
     return rows.slice(hi + 1).filter(r => r[cN] || r[cD]).map(r => { const d = dig(r[cD]); return {nome:String(r[cN] ?? "").trim() || fmtCnpj(d), doc:d.length === 14 ? fmtCnpj(d) : "", cnae:String(r[cC] ?? "").trim(), fat:String(r[cF] ?? "").trim(), uf:String(r[cU] ?? "").toUpperCase().slice(0, 2), municipio:String(r[cM] ?? "").trim(), site:String(r[cS] ?? "").trim(),
       contatos:(r[cCt] || r[cE] || r[cT]) ? [{nome:String(r[cCt] ?? "").trim(), cargo:String(r[cCg] ?? "").trim(), email:String(r[cE] ?? "").trim(), cel:String(r[cT] ?? "").trim()}] : []}; });
   }
-  function importar(origem){
+  function importar(origem, invId){
     const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Prospecção</div><h2>Importar lista</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
       <form class="sheet-b" id="pi-f" style="display:flex;flex-direction:column;gap:10px" novalidate><p class="sub" style="margin:0">Arquivo exportado do Econodata, do Lemitti ou do Ramper (CSV ou Excel) com as colunas CNPJ e Empresa (ou Razão social). Empresas que já estão na base ou na prospecção não entram de novo.</p>
         <div class="form"><div class="fld"><label for="pi-o">Origem</label><select id="pi-o">${["Econodata", "Lemitti", "Ramper", "SDR", "Novos negócios"].map(o => `<option ${o === origem ? "selected" : ""}>${o}</option>`).join("")}</select></div>
+          <div class="fld"><label for="pi-iv">Prospectado para o investidor</label><select id="pi-iv"><option value="">—</option>${N1s().sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt")).map(i => `<option value="${i.id}" ${i.id === invId ? "selected" : ""}>${esc(i.nome)}</option>`).join("")}</select></div>
           <div class="fld"><label for="pi-r">Responsável pela abordagem</label><select id="pi-r"><option value="">Sem responsável (livres)</option>${equipe().map(e => `<option>${esc(e.nome)}</option>`).join("")}</select></div>
           <div class="fld full"><label for="pi-a">Arquivo</label><input id="pi-a" type="file" accept=".csv,.xlsx,.txt"></div></div>
         <p class="err" id="pi-err" hidden></p><div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="btn ghost" data-x>Cancelar</button><button type="submit" class="btn primary">Importar</button></div></form>`);
     $("#pi-f").onsubmit = async e => { e.preventDefault(); const f = $("#pi-a").files[0], err = t => { $("#pi-err").textContent = t; $("#pi-err").hidden = false; }; if (!f) return err("Escolha o arquivo.");
       let rows; try{ const buf = await f.arrayBuffer(); rows = /\.xlsx$/i.test(f.name) ? await IMP.lerXLSX(buf) : D.csv((() => { let x = new TextDecoder("utf-8").decode(buf); if (x.includes("\uFFFD")) x = new TextDecoder("latin1").decode(buf); return x; })()); }catch(x){ return err("Não consegui ler o arquivo."); }
       const L = lerLinhas(rows); if (!L) return err("O arquivo precisa ter as colunas CNPJ e Empresa (ou Razão social).");
-      const r = await incluir(L, $("#pi-o").value, f.name, $("#pi-r").value); close(); toast(`${r.novos} prospect(s) incluído(s) · ${r.base} já na base · ${r.pros} já na prospecção`); renderView(); };
+      const r = await incluir(L, $("#pi-o").value, f.name, $("#pi-r").value, $("#pi-iv").value); close(); toast(`${r.novos} prospect(s) incluído(s) · ${r.base} já na base · ${r.pros} já na prospecção`); renderView(); };
   }
-  async function incluir(L, origem, lista, resp){
+  async function incluir(L, origem, lista, resp, invId){
     let novos = 0, base = 0, pros = 0; const vistos = new Set();
     for (const o of L){ const k = dig(o.doc) || nrm(o.nome); if (vistos.has(k)) continue; vistos.add(k); const {naBase, naPros} = duplicado(o); if (naBase){ base++; continue; } if (naPros){ pros++; continue; }
-      await salvar(novoId("p"), {...o, segmento:o.segmento || o.cnae || "", origem, lista:lista || "", responsavel:resp || "", desde:resp ? nowISO() : "", status:"novo", toques:[], criadoEm:nowISO()}); novos++; }
+      const iv = invId || o.invId || ""; delete o.invId; await salvar(novoId("p"), {...o, ...(iv ? {investidores:[iv]} : {}), segmento:o.segmento || o.cnae || "", origem, lista:lista || "", responsavel:resp || "", desde:resp ? nowISO() : "", status:"novo", toques:[], criadoEm:nowISO()}); novos++; }
     return {novos, base, pros}; }
   /* empresas novas vindas das integrações (Econodata, Lemitti, Ramper) entram aqui, não na base */
-  async function deBase(o, origem){ const r = await incluir([{nome:o.nome, doc:o.doc, cnae:o.mapa?.segmentoTxt || "", fat:o.mapa?.fat || "", uf:o.uf, municipio:o.municipio, site:o.mapa?.site || "", contatos:o.enriq?.fontes ? Object.values(o.enriq.fontes).flatMap(f => f.pessoas || []).slice(0, 5) : (o.mapa?.contato ? [{nome:o.mapa.contato, cel:o.mapa.telefone || ""}] : []), invId:(o.investidores || [])[0] || ""}], origem, o.mapa?.aba || ""); return r; }
+  async function deBase(o, origem){ const r = await incluir([{nome:o.nome, doc:o.doc, cnae:o.mapa?.segmentoTxt || "", fat:o.mapa?.fat || "", uf:o.uf, municipio:o.municipio, site:o.mapa?.site || "", contatos:o.enriq?.fontes ? Object.values(o.enriq.fontes).flatMap(f => f.pessoas || []).slice(0, 5) : (o.mapa?.contato ? [{nome:o.mapa.contato, cel:o.mapa.telefone || ""}] : []), invId:(o.investidores || [])[0] || ""}], origem, o.mapa?.aba || "", "", (o.investidores || [])[0] || ""); return r; }
 
+
+  /* ---------------- prospectar para um investidor da Órbita ----------------
+     Os critérios vêm da tese do investidor (atividades, CNAEs, regiões e faixa de faturamento, dentro da política
+     Kinsey). Na versão publicada a busca vai direto às APIs oficiais (função "prospeccao", token guardado como segredo);
+     sem token ou na versão local, o sistema mostra os critérios para filtrar na plataforma e importar o arquivo. */
+  function paraInvestidor(invId){
+    const L = N1s().sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt"));
+    const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Prospecção pelas intenções dos investidores</div><h2>Prospectar para investidor</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
+      <div class="sheet-b" style="display:flex;flex-direction:column;gap:12px"><div class="fld"><label for="pv-i">Investidor da Órbita</label><select id="pv-i"><option value="">Escolha…</option>${L.map(i => `<option value="${i.id}" ${i.id === invId ? "selected" : ""}>${esc(i.nome)}</option>`).join("")}</select></div><div id="pv-b"></div></div>`);
+    const pinta = () => { const inv = supById($("#pv-i").value), b = $("#pv-b"); if (!inv){ b.innerHTML = `<p class="sub" style="margin:0">Escolha o investidor: os critérios da tese dele viram os filtros da busca.</p>`; return; }
+      const F = window.KT_IND?.filtrosDe ? KT_IND.filtrosDe(inv) : {cnaes:[], atividades:[], segmentos:[], ufs:[], regioes:[], fatMin:15, fatMax:10000};
+      const ja = S.prospects.filter(p => !["promovido", "arquivado"].includes(p.status) && aderentes(p).some(x => x.inv.id === inv.id)).length, sem = !F.cnaes.length && !F.atividades.length && !F.segmentos.length;
+      b.innerHTML = `${sem ? `<div class="banner" style="font-size:13px"><b>Tese sem atividades, CNAEs ou segmentos.</b> Complete a tese de ${esc(inv.nome)} no dossiê para a busca ficar precisa.</div>` : ""}
+        <div class="tbl"><table><tbody>${[["Atividades", F.atividades.join(" · ") || "—"], ["CNAEs", F.cnaes.join(", ") || "—"], ["Segmentos", F.segmentos.join(", ") || "—"], ["UFs e regiões", [...F.ufs, ...F.regioes].join(", ") || "Brasil"], ["Faturamento", `R$ ${fmt(F.fatMin, 0)} mi a R$ ${fmt(F.fatMax, 0)} mi (política Kinsey)`]].map(([k, v]) => `<tr><td style="width:34%"><b>${k}</b></td><td>${esc(v)}</td></tr>`).join("")}</tbody></table></div>
+        <p class="sub" style="margin:0;font-size:12.5px">${ja} prospect(s) ativo(s) já aderentes a ${esc(inv.nome)}.</p>
+        <div style="display:flex;flex-direction:column;gap:8px">${Object.keys(FONTES).map(f => `<div class="card" style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px"><div><b>${f}</b><div class="sub" style="margin:0;font-size:12px">${publicado() ? "busca pela API oficial (token cadastrado como segredo)" : "versão local: filtre na plataforma com os critérios acima e importe o arquivo"}</div></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">${publicado() ? `<button type="button" class="btn sm primary" data-pvb="${f}">Buscar no ${f}</button>` : ""}<button type="button" class="btn sm" data-pvi="${f}">Importar arquivo</button></div></div>`).join("")}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn sm" id="pv-cad">Exportar cadência para o Ramper (${ja})</button><button type="button" class="btn sm ghost" id="pv-crit">Copiar critérios</button></div>`;
+      $$("[data-pvi]", b).forEach(x => x.onclick = () => { close(); importar(x.dataset.pvi, inv.id); });
+      $$("[data-pvb]", b).forEach(x => x.onclick = () => buscar(x.dataset.pvb, inv, F, close));
+      $("#pv-cad", b).onclick = () => cadencia(inv);
+      $("#pv-crit", b).onclick = () => { const t = `Investidor: ${inv.nome}\nAtividades: ${F.atividades.join("; ")}\nCNAEs: ${F.cnaes.join(", ")}\nSegmentos: ${F.segmentos.join(", ")}\nUFs/regiões: ${[...F.ufs, ...F.regioes].join(", ") || "Brasil"}\nFaturamento: R$ ${F.fatMin} mi a R$ ${F.fatMax} mi`; try{ navigator.clipboard.writeText(t); toast("Critérios copiados"); }catch(e){ toast("Não foi possível copiar"); } }; };
+    $("#pv-i").onchange = pinta; pinta();
+  }
+  async function buscar(fonte, inv, F, close){
+    toast(`Buscando no ${fonte}…`);
+    try{ const fn = firebase.app().functions("southamerica-east1").httpsCallable("prospeccao", {timeout:300000}), r = (await fn({fonte:FONTES[fonte], modo:"buscar", filtros:F})).data;
+      if (!r?.lista?.length){ toast(`${fonte}: nenhuma empresa nova com esses critérios.`); return; }
+      const L = r.lista.map(o => ({nome:o.nome || fmtCnpj(o.d || ""), doc:fmtCnpj(dig(o.d || o.cnpj || "")), cnae:o.cnae || "", fat:o.fat || "", uf:(o.uf || "").toUpperCase().slice(0, 2), municipio:o.cid || o.municipio || "", site:o.site || "", contatos:(o.pessoas || []).slice(0, 5)}));
+      const x = await incluir(L, fonte, `API ${fonte} · ${inv.nome} · ${new Date().toLocaleDateString("pt-BR")}`, "", inv.id); close(); toast(`${fonte}: ${x.novos} novo(s) · ${x.base} já no cadastro M&A · ${x.pros} já na prospecção`); renderView(); }
+    catch(e){ const nc = /configurad|precondition/i.test(e.message || ""); toast(nc ? `API do ${fonte} ainda não configurada: use o arquivo exportado.` : `Busca indisponível: ${e.message || "erro"}`); if (nc){ close(); importar(fonte, inv.id); } }
+  }
+  /* lista para cadência no Ramper: prospects aderentes ao investidor, com contatos */
+  function cadencia(inv){
+    const L = S.prospects.filter(p => !["promovido", "arquivado"].includes(p.status) && aderentes(p).some(x => x.inv.id === inv.id)), q = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    if (!L.length){ toast("Nenhum prospect aderente a este investidor ainda."); return; }
+    const linhas = [["CNPJ", "Empresa", "Atividade", "Cidade", "UF", "Contato", "Cargo", "E-mail", "Telefone", "Responsável", "Investidor"].join(";"), ...L.map(p => { const c = (p.contatos || [])[0] || {}; return [p.doc, p.nome, p.segmento || p.cnae, p.municipio, p.uf, c.nome, c.cargo, c.email, c.cel, p.responsavel, inv.nome].map(q).join(";"); })];
+    rptSave(new TextEncoder().encode("﻿" + linhas.join("\n")), `Ramper_cadencia_${(inv.nome || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w]+/g, "_").slice(0, 30)}.csv`, "text/csv"); toast(`${L.length} prospect(s) na lista para o Ramper`);
+  }
   /* ---------------- equipe e regras de mérito ---------------- */
   function equipeRegras(){
     const R = regras(), E = equipe(), adm = ed();
@@ -273,5 +324,5 @@ if (window.KT_DD) (() => {
 
   const st = document.createElement("style"); st.textContent = `.pr-chk{display:flex!important;flex-direction:row!important;align-items:center;gap:8px;font-size:13px!important;text-transform:none!important;letter-spacing:0!important;font-weight:400!important;color:var(--fog)!important;margin:0!important}.pr-chk input{width:auto!important;flex:0 0 auto}@media (max-width:760px){.pr-t thead{display:none}.pr-t tr{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:8px 0;border-bottom:1px solid var(--line)}.pr-t td{border:0!important;padding:2px 4px!important}.pr-t td:nth-child(5){grid-column:2;grid-row:1}.pr-t td:nth-child(2),.pr-t td:nth-child(3),.pr-t td:nth-child(4),.pr-t td:nth-child(6){grid-column:1/-1}}`;
   document.head.appendChild(st);
-  window.KT_PROS = {membros, incluir, deBase, promover, ficha, regras, equipe, meritoDe, livre, duplicado};
+  window.KT_PROS = {aderentes, paraInvestidor, cadencia, membros, incluir, deBase, promover, ficha, regras, equipe, meritoDe, livre, duplicado};
 })();

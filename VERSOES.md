@@ -1,5 +1,12 @@
 # Registro de versões
 
+## v2.45 — 2026-11-16 · Prospecção pelas intenções dos investidores
+- "Prospectar para investidor": escolhe um investidor da Órbita e a tese dele (atividades, CNAEs, segmentos, UFs e regiões, faixa de faturamento dentro da política Kinsey) vira o filtro da busca no Econodata, no Lemitti e no Ramper
+- Versão publicada: busca direta pelas APIs oficiais (função "prospeccao", tokens como segredos); sem token ou na versão local, critérios para filtrar na plataforma e importação do arquivo já ligada ao investidor
+- Cada prospect mostra os investidores da Órbita com tese aderente (calculado sozinho) e os investidores para quem foi prospectado; filtro por investidor
+- Exportar cadência para o Ramper com os prospects aderentes ao investidor e os contatos
+- Listas importadas pelo dossiê do investidor também entram na Prospecção ligadas a ele
+
 ## v2.44 — 2026-11-15 · Prospecção como primeiro passo e equipe M&A/SDR
 - Prospecção passa a ser o primeiro item do menu, antes da Base inicial (cadastro M&A)
 - Lead quente (reunião concluída, proposta de serviços enviada ou mandato em negociação) fica "Aguardando aprovação M&A"; só um sócio ou consultor de M&A aprova, e a empresa vai sozinha para o cadastro M&A (Base inicial, Órbita, cadastro inicial e demais áreas), com a origem e o histórico
