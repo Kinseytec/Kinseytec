@@ -1,5 +1,5 @@
 /* ================= PORTAL DO FORNECEDOR ================= */
-const ADMINS = ["ia@kinsey.com.br"];
+const ADMINS = ["ia@kinsey.com.br", "newton.kao@kinsey.com.br"];
 const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => [...r.querySelectorAll(s)];
 const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -63,7 +63,7 @@ function stIntro(){
       <h3>Instale no celular</h3>
       <p style="font-size:14px;margin:0"><b>iPhone (Safari):</b> Compartilhar → "Adicionar à Tela de Início".<br><b>Android (Chrome):</b> menu ⋮ → "Adicionar à tela inicial".</p>
     </div>
-    <div class="admins">Administração KinseyTec: <b>${ADMINS[0]}</b></div>
+    <div class="admins">Administração KinseyTec: ${ADMINS.map(a => `<b>${a}</b>`).join(" · ")}</div>
     ${nav()}`;
 }
 

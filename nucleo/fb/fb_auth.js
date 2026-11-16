@@ -1,5 +1,6 @@
 /* ================= KinseyTec · acesso (Firebase Auth) ================= */
-const KT_ADMINS = ["ia@kinsey.com.br"];
+/* administradores gerais (KinseyTec Inovação Tecnológica · grupo Kinsey BR): liberam o acesso do time de M&A e dos demais usuários */
+const KT_ADMINS = ["ia@kinsey.com.br", "newton.kao@kinsey.com.br"];
 const KT_ROLES = {admin:"Administrador", editor:"Editor (cliente / Jurídico)", colaborador:"Colaborador (equipe Kinsey)", fornecedor:"Fornecedor (Portal)"};
 const KT_AUTH = (() => {
   const hasFb = typeof firebase !== "undefined" && firebase.apps && firebase.apps.length;
@@ -64,7 +65,7 @@ const KT_AUTH = (() => {
   }
   function blocked(email, notVerified){
     const t = T[lang]; render = () => blocked(email, notVerified);
-    shell(`<p>${notVerified ? t.notver : t.noauth} ${notVerified ? "" : `<b style="color:#fff">${KT_ADMINS[0]}</b>`}</p><p style="font-family:monospace">${email || ""}</p>
+    shell(`<p>${notVerified ? t.notver : t.noauth} ${notVerified ? "" : KT_ADMINS.map(a => `<b style="color:#fff">${a}</b>`).join(lang === "en" ? " or " : " ou ")}</p><p style="font-family:monospace">${email || ""}</p>
       <div class="row">${notVerified ? `<button type="button" id="kt-rs">${t.resend}</button>` : ""}<button type="button" class="pri" id="kt-out">${t.out}</button></div>`);
     el.querySelector("#kt-out").onclick = () => auth.signOut();
     const rs = el.querySelector("#kt-rs"); if (rs) rs.onclick = () => auth.currentUser.sendEmailVerification().then(() => { rs.textContent = "✓"; });

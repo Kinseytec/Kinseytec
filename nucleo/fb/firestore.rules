@@ -7,7 +7,7 @@ service cloud.firestore {
     function signedIn() { return request.auth != null; }
     function myEmail() { return request.auth.token.email.lower(); }
     function verified() { return signedIn() && request.auth.token.email_verified == true; }
-    function superAdmin() { return verified() && myEmail() in ['ia@kinsey.com.br']; }
+    function superAdmin() { return verified() && myEmail() in ['ia@kinsey.com.br', 'newton.kao@kinsey.com.br']; }
     function userDoc() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
     function hasUser() { return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)); }
     function myRole() { return userDoc().role; }

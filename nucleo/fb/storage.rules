@@ -3,7 +3,7 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     function signedIn() { return request.auth != null; }
-    function superAdmin() { return signedIn() && request.auth.token.email_verified == true && request.auth.token.email.lower() in ['ia@kinsey.com.br']; }
+    function superAdmin() { return signedIn() && request.auth.token.email_verified == true && request.auth.token.email.lower() in ['ia@kinsey.com.br', 'newton.kao@kinsey.com.br']; }
     function userDoc() { return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)); }
     function hasUser() { return signedIn() && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid)); }
     function isStaff() { return superAdmin() || (hasUser() && userDoc().data.role in ['admin', 'editor', 'colaborador']); }

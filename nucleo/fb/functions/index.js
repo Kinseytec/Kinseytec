@@ -12,7 +12,7 @@ const F = require("./fontes.js");
 admin.initializeApp();
 const db = admin.firestore();
 setGlobalOptions({region: "southamerica-east1", maxInstances: 1});
-const ADMINS = ["ia@kinsey.com.br"];
+const ADMINS = ["ia@kinsey.com.br", "newton.kao@kinsey.com.br"];
 
 async function gravarCotacoes(){
   const c = await F.cotacoes(), ref = db.doc("cotacoes/atual"), ant = (await ref.get()).data() || {};

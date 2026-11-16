@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v2.52 — 2026-11-16 · Administradores gerais e titularidade KinseyTec
+- Dois administradores gerais (IA Kinsey e Newton Kao): ambos convidam, liberam e removem usuários e podem dar acesso completo ao time de M&A (regras do banco, arquivos, funções, login e Portal)
+- Tela de acesso bloqueado mostra os dois administradores para pedir liberação
+- Titularidade: "KinseyTec Inovação Tecnológica, empresa do grupo Kinsey BR" no sistema e no guia de publicação
+
 ## v2.51 — 2026-11-16 · Teaser com números e quadros maiores; Análises financeiras antes da Due Diligence
 - Menu: Análises financeiras logo após a Órbita, antes da Due Diligence (desktop e celular)
 - Teaser pré-NDA, one-pager e apresentação pós-NDA redesenhados: Visão geral com indicadores em quadros grandes (tamanho ajustado ao espaço), destaques ampliados, fichas da companhia (atividade, tempo de operação, sede, clientes, atuação, linhas de negócio, controle), destaques financeiros com indicadores, gráfico e tabela maiores, tese em cartões numerados e próximos passos em etapas

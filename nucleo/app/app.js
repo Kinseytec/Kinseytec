@@ -36,7 +36,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const muniOf = (name, uf) => MUNI.find(m => m[0].toLowerCase()===String(name||"").trim().toLowerCase() && (!uf || m[1]===uf));
 
 /* ================= STORE (db compartilhado ou modo local) ================= */
-const ADMINS = ["ia@kinsey.com.br"];
+const ADMINS = ["ia@kinsey.com.br", "newton.kao@kinsey.com.br"];
 const PORTAL_URL = location.origin + "/portal.html";
 const APP_URL = location.origin;
 const COLS = ["suppliers","evidences","contracts","pareceres","config","operacoes","prospects"];
@@ -1187,7 +1187,8 @@ function openKim(){
     <p class="sub">${KIM_VIDEO ? "Em 4 minutos, a Kim explica como usar o KinseyTec – Cacau," : "O KinseyTec – Cacau é o"} sistema de matriz de risco de fornecedores de cacau: órbita, cadeia N1/N2/N3, auditoria e risco, evidências com GPS e aprovação jurídica com NDA e LGPD.</p>
     <ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:13.5px"><li><b>Órbita</b>: toque num fornecedor para aproximar até o local.</li><li><b>Cadeia</b>: cadastre traders (N1), fornecedores (N2) e produtores (N3).</li><li><b>Auditoria</b>: questionário, documentos, inspeção e testes atualizam o risco.</li><li><b>Evidências</b>: fotos com data e GPS e alerta quando a foto está longe do local declarado.</li><li><b>Jurídico</b>: revisão de cláusulas, parecer remoto, NDA e LGPD.</li></ol>
     <div class="card" style="display:flex;flex-direction:column;gap:8px"><h3>Acesso e administração</h3>
-      <p style="font-size:13.5px;margin:0">Administrador geral (Kinsey BR): <b style="user-select:all">${ADMINS[0]}</b></p>
+      <p style="font-size:13.5px;margin:0">Administradores gerais (liberam o acesso da equipe): ${ADMINS.map(a => `<b style="user-select:all">${a}</b>`).join(" · ")}</p>
+      <p style="font-size:12.5px;margin:0;color:var(--mut,#8aa0bf)">© ${new Date().getFullYear()} KinseyTec Inovação Tecnológica · empresa do grupo Kinsey BR · direito de uso reservado.</p>
       <p style="font-size:13.5px;margin:0">Link do <b>Cliente</b> (cliente e Kinsey BR): <span class="mono" style="user-select:all;font-size:12px">${APP_URL}</span></p>
       <p style="font-size:13.5px;margin:0">Link do <b>Fornecedor</b> (Portal do Fornecedor): <span class="mono" style="user-select:all;font-size:12px">${PORTAL_URL}</span></p></div></div>`);
 }

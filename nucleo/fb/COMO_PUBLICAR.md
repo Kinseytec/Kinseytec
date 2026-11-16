@@ -1,6 +1,6 @@
 # KinseyTec – Cacau · como publicar no Google (Firebase)
 
-Projeto: **kinseytec-cacau** · Administrador geral: **ia@kinsey.com.br** · Contato: contato@kinsey.com.br · newton.kao@kinsey.com.br · (11) 96635-0424
+Projeto: **kinseytec-cacau** · Administradores gerais: **ia@kinsey.com.br** e **newton.kao@kinsey.com.br** · Direito de uso: KinseyTec Inovação Tecnológica (grupo Kinsey BR) · Contato: contato@kinsey.com.br · newton.kao@kinsey.com.br · (11) 96635-0424
 
 Tudo é feito no navegador, sem instalar nada no computador.
 
@@ -96,7 +96,9 @@ Se o ID do projeto tiver um final (ex.: `kinseytec-cacau-a1b2c`), o link muda pa
 ## Perfis
 | Perfil | Quem | O que faz |
 |---|---|---|
-| Administrador | Kinsey BR (ia@kinsey.com.br) | Tudo, inclusive convidar e remover usuários |
+| Administrador geral | KinseyTec (ia@kinsey.com.br e newton.kao@kinsey.com.br) | Tudo, inclusive convidar e remover usuários e liberar o acesso completo do time de M&A (perfil Administrador ou Editor) |
+
+Direito de uso do sistema: **KinseyTec Inovação Tecnológica**, empresa do grupo Kinsey BR.
 | Editor | Cliente contratante, Jurídico Kinsey | Tudo do sistema, inclusive pareceres e classificação final |
 | Colaborador | Equipe de campo Kinsey | Cadastra, responde, fotografa, envia contratos |
 | Fornecedor | Traders, fornecedores, produtores | Só o Portal, só os próprios dados |
