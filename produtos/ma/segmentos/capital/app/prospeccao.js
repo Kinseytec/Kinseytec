@@ -404,7 +404,7 @@ if (window.KT_DD) (() => {
     $$("[data-pia]").forEach(b => b.onclick = () => aba(b.dataset.pia)); aba(aba0 || "arq");
     const dica = () => { const o = $("#pi-o").value; $("#pi-dica").innerHTML = esc(ORIG_LISTA.find(x => x[0] === o)[1]); $("#pi-ow").hidden = o !== "Outra plataforma"; }; $("#pi-o").onchange = dica; dica();
     $("#pi-f").onsubmit = async e => { e.preventDefault(); const f = $("#pi-a").files[0], err = t => { $("#pi-err").textContent = t; $("#pi-err").hidden = false; }; if (!f) return err("Escolha o arquivo.");
-      let rows; try{ const buf = await f.arrayBuffer(); rows = /\.xlsx$/i.test(f.name) ? await IMP.lerXLSX(buf) : D.csv((() => { let x = new TextDecoder("utf-8").decode(buf); if (x.includes("�")) x = new TextDecoder("latin1").decode(buf); return x; })()); }catch(x){ return err("Não consegui ler o arquivo."); }
+      let rows; try{ const buf = await f.arrayBuffer(); rows = /\.xlsx$/i.test(f.name) ? await IMP.lerXLSX(buf) : D.csv((() => { let x = new TextDecoder("utf-8").decode(buf); if (x.includes("\uFFFD")) x = new TextDecoder("latin1").decode(buf); return x; })()); }catch(x){ return err("Não consegui ler o arquivo."); }
       const L = lerLinhas(rows); if (!L) return err("O arquivo precisa ter as colunas CNPJ e Empresa (ou Razão social).");
       const tp = $("#pi-tp").value; if (tp) L.forEach(o => { o.alvo = tp; });
       const og = $("#pi-o").value === "Outra plataforma" ? ($("#pi-on").value.trim() || "Outra plataforma") : $("#pi-o").value;
