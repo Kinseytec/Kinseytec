@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v2.53 — 2026-11-16 · Prospecção de investidores (N1)
+- Prospecção passa a ter dois tipos: target (empresa vendedora, N3) e investidor (comprador estratégico ou financeiro, N1), com filtro "Só targets / Só investidores"
+- Cadastro manual e importação de listas com o tipo, o tipo de investidor, a tese (o que compra), o grupo e observações; a coluna "Tipo" do arquivo é detectada sozinha
+- Para cada investidor prospectado, o sistema mostra os targets da base aderentes à tese ("targets para apresentar")
+- Aprovação do consultor de M&A envia o investidor à Órbita como N1, com a tese, liga os targets escolhidos e registra a originação do investidor para o mérito (5%), que já aparece marcada no dossiê dos targets ligados
+
 ## v2.52 — 2026-11-16 · Administradores gerais e titularidade KinseyTec
 - Dois administradores gerais (IA Kinsey e Newton Kao): ambos convidam, liberam e removem usuários e podem dar acesso completo ao time de M&A (regras do banco, arquivos, funções, login e Portal)
 - Tela de acesso bloqueado mostra os dois administradores para pedir liberação
