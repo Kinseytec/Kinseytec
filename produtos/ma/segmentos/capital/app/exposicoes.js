@@ -79,6 +79,7 @@ if (window.KT_DD) (() => {
       kpisPdf(P, [["Exposição mínima", `MR$ ${n2(tt0("min"))}`, `${EXg.length} itens`], ["Exposição máxima", `MR$ ${n2(tt0("max"))}`, "multa de ofício 75%"], ["EBITDA ajustado", mi(I.ebitda), `reportado ${mi(K.ebitda)}`], ["Dívida líquida ajustada", mi(I.dl), `reportada ${mi(K.dl)}`]]);
       graf(Q0);
       if (G) G.colunas(P, "EBITDA reportado × ajustado e margem ajustada", Q0.map(q => q.rot), [{n:"Reportado", v:Q0.map(q => q.k.ebitda), c:G.CINZA}, {n:"Ajustado", v:Q0.map(q => q.k.ebitda + q.a.ebitda), c:G.ACC}], v => mi(v, 1), {n:"Margem ajustada", v:Q0.map(q => (q.k.ebitda + q.a.ebitda) / (q.k.recLiq || 1))});
+      if (window.KT_DEM) KT_DEM.resumo(P, s);
       if (window.KT_DDWB) KT_DDWB.impacto(P, s, per, {sec});
       sec("Principais pontos e recomendações");
       tab(P, ["Riscos e contingências (MR$)", "Mínimo", "Máximo", "Avaliação"], EXg.map(({e, c}, i) => [`${i + 1}. ${e.titulo}`, fmtMil(c.min), fmtMil(c.max), AVAL[e.aval] || "NQ"]), [.58, .14, .14, .14]);
@@ -94,7 +95,7 @@ if (window.KT_DD) (() => {
     sub("Objetivo e limitações");
     par(P, "Os procedimentos não constituem: (a) auditoria, revisão ou compilação das demonstrações financeiras; (b) exame de informação financeira prospectiva; (c) avaliação da empresa ou de seus ativos e passivos; (d) exame dos controles internos; e (e) trabalho destinado a detectar erros, fraudes ou atos ilícitos. Não expressamos opinião ou outra forma de garantia. A decisão de consumar a transação cabe somente ao Cliente.", {size:9.5});
     par(P, "Não foram realizados procedimentos significativos sobre seguros, avaliação de mercado e capacidade operacional, informações prospectivas, interpretação jurídica, testes informatizados e meio ambiente, salvo quando indicado. Os trabalhos limitaram-se aos dados e às informações da administração; quanto a litígios, a entendimentos gerais e às respostas dos consultores jurídicos.", {size:9.5});
-    sec("Índice"); [...(window.KT_DDWB ? ["Painel executivo e red flags"] : []), "Sumário executivo das potenciais exposições", "Decadência dos riscos", "Informações sobre o grupo econômico", "Aspectos contábeis e financeiros", "Performance do negócio (EBITDA, capital de giro e dívida líquida)", "Aspectos tributários", "Aspectos trabalhistas e previdenciários", ...(window.KT_DDWB ? ["Impacto na negociação"] : []), "Pontos e recomendações", "Limitações de escopo e equipe"].forEach((t, i) => par(P, `${i + 4}. ${t}`));
+    sec("Índice"); [...(window.KT_DDWB ? ["Painel executivo e red flags"] : []), "Sumário executivo das potenciais exposições", "Decadência dos riscos", "Informações sobre o grupo econômico", "Aspectos contábeis e financeiros", "Performance do negócio (EBITDA, capital de giro e dívida líquida)", "Demonstrações financeiras históricas", "Análise do EBITDA, do capital de giro e do endividamento líquido", "Ajustes da diligência e demonstrações pro forma", "Aspectos tributários", "Aspectos trabalhistas e previdenciários", ...(window.KT_DDWB ? ["Impacto na negociação"] : []), "Pontos e recomendações", "Limitações de escopo e equipe"].forEach((t, i) => par(P, `${i + 4}. ${t}`));
     if (window.KT_DDWB) KT_DDWB.painel(P, s, per, {sec});
     /* sumário das exposições */
     const EX = lista(s).map(e => ({e, c:calc(e, ate)})), tt = k => EX.reduce((a, x) => a + (x.c[k] || 0), 0);
@@ -128,6 +129,7 @@ if (window.KT_DD) (() => {
     sub("Dívida líquida");
     if (G){ const u = Q[Q.length - 1]; G.cascata(P, `Dívida líquida · ${u.rot}`, [{l:"Empréstimos e financiamentos", v:u.k.divBruta, tipo:"base"}, {l:"Caixa", v:-u.k.caixa, tipo:"delta"}, {l:"Itens equivalentes a dívida", v:u.a.divida, tipo:"delta"}, {l:"Dívida líquida ajustada", v:u.k.dl + u.a.divida, tipo:"total"}].filter(p => p.tipo !== "delta" || Math.abs(p.v) > 1), v => mi(v, 1)); }
     tab(P, cols, [["Empréstimos e financiamentos", ...Q.map(q => n2(q.k.divBruta))], ["(−) Caixa e equivalentes", ...Q.map(q => n2(-q.k.caixa))], ["Dívida líquida reportada", ...Q.map(q => n2(q.k.dl))], ["(+) Itens equivalentes a dívida (due diligence)", ...Q.map(q => n2(q.a.divida))], ["Dívida líquida ajustada", ...Q.map(q => n2(q.k.dl + q.a.divida))], ["Dívida líquida / EBITDA ajustado", ...Q.map(q => fmt((q.k.dl + q.a.divida) / ((q.k.ebitda + q.a.ebitda) || 1), 1) + "x")]], w);
+    if (window.KT_DEM) KT_DEM.historico(P, s, {sec});
     /* tributário e trabalhista */
     [["tributaria", "Aspectos tributários", ["tributaria"]], ["trabalhista", "Aspectos trabalhistas e previdenciários", ["trabalhista", "previdenciaria"]]].forEach(([area, tit, ars]) => { sec(tit);
       if (area === "tributaria") par(P, `Sucessão de direitos e deveres: o adquirente de fundo de comércio ou de participação responde pelos tributos devidos até a data do ato (CTN, arts. 132 e 133). Regime do target: ${s.perfil?.regime || "não informado"}.`, {size:9.5});

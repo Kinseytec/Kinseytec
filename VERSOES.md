@@ -1,5 +1,16 @@
 # Registro de versões
 
+## v2.46 — 2026-11-16 · Demonstrações financeiras nos relatórios
+- Novo bloco de demonstrações nos relatórios de Due Diligence, Análises financeiras e Valuation, depois dos sumários e gráficos (modelos Kinsey Mão Colorida e CPL Medicals):
+  - DRE histórica por período com margens; balanço patrimonial (ativo e passivo) classificado em capital de giro, endividamento líquido, capex e outros; indicadores econômico-financeiros por período
+  - Análise do EBITDA (reportado, ajustes e ajustado), do capital de giro líquido (reportado, potenciais ajustes, normalizado e prazos médios) e do endividamento líquido (reportado, itens equivalentes, ajustes e normalizado)
+  - Ajustes da diligência com efeitos e situação; DRE e balanço pro forma (visão do capital investido) depois dos ajustes contábeis
+  - Contingências à parte, fora do pro forma (mínimo, máximo e qualificado), para tratamento na negociação
+- Valuation: demonstrações projetadas dos cenários moderado e otimista — DRE projetada com histórico, balanço projetado (capital investido, dívida líquida e PL) e fluxo de caixa livre com fator de desconto, valor presente, perpetuidade, EV e equity
+- Resumos: quadro pro forma resumido
+- Due Diligence usa os potenciais ajustes (propostos e aprovados); Análises e Valuation usam os ajustes com OK
+- Linhas contábeis de "Fornecedores" mantidas nas demonstrações
+
 ## v2.45 — 2026-11-16 · Prospecção pelas intenções dos investidores
 - "Prospectar para investidor": escolhe um investidor da Órbita e a tese dele (atividades, CNAEs, segmentos, UFs e regiões, faixa de faturamento dentro da política Kinsey) vira o filtro da busca no Econodata, no Lemitti e no Ramper
 - Versão publicada: busca direta pelas APIs oficiais (função "prospeccao", tokens como segredos); sem token ou na versão local, critérios para filtrar na plataforma e importação do arquivo já ligada ao investidor

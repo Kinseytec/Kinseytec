@@ -22,7 +22,8 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     [/\bCadeia N1 → N2 → N3\b/g, "Base inicial N1 → N2 → N3"], [/\bCadeia\b/g, "Base inicial"], [/\bcadeia\b/g, "base inicial"],
     [/\bInspeção física in loco\b/g, "Visitas e reuniões"], [/\bInspeção\b/g, "Visitas"]
   ];
-  const troca = t => { if (!t || !/ornecedor|contratante|adeia|nspeção/.test(t)) return t; let o = t; R.forEach(([re, sub]) => { o = o.replace(re, sub); }); return o; };
+  const CONTABIL = /^\s*(\(-\)\s*)?Fornecedores(\s+(a pagar|em atraso|nacionais|estrangeiros|\(CP\)|\(LP\)))?\s*$/; /* linha contábil: mantém "Fornecedores" nas demonstrações */
+  const troca = t => { if (!t || !/ornecedor|contratante|adeia|nspeção/.test(t) || CONTABIL.test(t)) return t; let o = t; R.forEach(([re, sub]) => { o = o.replace(re, sub); }); return o; };
   const PULA = /^(SCRIPT|STYLE|TEXTAREA|INPUT|CODE)$/;
   function aplica(root){
     if (typeof LANG !== "undefined" && LANG !== "pt") return; if (!root) return;

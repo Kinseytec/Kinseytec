@@ -157,8 +157,8 @@ if (window.KT_DD) (() => {
     const projRows = c => [["", ...c.anos.map(a => String(a.y))], ["Receita líquida", ...c.anos.map(a => mi(a.rl))], ["EBITDA", ...c.anos.map(a => mi(a.eb))], ["Margem", ...c.anos.map(a => pc(a.mg))], ["Fluxo de caixa livre", ...c.anos.map(a => mi(a.fcl))]];
     const waccRows = [["Taxa livre de risco (USD)", pc(X.Bs.P.rf.v / 100)], ["Beta realavancado", fmt(W.bl, 2)], ["Prêmio de mercado", pc(X.Bs.P.erp.v / 100)], ["Risco-país", pc(X.Bs.P.crp.v / 100)], ["Prêmio de tamanho", pc(W.size / 100)], ["Custo do capital próprio (R$)", pc(W.ke)], ["Custo da dívida após IR", pc(W.kdLiq)], ["Estrutura (capital próprio/dívida)", `${pc(W.we, 0)} / ${pc(W.wd, 0)}`], ["WACC automático (CAPM)", pc(W.waccAuto ?? W.wacc)], ...(W.ajustado ? [["WACC ajustado pelo consultor", `${pc(W.wacc)} · ${W.just?.tipo || ""}: ${W.just?.texto || "sem justificativa"}`]] : [["WACC usado", pc(W.wacc)]])];
     if (fmtx === "pdf"){
-      const P = KTPdf(); capa(P, "Relatório de valuation", s.nome, [["Data-base", db], ["Segmento", s.perfil?.segmento || ""], ["Faixa moderada (enterprise value)", `${mi(R.rec[0])} a ${mi(R.rec[1])}`], ["Emitido em", hojeBR()]]);
-      sec(P, 1, "Sumário executivo");
+      const P = KTPdf(); let nv = 0; const secV = t => sec(P, ++nv, t); capa(P, "Relatório de valuation", s.nome, [["Data-base", db], ["Segmento", s.perfil?.segmento || ""], ["Faixa moderada (enterprise value)", `${mi(R.rec[0])} a ${mi(R.rec[1])}`], ["Emitido em", hojeBR()]]);
+      secV("Sumário executivo");
       kpisPdf(P, [["Faixa moderada · EV", `${mi(R.rec[0], 0)} a ${mi(R.rec[1], 0)}`, "recomendada"], ["Equity moderado", `${mi(R.rec[0] - X.dl, 0)} a ${mi(R.rec[1] - X.dl, 0)}`, `DL ajustada ${mi(X.dl)}`], ["FCD otimista · EV", `${mi(R.ot.min, 0)} a ${mi(R.ot.max, 0)}`, "premissas justificadas"], ["WACC", pc(W.wacc), `EBITDA base ${mi(X.bp.eb)}`]]);
       faixasPdf(P, R.met.map(m => [m[0], m[1], m[2]]), R.rec);
       const G = window.KT_GRAF, evm = (R.rec[0] + R.rec[1]) / 2, grp = {}; X.pt.L.filter(x => x.inc).forEach(x => { grp[x.grupo] = (grp[x.grupo] || 0) + x.v; });
@@ -167,11 +167,12 @@ if (window.KT_DD) (() => {
       const evEbT = R.rec && X.bp.eb ? evm / X.bp.eb : null;
       const compG = () => G && C.ok.length && G.barrasH(P, "Comparáveis · EV/EBITDA (companhias abertas)", C.ok.filter(c => c.evEb > 0 && c.evEb < 60).sort((a, b) => b.evEb - a.evEb).slice(0, 14).map(c => ({l:c.nome, v:c.evEb, txt:xx(c.evEb)})), v => xx(v), evEbT ? {v:evEbT, l:`target ${xx(evEbT)} (faixa moderada)`} : null);
       if (modo === "resumo"){
-        sec(P, 2, "Desempenho e mercado"); histG(); compG();
+        secV("Desempenho e mercado"); histG(); compG();
         if (Tz){ P.h2("Destaques"); Tz.destaques.slice(0, 5).forEach(d => par(P, "• " + d, {size:9.5})); }
-        sec(P, 3, "Fluxo de caixa descontado e pontos de atenção");
+        secV("Fluxo de caixa descontado e pontos de atenção");
         if (G) G.colunas(P, "EBITDA projetado · moderado × otimista", mod.anos.map(a => String(a.y)), [{n:"Moderado", v:mod.anos.map(a => a.eb), c:ACC}, {n:"Otimista", v:ot.anos.map(a => a.eb), c:G.GOLD}], v => mi(v, 1));
         tab(P, ["", "Moderado", "Otimista"], [["WACC", pc(W.wacc), pc(W.wacc)], ["Enterprise value", mi(mod.ev), mi(ot.ev)], ["Equity value", mi(mod.eq), mi(ot.eq)], ["EV/EBITDA implícito", xx(mod.mult), xx(ot.mult)]], [.5, .25, .25]);
+        if (window.KT_DEM) KT_DEM.resumo(P, s, {aprovados:true});
         P.h2("Pontos de atenção"); A.slice(0, 6).forEach(a => par(P, `• ${a.txt}`, {size:9}));
         const [hl, tl] = txt("val_limites", s, db); P.h2(T(hl)); par(P, tl, {size:8.5});
         await rptSave(P.out(`Valuation · ${s.nome}`, T(`Kinsey Capital · Valuation (resumo) · ${s.nome} · ${db} · confidencial`)), arq(s, "valuation_resumo", "pdf"), "application/pdf"); return; }
@@ -181,24 +182,25 @@ if (window.KT_DD) (() => {
         ["Enterprise value · faixa moderada", "", `${mi(R.rec[0])} a ${mi(R.rec[1])}`], [{t:"Equity value · faixa moderada", b:true}, "", {t:`${mi(R.rec[0] - X.dl)} a ${mi(R.rec[1] - X.dl)}`, b:true}]], [.25, .5, .25]);
       par(P, `Dívida líquida reportada no balancete de ${X.perBase}: ${mi(X.pt.reportada)}. Itens equivalentes a dívida, ajustes da Due Diligence com OK no valuation e complementos do consultor conforme a tabela.`, {size:8.5, color:MUT});
       ["val_escopo","val_metodo"].forEach(k => { const [h, t] = txt(k, s, db); P.h2(T(h)); par(P, t); });
-      if (Tz){ sec(P, 2, "A empresa e o mercado"); par(P, Tz.descricao || ""); P.h2("Destaques"); Tz.destaques.forEach(d => par(P, "• " + d, {size:9.5}));
+      if (Tz){ secV("A empresa e o mercado"); par(P, Tz.descricao || ""); P.h2("Destaques"); Tz.destaques.forEach(d => par(P, "• " + d, {size:9.5}));
         if (Tz.linhas.length) tab(P, ["Linha de negócio", "Participação", "Descrição"], Tz.linhas.map(l => [l.nome, l.pct || "-", l.desc || ""]), [.3, .15, .55]);
         P.h2("Mercado e setor"); Tz.mercado.forEach(m => par(P, "• " + m, {size:9.5})); }
-      sec(P, 3, "Histórico");
+      secV("Histórico");
       if (G) histG(); else barrasPdf(P, "Receita líquida e EBITDA ajustado", anos.map(a => String(a.ano)), [{n:"Receita líquida", v:anos.map(a => a.rl), c:ACC}, {n:"EBITDA ajustado", v:anos.map(a => a.eb), c:GOLD}], v => mi(v, 0));
       tab(P, ["Linha de negócio", ...anos.map(a => String(a.ano)), "CAGR real"], X.nomes.map(l => [l, ...anos.map(a => mi(a.lin[l] || 0)), pc(X.histL[l]?.real)]));
       X.H.comp.forEach(g => tab(P, [`${g[0].meses} meses até ${String(g[0].mes).padStart(2, "0")}`, ...g.map(p => String(p.ano))], [["Receita líquida", ...g.map(p => mi(p.rl / p.K.f))], ["EBITDA ajustado", ...g.map(p => mi(p.eb / p.K.f))]]));
-      sec(P, 4, "Ajustes de Due Diligence considerados"); const aj = D.ajustes(s, X.perBase).filter(D.okVal);
+      if (window.KT_DEM) KT_DEM.historico(P, s, {aprovados:true, sec:secV});
+      secV("Ajustes de Due Diligence considerados"); const aj = D.ajustes(s, X.perBase).filter(D.okVal);
       aj.length ? tab(P, ["Ajuste", "Efeitos", "OK no valuation"], aj.map(a => [a.titulo, D.efeitoTxt(a), `${a.val.por} · ${dt(a.val.em)}`]), [.35, .4, .25]) : par(P, "Nenhum ajuste com OK no valuation.");
-      sec(P, 5, "Fluxo de caixa descontado"); tab(P, ["Componente do WACC", "Valor"], waccRows, [.7, .3]);
+      secV("Fluxo de caixa descontado"); tab(P, ["Componente do WACC", "Valor"], waccRows, [.7, .3]);
       if (G){ G.barrasH(P, "Composição do custo de capital", [{l:"Custo do capital próprio (Ke)", v:W.ke, txt:pc(W.ke)}, {l:"Custo da dívida após IR (Kd)", v:W.kdLiq, txt:pc(W.kdLiq), c:G.GOLD}, {l:"WACC", v:W.wacc, txt:pc(W.wacc), c:G.NAVY}], v => pc(v));
         G.colunas(P, "EBITDA projetado · moderado × otimista", mod.anos.map(a => String(a.y)), [{n:"Moderado", v:mod.anos.map(a => a.eb), c:ACC}, {n:"Otimista", v:ot.anos.map(a => a.eb), c:G.GOLD}], v => mi(v, 1));
         const dws = [-.02, -.01, 0, .01, .02]; G.calor(P, "Sensibilidade do enterprise value ao WACC", ["Cenário", ...dws.map(d => pc(W.wacc + d))], ["mod", "ot"].map(k => [k === "mod" ? "Moderado" : "Otimista", ...dws.map(d => KT_VAL.cenario(X, k, d).ev)]), v => mi(v, 1)); }
-      P.ensure(150); P.h2("Cenário moderado (crescimento histórico)"); tab(P, projRows(mod)[0], projRows(mod).slice(1));
-      P.ensure(150); P.h2("Cenário otimista (premissas justificadas)"); tab(P, projRows(ot)[0], projRows(ot).slice(1));
+      if (!window.KT_DEM){ P.h2("Cenário moderado (crescimento histórico)"); tab(P, projRows(mod)[0], projRows(mod).slice(1)); P.h2("Cenário otimista (premissas justificadas)"); tab(P, projRows(ot)[0], projRows(ot).slice(1)); }
       tab(P, ["", "Moderado", "Otimista"], [["Enterprise value", mi(mod.ev), mi(ot.ev)], ["Equity value", mi(mod.eq), mi(ot.eq)], ["EV/EBITDA implícito", xx(mod.mult), xx(ot.mult)]], [.5, .25, .25]);
       P.h2("Justificativas do cenário otimista"); const js = Object.entries(just); js.length ? js.forEach(([k2, j]) => par(P, `• ${j.tipo}: ${j.texto} (${j.por || ""})`, {size:9})) : par(P, "Sem premissas acima do histórico.", {size:9});
-      sec(P, 6, "Múltiplos de mercado e outras avaliações");
+      if (window.KT_DEM){ secV("Demonstrações projetadas e fluxo de caixa livre"); KT_DEM.projetadas(P, s, R); }
+      secV("Múltiplos de mercado e outras avaliações");
       if (G) compG();
       C.ok.length ? tab(P, ["Companhia", "Segmento", "EV/EBITDA", "EV/Receita", "Fonte"], C.ok.map(c => [c.nome, c.seg, xx(c.evEb), xx(c.evRec, 2), `${c.fonte || c.origem} ${c.data || ""}`]), [.3, .14, .13, .13, .3]) : (() => { const Rf = KT_VAL.refC(C), d = 1 - X.Bs.P.desc.v / 100;
         par(P, `Sem companhias abertas comparáveis carregadas para ${C.seg || "o segmento"}${C.sim.length ? ` e semelhantes (${C.sim.join(", ")})` : ""}. Aplicada a referência Kinsey de múltiplos do setor, a ser substituída pelas companhias da CVM/B3.`, {size:9});
@@ -214,7 +216,7 @@ if (window.KT_DD) (() => {
         tab(P, ["Referência", "EV", "× EBITDA contábil", "× EBITDA ajustado", "Posição"], Q.impl.map(i => [i.rot, mi(i.ev), xx(i.cont), xx(i.fin), Q.pos(i.fin)]), [.26, .15, .15, .15, .29]);
         par(P, `Diferença entre o EBITDA ajustado e o contábil: ${mi(Q.gap)} (${pc(Q.gapPc)}), efeito de ${mi(Q.efeitoEv)} no enterprise value pela mediana.`, {size:9}); } }
       if (R.T.L.length) tab(P, ["Transação", "Data", "EV/EBITDA", "EV/Receita"], R.T.L.map(t => [t.alvo + " · " + (t.comprador || ""), t.data || "", xx(t.evEb), xx(t.evRec, 2)]), [.5, .15, .175, .175]);
-      sec(P, 7, "Pontos de atenção e limitações"); A.forEach(a => par(P, `• ${a.ok ? "Justificado: " : ""}${a.txt}`, {size:9})); const [hl, tl] = txt("val_limites", s, db); P.h2(T(hl)); par(P, tl);
+      secV("Pontos de atenção e limitações"); A.forEach(a => par(P, `• ${a.ok ? "Justificado: " : ""}${a.txt}`, {size:9})); const [hl, tl] = txt("val_limites", s, db); P.h2(T(hl)); par(P, tl);
       await rptSave(P.out(`Valuation · ${s.nome}`, T(`Kinsey Capital · Valuation · ${s.nome} · ${db} · confidencial`)), arq(s, "valuation", "pdf"), "application/pdf");
     } else {
       const {slides, frame} = pptBase("Valuation · " + s.nome);
@@ -338,6 +340,7 @@ if (window.KT_DD) (() => {
     if (modo === "resumo"){ evolG(); ponteG();
       sec(P, 2, "Indicadores e pontos de atenção"); liqG();
       tab(P, ["Indicador", "Reportado", "Ajustado"], [["Margem bruta", pc(I0.mBruta), pc(I.mBruta)], ["Margem EBITDA", pc(I0.mEbitda), pc(I.mEbitda)], ["Margem líquida", pc(I0.mLiq), pc(I.mLiq)], ["Dívida líquida / EBITDA", xx(I0.dlEbitda), xx(I.dlEbitda)], ["Liquidez corrente", xx(I0.lc, 2), xx(I.lc, 2)], ["ROE", pc(I0.roe), pc(I.roe)], ["Ciclo de caixa", dias(K.ciclo), dias(K.ciclo)]], [.5, .25, .25]);
+      if (window.KT_DEM) KT_DEM.resumo(P, s, {aprovados:true});
       P.h2("Ajustes da Due Diligence"); AJ.length ? tab(P, ["Ajuste", "Efeito", "Situação"], AJ.slice(0, 12).map(a => [a.titulo, D.efeitoTxt(a), D.okFin(a) ? "OK nas análises" : "aguardando OK"]), [.4, .4, .2]) : par(P, "Nenhum ajuste.", {size:9});
       par(P, "Análises calculadas sobre os balancetes do cadastro do projeto (ou do workbook do auditor, quando importado). Não constituem auditoria. Confidencial.", {size:8, color:MUT});
       await rptSave(P.out(`Análises financeiras · ${nome}`, T(`Kinsey Capital · Análises financeiras (resumo) · ${nome} · ${db} · confidencial`)), arq(s, "analises_financeiras_resumo", "pdf"), "application/pdf"); return; }
@@ -346,18 +349,11 @@ if (window.KT_DD) (() => {
     tab(P, ["R$", ...H.map(h => h.rot)], [["Receita líquida", ...H.map(h => mi(h.K.recLiq))], ["Lucro bruto", ...H.map(h => mi(h.K.lucroBruto))], ["EBITDA reportado", ...H.map(h => mi(h.K.ebitda))], ["EBITDA ajustado", ...H.map(h => mi(h.I.ebitda))], ["Margem EBITDA ajustada", ...H.map(h => pc(h.I.mEbitda))], ["Lucro líquido ajustado", ...H.map(h => mi(h.I.ll))], ["Dívida líquida ajustada", ...H.map(h => mi(h.I.dl))], ["Capital de giro (NCG)", ...H.map(h => mi(h.I.ncg))], ["Patrimônio líquido", ...H.map(h => mi(h.I.pl))]]);
     sec(P, 3, "EBITDA e ajustes da Due Diligence"); ponteG();
     AJ.length ? tab(P, ["Ajuste", "Área", "Efeitos (anuais)", "Situação"], AJ.map(a => [a.titulo, D.areaNome(a.area), D.efeitoTxt(a), D.okFin(a) ? `OK · ${a.fin?.por || ""}` : "aguardando OK"]), [.32, .14, .34, .2]) : par(P, "Nenhum ajuste apurado.");
-    sec(P, 4, "Demonstração do resultado (anualizada)");
-    const ln = (l, r, a) => [l, mi(r), a == null || Math.abs(a - r) < .5 ? "-" : mi(a - r), mi(a ?? r)];
-    tab(P, ["", "Reportado", "Ajustes", "Ajustado"], [ln("Receita bruta", K.recBruta), ln("(-) Deduções", -K.deducoes), ln("Receita líquida", K.recLiq), ln("(-) Custos", -K.cpv), ln("Lucro bruto", K.lucroBruto), ln("(-) Despesas operacionais", -K.despOp), ln("EBITDA", K.ebitda, I.ebitda), ln("(-) Depreciação e amortização", -K.da), ln("EBIT", K.ebit), ln("Resultado financeiro", K.resFin), ln("(-) IRPJ e CSLL", -K.ir), ln("Lucro líquido", K.ll, I.ll)], [.4, .2, .2, .2]);
     if (G) G.rosca(P, "Destino da receita líquida", [{l:"Custos", v:Math.max(0, K.cpv)}, {l:"Despesas operacionais", v:Math.max(0, K.despOp)}, {l:"EBITDA", v:Math.max(0, K.ebitda)}].filter(x => x.v > 0), v => mi(v, 1), [mi(K.recLiq, 1), "receita líquida"]);
-    sec(P, 5, "Balanço, endividamento e capital de giro");
-    tab(P, ["", "Reportado", "Ajustes", "Ajustado"], [ln("Ativo circulante", K.AC), ln("Ativo não circulante", K.ANC), ln("Ativo total", K.AT), ln("Passivo circulante", K.PC), ln("Passivo não circulante", K.PNC), ln("Patrimônio líquido", K.PL, I.pl), ln("Dívida bruta (empréstimos e financiamentos)", K.divBruta), ln("(-) Caixa e aplicações", -K.caixa), ln("Dívida líquida", K.dl, I.dl), ln("Necessidade de capital de giro", K.ncg, I.ncg)], [.4, .2, .2, .2]);
     if (G) G.barrasH(P, "Prazos médios (dias)", [{l:"Recebimento (PMR)", v:K.pmr, txt:dias(K.pmr)}, {l:"Estocagem (PME)", v:K.pme, txt:dias(K.pme)}, {l:"Pagamento (PMP)", v:K.pmp, txt:dias(K.pmp), c:G.GOLD}, {l:"Ciclo de caixa", v:Math.max(0, K.ciclo || 0), txt:dias(K.ciclo), c:G.NAVY}], v => dias(v));
-    sec(P, 6, "Indicadores financeiros"); liqG();
-    tab(P, ["Indicador", "Reportado", "Ajustado"], [["Margem bruta", pc(I0.mBruta), pc(I.mBruta)], ["Margem EBITDA", pc(I0.mEbitda), pc(I.mEbitda)], ["Margem líquida", pc(I0.mLiq), pc(I.mLiq)], ["Liquidez corrente", xx(I0.lc, 2), xx(I.lc, 2)], ["Liquidez seca", xx(I0.ls, 2), xx(I.ls, 2)], ["Liquidez imediata", xx(I0.li, 2), xx(I.li, 2)], ["Liquidez geral", xx(I0.lg, 2), xx(I.lg, 2)],
-      ["Endividamento geral (passivo / ativo)", pc(I0.endiv), pc(I.endiv)], ["Composição (curto prazo / passivo)", pc(I0.compos), pc(I.compos)], ["Dívida líquida / EBITDA", xx(I0.dlEbitda), xx(I.dlEbitda)], ["Cobertura de juros (EBITDA / despesa financeira)", xx(I0.cobJuros), xx(I.cobJuros)], ["Retorno sobre o PL (ROE)", pc(I0.roe), pc(I.roe)], ["Retorno sobre o ativo (ROA)", pc(I0.roa), pc(I.roa)],
-      ["Prazo médio de recebimento", dias(K.pmr), dias(K.pmr)], ["Prazo médio de estocagem", dias(K.pme), dias(K.pme)], ["Prazo médio de pagamento", dias(K.pmp), dias(K.pmp)], ["Ciclo de caixa", dias(K.ciclo), dias(K.ciclo)]], [.5, .25, .25]);
-    sec(P, 7, "Limitações"); par(P, "As análises são calculadas sobre os saldos dos balancetes fornecidos e não constituem auditoria das demonstrações financeiras. Os ajustes refletem a Due Diligence na data de emissão e dependem do OK do consultor responsável. Quando o workbook do auditor for importado, ele passa a ser a base dos números. Relatório confidencial, destinado às partes autorizadas pela Kinsey Capital.");
+    liqG();
+    let nA = 3; if (window.KT_DEM) KT_DEM.historico(P, s, {aprovados:true, sec:t => sec(P, ++nA, t)});
+    sec(P, ++nA, "Limitações"); par(P, "As análises são calculadas sobre os saldos dos balancetes fornecidos e não constituem auditoria das demonstrações financeiras. Os ajustes refletem a Due Diligence na data de emissão e dependem do OK do consultor responsável. Quando o workbook do auditor for importado, ele passa a ser a base dos números. Relatório confidencial, destinado às partes autorizadas pela Kinsey Capital.");
     await rptSave(P.out(`Análises financeiras · ${nome}`, T(`Kinsey Capital · Análises financeiras · ${nome} · ${db} · confidencial`)), arq(s, "analises_financeiras", "pdf"), "application/pdf");
   }
   /* botão de emissão na tela de Análises financeiras */
