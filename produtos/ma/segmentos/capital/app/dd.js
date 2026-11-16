@@ -437,7 +437,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
   const ICO = {fin:`<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>`, val:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1 1-1.8 2.5-1.8s2.5.7 2.5 1.8-1 1.6-2.5 1.9-2.5.9-2.5 2 1 1.9 2.5 1.9 2.5-.8 2.5-1.8"/></svg>`};
   (() => { const nav = $("nav.tabs"), au = nav && $("[data-go=auditoria]", nav); if (!au) return;
     au.lastChild.textContent = "Due Diligence";
-    au.insertAdjacentHTML("afterend", `<button type="button" data-go="financas">${ICO.fin}Análises financeiras</button><button type="button" data-go="valuation">${ICO.val}Valuation</button>`);
+    au.insertAdjacentHTML("beforebegin", `<button type="button" data-go="financas">${ICO.fin}Análises financeiras</button>`); au.insertAdjacentHTML("afterend", `<button type="button" data-go="valuation">${ICO.val}Valuation</button>`);
     $("#v-auditoria").insertAdjacentHTML("afterend", `<section class="view" id="v-financas" data-view="financas" hidden><div class="pad" id="financas"></div></section><section class="view" id="v-valuation" data-view="valuation" hidden><div class="pad" id="valuation"></div></section>`); })();
 
   const alvoSel = () => { const L = targets(); let s = supById(S.ddSel); if (!s || s.nivel !== "N3") s = L.find(temBal) || L[0]; if (s) S.ddSel = s.id; return s; };

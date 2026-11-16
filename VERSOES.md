@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v2.51 — 2026-11-16 · Teaser com números e quadros maiores; Análises financeiras antes da Due Diligence
+- Menu: Análises financeiras logo após a Órbita, antes da Due Diligence (desktop e celular)
+- Teaser pré-NDA, one-pager e apresentação pós-NDA redesenhados: Visão geral com indicadores em quadros grandes (tamanho ajustado ao espaço), destaques ampliados, fichas da companhia (atividade, tempo de operação, sede, clientes, atuação, linhas de negócio, controle), destaques financeiros com indicadores, gráfico e tabela maiores, tese em cartões numerados e próximos passos em etapas
+- Destaques mais completos: anos de operação, margem acima da referência do setor, lucro do último exercício e base de clientes; referência de múltiplos de mercado quando não há comparáveis
+- Pré-NDA sem cidade (apenas região) e sem informação desconhecida nas fichas
+
 ## v2.50 — 2026-11-16 · Planilhas padronizadas Kinsey (valuation e PPA) com fórmulas
 - Gerador de Excel passa a gravar fórmulas vivas, estilos da marca (entradas em azul sobre Fog, cabeçalhos Navy, histórico em cinza e projetado em Acent), painéis congelados e recálculo ao abrir
 - Planilha padronizada de valuation (modelo dos trabalhos Kinsey): Resumo, Premissas (cadastro, macro, crescimento moderado e otimista, % operacionais, dias de capital de giro, tributação, ponte para o equity, ajuste de WACC ±3 p.p.), WACC pelo CAPM, Histórico (DRE e balanço dos balancetes), DRE projetada (lucro real ou presumido), Capital de giro em dias, FCD (meio do período, Gordon, sensibilidade WACC × g), Múltiplos, Conferências e Plano de contas

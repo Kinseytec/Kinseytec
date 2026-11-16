@@ -28,6 +28,27 @@ if (window.KT_DD) (() => {
     $("#ftx").onsubmit = e => { e.preventDefault(); const o = {}; Object.keys(TXT).forEach(k => o[k] = {h:TXT[k][0], t:$("#tx-" + k).value.trim()}); save(Store.set("config", "modelos_rel", o)).then(() => { close(); toast("Textos-padrão salvos"); }); };
   }
 
+
+  /* ---------------- blocos grandes para o teaser ---------------- */
+  function kpisGrandes(P, items){ const n = items.length, gap = 10, w = (P.CW - (n - 1) * gap) / n, h = 96; P.ensure(h + 14); const y = P.y;
+    items.forEach(([l, v, sub], i) => { const x = P.M + i * (w + gap); P.rect(x, y, w, h, [238,245,252]); P.rect(x, y, w, 4, ACC);
+      P.text(x + 12, y + 22, T(l).toUpperCase().slice(0, 30), 7.5, true, MUT); const vv = T(v); let sz = 26; while (sz > 13 && P.wrap(vv, sz, true, w - 22).length > 1) sz -= 1; P.text(x + 12, y + 56, vv, sz, true, NAVY);
+      if (sub) P.wrap(T(sub), 8, false, w - 20).slice(0, 2).forEach((t2, k) => P.text(x + 12, y + 74 + k * 10, t2, 8, false, MUT)); });
+    P.y = y + h + 14; }
+  function fichasGrid(P, pares){ const cols = 2, gap = 10, w = (P.CW - gap) / cols;
+    for (let i = 0; i < pares.length; i += cols){ const linha = pares.slice(i, i + cols), hs = linha.map(([, v]) => P.wrap(T(v), 11, true, w - 24).slice(0, 3).length), h = 34 + Math.max(...hs) * 14; P.ensure(h + 8); const y = P.y;
+      linha.forEach(([k, v], j) => { const x = P.M + j * (w + gap); P.rect(x, y, w, h, [238,245,252]); P.rect(x, y, 3, h, ACC);
+        P.text(x + 14, y + 17, T(k).toUpperCase(), 7.5, true, MUT); P.wrap(T(v), 11, true, w - 24).slice(0, 3).forEach((t2, k2) => P.text(x + 14, y + 34 + k2 * 14, t2, 11, true, NAVY)); });
+      P.y = y + h + 8; } }
+  function cartoes(P, itens){ itens.forEach((t, i) => { const L = P.wrap(T(t), 10.5, false, P.CW - 64), h = Math.max(46, 22 + L.length * 14); P.ensure(h + 8); const y = P.y;
+    P.rect(P.M, y, P.CW, h, [238,245,252]); P.rect(P.M, y, 40, h, ACC); const nn = String(i + 1); P.text(P.M + 20 - nn.length * 4.5, y + h / 2 + 6, nn, 16, true, [255,255,255]);
+    L.forEach((l, k) => P.text(P.M + 54, y + 20 + k * 14, l, 10.5, false, [27,36,51])); P.y = y + h + 8; }); }
+  function etapas(P, passos){ const n = passos.length, por = 3, gap = 8, w = (P.CW - (por - 1) * gap) / por, h = 62;
+    for (let i = 0; i < n; i += por){ P.ensure(h + 10); const y = P.y;
+      passos.slice(i, i + por).forEach((t, j) => { const x = P.M + j * (w + gap), k = i + j + 1; P.rect(x, y, w, h, k <= 1 ? NAVY : [238,245,252]);
+        P.text(x + 10, y + 20, `ETAPA ${k}`, 7.5, true, k <= 1 ? [230,232,236] : ACC); P.wrap(T(t), 9.5, true, w - 20).slice(0, 3).forEach((l, q) => P.text(x + 10, y + 36 + q * 12, l, 9.5, true, k <= 1 ? [255,255,255] : NAVY)); });
+      P.y = y + h + 10; } }
+  const marcadores = (P, L, sz = 10.5) => L.forEach(t => { const W = P.wrap(T(t), sz, false, P.CW - 18); P.ensure(W.length * (sz + 4) + 6); const y = P.y; P.rect(P.M, y + 4, 6, 6, ACC); W.forEach((l, k) => P.text(P.M + 16, y + sz + k * (sz + 4), l, sz, false, [27,36,51])); P.y = y + W.length * (sz + 4) + 6; });
   /* ---------------- PDF: blocos ---------------- */
   function capa(P, eyebrow, titulo, linhas){
     P.page(); P.rect(0, 0, P.W, 300, NAVY); P.rect(0, 300, P.W, 4, ACC); if (!(P.logoCapa && P.logoCapa(P.M, 30, 170))){ P.text(P.M, 46, "KINSEY BR", 15, true, [255,255,255]); P.text(P.M, 60, "Audit | Consulting | M&A | BPO | ESG", 8, false, [255,255,255]); }
@@ -252,7 +273,7 @@ if (window.KT_DD) (() => {
         P.page(); P.rect(0, 0, P.W, 118, NAVY); P.rect(0, 118, P.W, 4, ACC);
         P.text(P.M, 34, T(pre ? "OPORTUNIDADE DE INVESTIMENTO · ONE-PAGER" : "APRESENTAÇÃO CONFIDENCIAL (NDA) · RESUMO"), 9, true, [127,184,230]);
         P.text(P.M, 66, T(nome), 24, true, [255,255,255]); P.text(P.M, 86, T(Z.subtitulo).slice(0, 100), 10, false, [201,214,234]); P.text(P.M, 104, T(Z.transacao).slice(0, 100), 9.5, true, [242,193,78]); P.y = 136;
-        par(P, Z.sumario, {size:9.5}); kpisPdf(P, Z.kpis.slice(0, 4)); evol();
+        par(P, Z.sumario, {size:10.5}); kpisGrandes(P, Z.kpis.slice(0, 4)); evol();
         P.h2("Destaques e tese de investimento"); [...Z.destaques.slice(0, 3), ...Z.tese.slice(0, 3)].filter((x, i, a) => a.indexOf(x) === i).forEach(t => bl(t));
         P.h2("Próximos passos"); par(P, Z.passos.map((t, k) => `${k + 1}. ${t}`).join("   "), {size:8.5});
         P.ensure(50); P.y += 6; P.rect(P.M, P.y, P.CW, 40, [238,245,252]); P.text(P.M + 10, P.y + 16, "Kinsey Capital · assessoria exclusiva", 10, true, NAVY); P.text(P.M + 10, P.y + 31, T(CONTATO), 8.5, false, MUT); P.y += 48;
@@ -267,18 +288,19 @@ if (window.KT_DD) (() => {
       P.text(P.M, P.H - 90, "Kinsey Capital · assessoria exclusiva", 11, true, [255,255,255]); P.text(P.M, P.H - 72, T(CONTATO), 9, false, [127,184,230]);
       P.text(P.M, P.H - 50, T(pre ? "Documento sem identificação da empresa. Informações adicionais mediante NDA." : "Informações confidenciais, protegidas pelo NDA."), 8.5, false, [127,184,230]);
       /* conteúdo */
-      P.page(); secT("Sumário executivo"); par(P, Z.sumario, {size:10.5}); P.y += 4; kpisPdf(P, Z.kpis.slice(0, 4));
-      if (Z.destaques.length){ P.h2("Destaques"); Z.destaques.slice(0, 3).forEach(t => bl(t)); }
-      secT("A companhia"); tab(P, ["Item", "Informação"], Z.companhia.map(([k, v]) => [k, v]), [.3, .7]); if (!pre && Z.descricao && Z.descricao !== Z.sumario.slice(0, Z.descricao.length)) par(P, Z.descricao, {size:9.5});
-      if (Z.operacoes.length){ P.h2("Operações"); Z.operacoes.forEach(o => bl(o)); }
-      if (Z.instit.length){ P.h2("Sobre a companhia (material institucional e site)"); Z.instit.forEach(o => bl(o)); }
+      P.page(); secT("Visão geral"); par(P, Z.sumario, {size:11.5}); P.y += 6; kpisGrandes(P, Z.kpis.slice(0, 4));
+      if (Z.destaques.length){ P.y += 4; P.h2("Destaques"); marcadores(P, Z.destaques.slice(0, 5)); }
+      secT("A companhia", 260); if (Z.fichas?.length) fichasGrid(P, Z.fichas); else tab(P, ["Item", "Informação"], Z.companhia.map(([k, v]) => [k, v]), [.3, .7]);
+      if (!pre && Z.descricao && Z.descricao !== Z.sumario.slice(0, Z.descricao.length)){ P.h2("Sobre a empresa"); par(P, Z.descricao, {size:10.5}); }
+      if (Z.operacoes.length){ P.ensure(70); P.h2("Operações"); marcadores(P, Z.operacoes); }
+      if (Z.instit.length){ P.h2("Sobre a companhia (material institucional e site)"); marcadores(P, Z.instit, 10); }
       if (!pre && Z.site?.url) par(P, `Site: ${Z.site.url}${Z.site.descricao ? " · " + Z.site.descricao : ""}`, {size:9});
-      if (!pre && Z.produtos.length){ P.h2("Produtos e serviços"); Z.produtos.forEach(o => bl(o)); }
-      if (Z.linhas.length){ secT("Portfólio e linhas de negócio"); tab(P, pre ? ["Linha", "Participação"] : ["Linha", "Participação", "Descrição"], Z.linhas.map(l => pre ? [l.nome, l.pct || "-"] : [l.nome, l.pct || "-", l.desc || ""]), pre ? [.7, .3] : [.3, .15, .55]); }
-      secT("Destaques financeiros", 330);
+      if (!pre && Z.produtos.length){ P.ensure(80); P.h2("Produtos e serviços"); marcadores(P, Z.produtos, 10); }
+      if (Z.linhas.length > 1 || (!pre && Z.linhas.length)){ secT("Portfólio e linhas de negócio"); tab(P, pre ? ["Linha", "Participação"] : ["Linha", "Participação", "Descrição"], Z.linhas.map(l => pre ? [l.nome, l.pct || "-"] : [l.nome, l.pct || "-", l.desc || ""]), pre ? [.7, .3] : [.3, .15, .55]); }
+      secT("Destaques financeiros", 520); kpisGrandes(P, Z.kpis.slice(0, 3));
       evol();
-      if (Z.serie.length) tab(P, ["", ...Z.serie.map(a => a.ano)], [["Receita líquida", ...Z.serie.map(a => mi(a.rl, pre ? 0 : 1))], ["EBITDA ajustado", ...Z.serie.map(a => mi(a.eb, pre ? 0 : 1))], ["Margem EBITDA", ...Z.serie.map(a => pc(a.mg ?? a.eb / (a.rl || 1), pre ? 0 : 1))]], [.4, ...Z.serie.map(() => .6 / Z.serie.length)]);
-      Z.destaques.slice(3).forEach(d => bl(d));
+      if (Z.serie.length){ P.ensure(110); P.table([{t:"R$", w:.4}, ...Z.serie.map(a => ({t:T(a.ano), w:.6 / Z.serie.length}))], [["Receita líquida", ...Z.serie.map(a => mi(a.rl, pre ? 0 : 1))], ["EBITDA ajustado", ...Z.serie.map(a => mi(a.eb, pre ? 0 : 1))], ["Margem EBITDA", ...Z.serie.map(a => pc(a.mg ?? a.eb / (a.rl || 1), pre ? 0 : 1))]].map(r => r.map(T)), {size:10.5}); }
+      if (Z.destaques.length > 5){ P.y += 4; marcadores(P, Z.destaques.slice(5)); }
       if (!pre){ /* pós-NDA: diligências, ajustes e jurídico */
         secT("Due diligence e ajustes", 220); Z.dd.forEach(d => bl(d));
         try{ const Rv = KT_VAL.resumo(s), Xv = Rv.X, AJ = Xv && !Xv.vazio ? D.ajustes(s, Xv.perBase).filter(D.okFin) : [];
@@ -291,14 +313,14 @@ if (window.KT_DD) (() => {
             if (cg.n) par(P, `${cg.n} processo(s): provável ${mi(cg.provavel)}, possível ${mi(cg.possivel)}, remota ${mi(cg.remota)}.`, {size:9.5});
             if (risco.length){ P.h2("Pontos de atenção"); risco.slice(0, 8).forEach(x => bl(`${x.t}${q[x.id]?.n ? " · " + q[x.id].n : ""}`, {size:9})); }
             if (rec.length){ P.h2("Encaminhamento no contrato"); rec.slice(0, 6).forEach(x => bl(x, {size:9})); } } } }
-      secT("Tese de investimento", 160); Z.tese.forEach(t => bl(t));
-      secT("Setor e mercado", 200); Z.mercado.forEach(m => bl(m)); paresG();
+      secT("Tese de investimento", 260); cartoes(P, Z.tese);
+      secT("Setor e mercado", 200); marcadores(P, Z.mercado); paresG();
       if (!pre && Z.noticias.length){ P.h2("Notícias do segmento"); Z.noticias.forEach(n2 => bl(`${n2.titulo} (${n2.fonte || ""} ${n2.data || ""})`, {size:9})); }
       if (!pre && Z.pesquisa){ P.h2("Pesquisa sobre a empresa, o setor e a região"); par(P, Z.pesquisa); }
       if (!pre && Z.materiais.length){ P.h2("Materiais do vendedor no data room"); Z.materiais.forEach(m => bl(m)); }
-      secT("A transação e próximos passos", 300); par(P, Z.transacao.replace(/^Transação: /, "Transação proposta: ") + ".", {size:10});
-      if (Z.valor) par(P, Z.valor, {size:10});
-      Z.passos.forEach((t, k) => par(P, `${k + 1}. ${t}`, {size:9.5, gap:2}));
+      secT("A transação e próximos passos", 330); par(P, Z.transacao.replace(/^Transação: /, "Transação proposta: ") + ".", {size:12, bold:true}); P.y += 4;
+      if (Z.valor) par(P, Z.valor, {size:10.5});
+      etapas(P, Z.passos);
       P.ensure(60); P.y += 10; P.rect(P.M, P.y, P.CW, 42, [238,245,252]); P.text(P.M + 10, P.y + 17, "Kinsey Capital · assessoria exclusiva", 10, true, NAVY); P.text(P.M + 10, P.y + 32, T(CONTATO), 8.5, false, MUT); P.y += 52;
       par(P, pre ? "Este documento não constitui oferta. Não contate a empresa, seus sócios, funcionários, clientes ou fornecedores: todo contato é feito pela Kinsey Capital." : "Informações sujeitas ao acordo de confidencialidade. Projeções e estimativas não constituem garantia de resultados.", {size:8, color:MUT});
       await rptSave(P.out(`Teaser · ${nome}`, T(`Kinsey Capital · ${pre ? "Teaser" : "Apresentação pós-NDA"} · ${nome} · confidencial`)), arq(s, pre ? "teaser" : "apresentacao_NDA", "pdf"), "application/pdf");

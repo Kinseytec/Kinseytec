@@ -42,6 +42,12 @@ if (window.KT_DD && window.KT_VAL) (() => {
     const rg = regiao(s.uf), fat = X && !X.vazio ? (pre ? "~" + mi(arred(X.bp.rl), 0) : mi(X.bp.rl)) : "";
     const sumario = [pre ? `Empresa de ${seg.toLowerCase() || "serviços"}${rg ? " com sede na região " + rg : ""}${dec ? ", " + dec : ""}${fat ? `, com receita líquida de ${fat} em ${X.y0}` : ""}${X && !X.vazio ? ` e margem EBITDA ajustada de ${pc(div(X.bp.eb, X.bp.rl), dc)}` : ""}.` : (p.descricao || `${s.nome}: ${seg}.`),
       s.mandato?.participacao ? `Os acionistas avaliam a venda de ${s.mandato.participacao} do capital.` : "Os acionistas avaliam a entrada de um investidor estratégico ou financeiro.", "A Kinsey Capital é a assessora exclusiva da transação."].join(" ");
+    const rf = s.receita || {}, anoAb = +(String(rf.abertura || "").match(/(19|20)\d\d/) || [])[0] || +p.fundacao || 0, idade = anoAb ? new Date().getFullYear() - anoAb : 0;
+    const func = p.funcionarios || s.enriq?.funcionarios || "", nsoc = (rf.socios || []).length, atv = rf.cnaeDesc ? rf.cnaeDesc.replace(/\s+/g, " ").trim() : "";
+    const fichas = [["Atividade", atv ? atv.charAt(0).toUpperCase() + atv.slice(1).toLowerCase() : (seg || "—")], ["Tempo de operação", idade ? (pre ? `mais de ${Math.floor(idade / 5) * 5 || idade} anos` : `${idade} anos (desde ${anoAb})`) : "—"],
+      ["Sede", pre ? (regiao(s.uf) ? "Região " + regiao(s.uf) : "—") : [s.municipio, s.uf].filter(Boolean).join("/") || "—"], ["Colaboradores", func ? (pre ? "~" + (Math.round(+func / 50) * 50 || func) : String(func)) : "a informar"],
+      ["Clientes", p.clientes && !/a levantar/i.test(p.clientes) ? p.clientes : "carteira diversificada (detalhes após o NDA)"], ["Atuação geográfica", pre ? (/brasil|nacional|todo o pa|estados|regi[õo]es/i.test(p.atuacao || "") ? p.atuacao.replace(/\b[A-ZÁÉÍÓÚÂÊÔÃÕÇ][\wÀ-ú]+\s*\([A-Z]{2}\)/g, "").trim() : (regiao(s.uf) ? "Região " + regiao(s.uf) : "Brasil")) : (p.atuacao || [s.municipio, s.uf].filter(Boolean).join("/") || "Brasil")],
+      ["Linhas de negócio", (p.linhas || []).map(l => l.nome).join(", ") || seg || "—"], ["Controle", nsoc ? `${nsoc} sócio(s), ${pre ? "controle privado" : (rf.socios || []).map(x => x.nome).slice(0, 3).join(", ")}` : "controle privado"]].filter(([, v]) => v && !/^(—|a informar)$/.test(v));
     const companhia = [["Fundação", p.fundacao ? (pre ? dec.replace("fundada nos ", "") : String(p.fundacao)) : "—"], ["Sede", pre ? (rg ? "Região " + rg : "—") : [s.municipio, s.uf].filter(Boolean).join("/") || "—"], ["Setor", seg || "—"], ...(pre ? [] : [["Atuação", p.atuacao || "—"]]), ["Colaboradores", p.funcionarios ? (pre ? "~" + (Math.round(+p.funcionarios / 50) * 50 || p.funcionarios) : p.funcionarios) : "—"]];
     const operacoes = [p.atuacao && !pre ? `Atuação: ${p.atuacao}.` : "", p.clientes && !/a levantar/i.test(p.clientes) ? `Clientes: ${p.clientes}.` : "", p.sazonalidade && !/a levantar/i.test(p.sazonalidade) ? `Sazonalidade: ${p.sazonalidade}.` : "", ...(t.operacoes || "").split("\n").map(x => x.trim())].filter(Boolean);
     const tese = []; if (X && !X.vazio){ const cg = X.total, r = div(X.dl, X.bp.eb);
@@ -57,7 +63,13 @@ if (window.KT_DD && window.KT_VAL) (() => {
     const instit = pre ? [] : [...(mat?.resumo || []), ...(site?.resumo || [])].filter(Boolean).slice(0, 8);
     const prodRe = /produt|servi[cç]o|solu[cç][aã]o|portf[oó]lio|linha de|marca|atende|clientes/i;
     const produtos = pre ? [] : [...(p.linhas || []).filter(l => l.desc).map(l => `${l.nome}: ${l.desc}`), ...[...String(mat?.texto || "").split(/\n+/), ...(site?.resumo || [])].map(x => String(x).replace(/\s+/g, " ").trim()).filter(x => x.length >= 30 && x.length <= 220 && prodRe.test(x))].filter((x, i, a) => a.indexOf(x) === i).slice(0, 10);
-    return {sumario, companhia, operacoes, tese, passos, pares, instit, produtos, mat, site, codinome, subtitulo, transacao, kpis, serie, destaques:[...new Set(destaques)].slice(0, 8), mercado, linhas, noticias, materiais, dd, valor, descricao:pre ? (t.descricaoPre || "") : (p.descricao || ""), pesquisa:pre ? "" : [t.pesquisa, t.regiao].filter(Boolean).join("\n\n")};
+    if (idade >= 8) destaques.push(`Empresa consolidada, com ${pre ? `mais de ${Math.floor(idade / 5) * 5} anos` : `${idade} anos`} de operação${atv ? ` em ${atv.toLowerCase()}` : ""}.`);
+    if (X && !X.vazio){ const mg = div(X.bp.eb, X.bp.rl), Rf = V.refC ? V.refC(C || {seg, sim:[], ok:[]}) : null;
+      if (!C?.eb && Rf?.eb) mercado.push(`Referência de mercado: empresas de ${seg.toLowerCase() || "seu setor"} negociam usualmente entre ${xx(Rf.eb.p25)} e ${xx(Rf.eb.p75)} o EBITDA (referência Kinsey, sujeita a ajustes de porte e liquidez).`);
+      if (mg != null && Rf?.mg?.med && mg > Rf.mg.med) destaques.push(`Margem EBITDA ajustada de ${pc(mg, dc)}, acima da referência do setor (${pc(Rf.mg.med, 0)}).`);
+      if (X.bp.K?.ll > 0) destaques.push(`Operação lucrativa: lucro líquido de ${pre ? "~" + mi(arred(X.bp.K.ll), 0) : mi(X.bp.K.ll)} no último exercício.`); }
+    if (p.clientes && !/a levantar/i.test(p.clientes)) destaques.push(`Base de clientes: ${p.clientes}.`);
+    return {fichas, idade, sumario, companhia, operacoes, tese, passos, pares, instit, produtos, mat, site, codinome, subtitulo, transacao, kpis, serie, destaques:[...new Set(destaques)].slice(0, 8), mercado, linhas, noticias, materiais, dd, valor, descricao:pre ? (t.descricaoPre || "") : (p.descricao || ""), pesquisa:pre ? "" : [t.pesquisa, t.regiao].filter(Boolean).join("\n\n")};
   }
 
   /* ---------------- gráficos em SVG (tela) ---------------- */
