@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v2.48 — 2026-11-16 · Histórico em cinza, projetado em azul
+- Demonstrações históricas e realizadas (DRE, balanços, indicadores, EBITDA, capital de giro, endividamento, pro forma e contingências) com títulos em cinza-escuro e cabeçalhos de tabela em cinza
+- Demonstrações projetadas do valuation (DRE, balanço e fluxo de caixa livre) com títulos e cabeçalhos em azul Kinsey; nas tabelas que juntam histórico e projeção, as colunas históricas (H e base) ficam em cinza e as projetadas (E) em azul, como no laudo de avaliação Kinsey
+- Legenda no relatório: período histórico/realizado em cinza, projetado em azul
+
 ## v2.47 — 2026-11-16 · Cores da marca Kinsey BR nos relatórios
 - Relatórios em PDF e PowerPoint com o azul Kinsey BR dos modelos oficiais: #0070C0 nas capas, títulos de seção e cabeçalhos de tabela; azul escuro #085090 nos títulos e valores; azul claro #DDEBF7 nos destaques e linhas alternadas; filete ciano #00B0F0
 - Capas com a assinatura KINSEY BR · Audit | Consulting | M&A | BPO | ESG

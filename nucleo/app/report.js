@@ -94,7 +94,7 @@ function KTPdf(){
     h1(n, s){ api.ensure(46); y += 6; api.rect(M, y, 22, 22, [4,115,195]); api.text(M + (n > 9 ? 4 : 7.5), y + 15.5, String(n), 11, true, [255,255,255]); api.text(M + 30, y + 16, s, 14, true, [1,31,75]); y += 30; api.line(M, y, M + CW, y, [4,115,195], 1); y += 10; },
     h2(s){ api.ensure(26); y += 4; api.text(M, y + 11, s, 11, true, [1,31,75]); y += 18; },
     table(cols, rows, o={}){ const sz = o.size || 8.2, ld = sz * 1.32, pad = 4, ws = cols.map(c => c.w * CW);
-      const head = () => { const hh = 18; api.rect(M, y, CW, hh, [1,31,75]); let x = M; cols.forEach((c, i) => { api.text(x + pad, y + 12, c.t, sz, true, [255,255,255]); x += ws[i]; }); y += hh; };
+      const head = () => { const hh = 18; api.rect(M, y, CW, hh, o.head || [1,31,75]); let x = M; cols.forEach((c, i) => { if (c.hb) api.rect(x, y, ws[i], hh, c.hb); api.text(x + pad, y + 12, c.t, sz, true, [255,255,255]); x += ws[i]; }); y += hh; };
       api.ensure(40); head();
       rows.forEach((r, ri) => { const cells = r.map((c, i) => { const v = (c && typeof c === "object") ? c : {t:c}; return {...v, lines: api.wrap(v.t, sz, !!v.b, ws[i] - 2*pad)}; });
         const h = Math.max(...cells.map(c => c.lines.length)) * ld + 2*pad;
