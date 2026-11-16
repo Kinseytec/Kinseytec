@@ -1,5 +1,13 @@
 # Registro de versões
 
+## v2.54 — 2026-11-16 · Controle de novos negócios na Prospecção
+- Painel "Evolução" no topo da Prospecção, por pessoa (padrão: novos negócios): abordagens e reuniões por semana nas últimas 12 semanas, com meta semanal (15 abordagens e 1 reunião); semana fechada com zero fica em vermelho
+- Alerta "Necessidade de prospecção" quando passam 7 dias sem abordagem ou sem reunião
+- Indicadores do mês: abordagens, reuniões marcadas e realizadas, empresas que ela(e) levou à Órbita, NDAs assinados, mandatos e semanas zeradas
+- Controle de reuniões: data da reunião, empresa, situação (agendada, realizada ou sem registro do resultado), possibilidade de negociação, Órbita e NDA
+- Toque registra a possibilidade de negociação (alta, média, baixa ou sem possibilidade) e, em "Reunião marcada", a data da reunião (obrigatória)
+- Reunião agendada: o target entra na hora na Órbita de M&A (pré-cadastro, morno), ligado aos investidores aderentes; a aprovação após a reunião aproveita o mesmo cadastro, sem duplicar; arquivar o prospect retira o pré-cadastro da Órbita
+
 ## v2.53 — 2026-11-16 · Prospecção de investidores (N1)
 - Prospecção passa a ter dois tipos: target (empresa vendedora, N3) e investidor (comprador estratégico ou financeiro, N1), com filtro "Só targets / Só investidores"
 - Cadastro manual e importação de listas com o tipo, o tipo de investidor, a tese (o que compra), o grupo e observações; a coluna "Tipo" do arquivo é detectada sozinha
