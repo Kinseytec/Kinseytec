@@ -215,7 +215,7 @@ if (window.KT_DD) (() => {
 
   /* ---------------- Base inicial: botão do cadastro principal e integrações ---------------- */
   const _cad = renderCadeia;
-  renderCadeia = function(){ const r = _cad.apply(this, arguments); const top = $("#bi-top"); if (!top || top.querySelector("[data-np]")) return r;
+  renderCadeia = function(){ const r = _cad.apply(this, arguments); const top = $("#bi-top"); if (!top || top.dataset.v2 || top.querySelector("[data-np]")) return r; /* a Base inicial nova já traz o cadastro e a importação */
     const bar = top.querySelector("[data-bi]")?.parentElement; if (bar){ const b = document.createElement("button"); b.type = "button"; b.className = "btn primary"; b.setAttribute("data-np", "1"); b.textContent = "+ Novo projeto (cadastro principal)"; bar.prepend(b); b.onclick = () => novoProjeto();
       const t3 = bar.querySelector('[data-bi="N3"]'); if (t3){ t3.classList.remove("primary"); t3.textContent = "+ Target avulso (N3)"; } }
     const it = document.createElement("div"); it.className = "card"; it.id = "bi-int"; it.style.cssText = "display:flex;flex-direction:column;gap:8px;margin-top:10px";

@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v2.67 — 2026-11-17 · Prospecção do Econodata e nova Base inicial
+- Importação de listas: o nome da empresa vem da razão social ou do nome fantasia, nunca do link do Econodata (o link é descartado); sem nome, o sistema busca a razão social na Receita pelo CNPJ e corrige também os prospects já importados com o link
+- Faturamento, funcionários, decisores e sócios (com cargo), telefones e e-mails; a mesma empresa em várias linhas do arquivo vira um só prospect; contatos repetidos entre Econodata, Lemitti e Ramper se juntam (o celular e o e-mail completam a pessoa já cadastrada)
+- Base inicial: consulta logo no início (Todos, Cliente, Investidor, Target, Consultor, Parceiro) por nome, CNPJ, cidade ou segmento; botões "Cadastro da empresa" (novo projeto, target com o investidor indicado, investidor, parceiro ou consultor) e "Importação de dados" (mapa M&A, modelo, listas e exportação para cadências)
+
 ## v2.66 — 2026-11-17 · Tela de entrada: cliente, usuário e senha
 - Entrada com Cliente (empresa), Usuário (e-mail) e Senha, botão para mostrar a senha e Enter para entrar; "Entrar com Google" passa a ser a alternativa abaixo
 - Mensagens claras: primeiro acesso sem senha criada, login por e-mail e senha desativado no Firebase, muitas tentativas, domínio não autorizado, usuário desativado
