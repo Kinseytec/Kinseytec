@@ -112,7 +112,7 @@ if (window.KT_DD && window.KT_DOCX && window.KT_MAND && window.KT_CONTRATO) (() 
   async function registrar(s, tipo, origem, P, arquivo){
     const L = docs(s).filter(x => x.tipo === tipo), v = (L[L.length - 1]?.versao || 0) + 1, id = "op" + Date.now().toString(36), T = termos(s);
     const A = origem === "kinsey" ? null : KT_CONTRATO.analisar(P.join("\n"), "venda");
-    const k = {supplierId:s.id, tipo, numero:`${tipo} v${v}`, contraparte:supById(T.comprador)?.nome || "", inicio:"", fim:"", volume:T.preco ? String(T.preco) : "", preco:"", obs:ORIG[origem],
+    const k = {supplierId:s.id, tipo, numero:`${tipo} v${v}`, contraparte:supById(T.comprador)?.nome || "", inicio:"", fim:"", volume:T.preco ? String(+(+T.preco).toFixed(4)).replace(".", ",") : "", preco:"", obs:ORIG[origem],
       opdoc:true, origemDoc:origem, versao:v, arquivo:arquivo || "", paragrafos:P.slice(0, 2500).map(p => String(p).slice(0, 6000)), criadoEm:nowISO(), por:eu(), ...(A ? {analiseVend:A} : {})};
     await save(Store.set("contracts", id, k)); return {...k, id};
   }

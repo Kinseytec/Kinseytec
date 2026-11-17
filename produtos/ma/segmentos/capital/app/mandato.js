@@ -43,7 +43,7 @@ if (window.KT_DD) (() => {
   /* ---------- condições e cálculo ---------- */
   const cond = s => ({...P0, ...(S.config.mandato_padrao || {}), ...(s.mandato?.cond || {})});
   function valorBase(s){
-    const c = cond(s); if (num(c.valorManual) > 0) return {ev:num(c.valorManual) * 1e6, fonte:"valor informado pelo Jurídico", tipo:"manual"};
+    const c = cond(s), vm = typeof c.valorManual === "number" ? c.valorManual : num(c.valorManual); if (vm > 0) return {ev:vm * 1e6, fonte:"valor informado pelo Jurídico", tipo:"manual"};
     let V = null; try{ V = window.KT_BASE ? KT_BASE.valorAlvo(s) : null; }catch(e){}
     if (!V || !(V.ev > 0)){ /* sem múltiplo do segmento: múltiplo do faturamento ou FCD prévio pelo faturamento do cadastro */
       const M = metodos(s).L, m = M.find(x => /Receita/.test(x.n)) || M.find(x => /FCD/.test(x.n)) || M[0]; if (!m) return null;
@@ -105,7 +105,7 @@ if (window.KT_DD) (() => {
   }
   function campos(s){
     const R = calc(s), c = R.c, Pt = partes(s), hoje0 = new Date(), db = new Date(hoje0.getFullYear(), hoje0.getMonth(), 0);
-    const o = {...Pt, KINSEY:typeof MA_KINSEY !== "undefined" ? MA_KINSEY : "KINSEY BR", SUCPCT:pctTxt(c.pct), RETPCT:pctTxt(c.retPct), PARCELAS:qtd(c.parcelas, true), RETDIAS:qtd(c.dias),
+    const o = {...Pt, KINSEY:window.KT_MARCA && !KT_MARCA.kinsey() ? "[razão social, CNPJ, endereço e representante legal da assessoria contratada]" : typeof MA_KINSEY !== "undefined" ? MA_KINSEY : "KINSEY BR", SUCPCT:pctTxt(c.pct), RETPCT:pctTxt(c.retPct), PARCELAS:qtd(c.parcelas, true), RETDIAS:qtd(c.dias),
       TRIBUTOS:pctTxt(c.trib), PRAZO:qtd(c.prazo), RESILICAO:ordinal(c.resil), TAIL:qtd(c.tail), DATABASE:c.database || dataExt(db), DATA:`São Paulo, ${dataExt(hoje0)}`,
       VALORMIN:R.B ? reais(R.vmin) : "[valor mínimo da operação]", BASEMIN:R.B ? BASETXT[R.B.tipo] : "[base do valor: valuation ou múltiplo do faturamento]",
       SUCMIN:R.B ? reais(R.sucMin) : "[remuneração de sucesso mínima]", RETTOTAL:R.B ? reais(R.ret) : "[valor total do retainer]", PARCELA:R.B ? reais(R.parc) : "[valor da parcela]"};
@@ -119,7 +119,7 @@ if (window.KT_DD) (() => {
   const pendencias = c => { const t = modeloTexto().texto.map(([h, x]) => preenche(h, c) + "\n" + preenche(x, c)).join("\n"); return [...new Set(t.match(/\[[^\]]{2,80}\]/g) || [])]; };
 
   /* ---------- Word (.docx) da minuta ---------- */
-  const xe = t => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const xe = t => String(window.KT_MARCA ? KT_MARCA.txt(String(t)) : t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const run = (t, o = {}) => `<w:r><w:rPr>${o.b ? "<w:b/>" : ""}${o.i ? "<w:i/>" : ""}${o.pend ? '<w:highlight w:val="yellow"/>' : ""}${o.color ? `<w:color w:val="${o.color}"/>` : ""}${o.sz ? `<w:sz w:val="${o.sz}"/><w:szCs w:val="${o.sz}"/>` : ""}</w:rPr><w:t xml:space="preserve">${xe(t)}</w:t></w:r>`;
   const par = (t, o = {}) => `<w:p><w:pPr>${o.brk ? '<w:pageBreakBefore/>' : ""}${o.keep ? "<w:keepNext/>" : ""}<w:spacing w:before="${o.before || 0}" w:after="${o.after ?? 120}" w:line="276" w:lineRule="auto"/>${o.ind ? `<w:ind w:left="${o.ind}"/>` : ""}<w:jc w:val="${o.jc || "both"}"/></w:pPr>${String(t).split(/(\[[^\]]+\])/).filter(Boolean).map(x => run(x, {...o, pend:/^\[.*\]$/.test(x)})).join("")}</w:p>`;
   function docx(s, R, c, versao){
@@ -133,8 +133,9 @@ if (window.KT_DD) (() => {
     const ass = (nome, papel) => par("______________________________________________", {jc:"left", before:420, after:0}) + par(nome, {b:true, jc:"left", after:0}) + par(papel, {jc:"left", after:120});
     B.push(ass(c.EMPRESA, "Contratante"));
     (partes(s)._socios.length ? partes(s)._socios : [{nome:"[NOME DO SÓCIO]"}]).forEach(p => B.push(ass(p.nome.toUpperCase(), "Sócio(a) e interveniente anuente")));
-    B.push(ass("KINSEY ALLEN BRASIL CONSULTORIA ESPECIALIZADA E M&A LTDA.", "Contratada · Newton K. dos Anjos Oliveira"));
-    B.push(ass("KINSEY CAPITAL BRASIL CONSULTORIA E M&A LTDA.", "Contratada · Newton K. dos Anjos Oliveira"));
+    if (!window.KT_MARCA || KT_MARCA.kinsey()){ B.push(ass("KINSEY ALLEN BRASIL CONSULTORIA ESPECIALIZADA E M&A LTDA.", "Contratada · Newton K. dos Anjos Oliveira"));
+      B.push(ass("KINSEY CAPITAL BRASIL CONSULTORIA E M&A LTDA.", "Contratada · Newton K. dos Anjos Oliveira")); }
+    else B.push(ass("[ASSESSORIA CONTRATADA]", "Contratada · [representante legal]"));
     B.push(par("Testemunhas:", {b:true, jc:"left", before:300}));
     B.push(ass("Nome: [testemunha 1]", "CPF: [CPF]")); B.push(ass("Nome: [testemunha 2]", "CPF: [CPF]"));
     /* quadro de conferência para o Jurídico (não integra o contrato) */

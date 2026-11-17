@@ -10,7 +10,7 @@
      por ativo e ágio por rentabilidade futura; prazo do laudo (protocolo na Receita Federal ou registro do sumário em
      cartório até o último dia útil do 13º mês após a aquisição) e tratamento fiscal (IN RFB 1.700/2017), além do CPC 15. */
 if (window.KT_DD && window.KT_VAL && window.KT_POS) (() => {
-  const D = KT_DD, V = KT_VAL, {mi, pc} = D, n = v => num(v);
+  const D = KT_DD, V = KT_VAL, {mi, pc} = D, n = v => typeof v === "number" ? (isFinite(v) ? v : null) : num(v);
   const dBR = iso => { const m = String(iso || "").match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}/${m[1]}` : "—"; };
 
   /* ---------------- fluxo de caixa ---------------- */

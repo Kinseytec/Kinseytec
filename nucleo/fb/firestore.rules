@@ -82,6 +82,12 @@ service cloud.firestore {
       allow update: if doCliente(cliDe(resource.data)) && (isAdmin() || cliDe(request.resource.data) == cliDe(resource.data));
       allow delete: if editaCliente(cliDe(resource.data));
     }
+    // bens do ativo imobilizado (avaliação de ativos e inventário físico), por cliente
+    match /ativos/{id} {
+      allow read, delete: if doCliente(cliDe(resource.data));
+      allow create: if doCliente(cliDe(request.resource.data));
+      allow update: if doCliente(cliDe(resource.data)) && (isAdmin() || cliDe(request.resource.data) == cliDe(resource.data));
+    }
     // frequência de uso: cada pessoa só soma os próprios minutos; só os administradores (sócios) leem
     match /presenca/{id} {
       allow read: if isAdmin();

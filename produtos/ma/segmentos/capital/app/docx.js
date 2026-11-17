@@ -3,7 +3,7 @@
    (inclusões e exclusões marcadas, que o advogado aceita ou rejeita no Word) e comentários nas margens.
    Também compara duas versões (parágrafos e palavras) para montar a versão com controle de alterações. */
 (() => {
-  const xe = t => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "");
+  const xe = t => String(window.KT_MARCA ? KT_MARCA.txt(String(t)) : t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "");
   const AUT = "KinseyTec · análise pró-vendedor", agora = () => new Date().toISOString().slice(0, 19) + "Z";
   let RID = 1;
   /* um trecho de texto: k = keep | ins | del; campos [entre colchetes] saem em amarelo */
