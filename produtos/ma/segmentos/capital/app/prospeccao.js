@@ -430,13 +430,27 @@ if (window.KT_DD) (() => {
       await grava(E.map((y, i) => i === +b.dataset.mbr ? {...y, inativo:true} : y)); close(); toast(`${x.nome} removido da equipe`); renderAll(); });
   }
   function lerLinhas(rows){
-    const hi = rows.findIndex(r => r.some(c => /cnpj/i.test(c)) || r.some(c => /raz[aã]o|empresa|nome fantasia/i.test(c))); if (hi < 0) return null;
-    const H = rows[hi].map(c => nrm(c)), ix = re => H.findIndex(h => re.test(h));
-    const cN = ix(/raz|empresa|fantasia|^nome$/), cD = ix(/cnpj/), cC = ix(/cnae|atividade|segmento|setor/), cF = ix(/fatur|receita/), cU = ix(/^uf$|estado/), cM = ix(/cidade|municip/), cE = ix(/e ?mail/), cT = ix(/telefone|celular|fone|whats/), cS = ix(/site|dominio|url/), cCt = ix(/contato|decisor|responsavel|^nome do|^socio$|^socio administrador$/), cCg = ix(/cargo/), cTp = ix(/^tipo$|^nivel$|^tipo de prosp/), cTi = ix(/tipo de investidor/), cTe = ix(/^tese|o que compra/), cG = ix(/^grupo|controlador/), cP = ix(/^pais$/), cO = ix(/observ|^obs$|ranking/), cFu = ix(/funcion|colaborador|empregad/), cSoc = ix(/^socios$|quadro societ|^administradores|^socios e administradores/), cEnd = ix(/endere|logradouro/), cPo = ix(/^porte/), cTn = ix(/natureza|tipo de neg|descricao da atividade|ramo/), cEs = H.map((h, i) => /e ?mail/.test(h) ? i : -1).filter(i => i >= 0), cTs = H.map((h, i) => /cel|telefone|fone|whats/.test(h) ? i : -1).filter(i => i >= 0);
-    return rows.slice(hi + 1).filter(r => r[cN] || r[cD]).map(r => { const d = dig(r[cD]); return {nome:String(r[cN] ?? "").trim() || fmtCnpj(d), doc:d.length === 14 ? fmtCnpj(d) : "", cnae:String(r[cC] ?? "").trim(), fat:String(r[cF] ?? "").trim(), uf:String(r[cU] ?? "").toUpperCase().slice(0, 2), municipio:String(r[cM] ?? "").trim(), site:String(r[cS] ?? "").trim(), ...(cTp >= 0 && /invest|n1|compr/i.test(r[cTp] || "") ? {alvo:"investidor"} : {}), ...(cTi >= 0 && r[cTi] ? {tipoInv:String(r[cTi]).trim()} : {}), ...(cTe >= 0 && r[cTe] ? {tese:String(r[cTe]).trim()} : {}), ...(cG >= 0 && r[cG] ? {grupo:String(r[cG]).trim()} : {}), ...(cP >= 0 && r[cP] ? {pais:String(r[cP]).trim()} : {}), ...(cO >= 0 && r[cO] ? {obs:String(r[cO]).trim()} : {}), ...(cFu >= 0 && r[cFu] ? {funcionarios:String(r[cFu]).trim()} : {}), ...(cEnd >= 0 && r[cEnd] ? {endereco:String(r[cEnd]).trim()} : {}), ...(cPo >= 0 && r[cPo] ? {porte:String(r[cPo]).trim()} : {}), ...(cTn >= 0 && r[cTn] && cTn !== cC ? {tipoNegocio:String(r[cTn]).trim()} : {}),
+    rows = (rows || []).map(r => [...(r || [])].map(c => String(c ?? "").trim())).filter(r => r.some(Boolean)); if (!rows.length) return null;
+    const NOMEH = /raz[aã]o|empresa|fantasia|corretor|companhia|organiza|denomina|estabelecimento|cliente|conta|lead|prospect|^nome$|^nome d[ao] (empresa|cliente|corretora)/i;
+    const pont = r => r.some(c => dig(c).length >= 11 || c.includes("@")) ? 0 : r.reduce((s, c) => s + (/cnpj/i.test(c) ? 3 : NOMEH.test(c) ? 2 : /cidade|munic|^uf$|estado|telefone|celular|e-?mail|site|setor|segmento|cnae|fatur|contato|cargo/i.test(c) ? 1 : 0), 0);
+    let hi = -1, best = 0; rows.slice(0, 30).forEach((r, i) => { const p = pont(r); if (p > best){ best = p; hi = i; } });
+    const nC = Math.max(...rows.slice(0, 60).map(r => r.length)), colDe = j => rows.slice(hi + 1, hi + 300).map(r => r[j] || "").filter(Boolean);
+    const pareceCnpj = j => { const v = colDe(j); return v.length > 0 && v.filter(x => { const d = dig(x); return d.length >= 12 && d.length <= 14; }).length / v.length > .6; };
+    const texto = j => colDe(j).filter(x => !/^[\d.,/\-()\s%R$]+$/.test(x) && x.length > 2 && !x.includes("@")).length;
+    if (best < 2) hi = -1;
+    const H = hi >= 0 ? rows[hi].map(c => nrm(c)) : [...Array(nC)].map(() => ""), ix = re => H.findIndex(h => re.test(h));
+    let cN = ix(/raz|empresa|fantasia|corretor|companhia|organiza|denomina|estabelecimento|^cliente|^conta|^lead|prospect|^nome$|^nome d[ao] (empresa|cliente|corretora)/), cD = ix(/cnpj/), cC = ix(/cnae|atividade|segmento|setor/), cF = ix(/fatur|receita/), cU = ix(/^uf$|estado/), cM = ix(/cidade|municip/), cE = ix(/e ?mail/), cT = ix(/telefone|celular|fone|whats/), cS = ix(/site|dominio|url/), cCt = ix(/contato|decisor|responsavel|^nome do|^socio$|^socio administrador$/), cCg = ix(/cargo/), cTp = ix(/^tipo$|^nivel$|^tipo de prosp/), cTi = ix(/tipo de investidor/), cTe = ix(/^tese|o que compra/), cG = ix(/^grupo|controlador/), cP = ix(/^pais$/), cO = ix(/observ|^obs$|ranking/), cFu = ix(/funcion|colaborador|empregad/), cSoc = ix(/^socios$|quadro societ|^administradores|^socios e administradores/), cEnd = ix(/endere|logradouro/), cPo = ix(/^porte/), cTn = ix(/natureza|tipo de neg|descricao da atividade|ramo/), cEs = H.map((h, i) => /e ?mail/.test(h) ? i : -1).filter(i => i >= 0), cTs = H.map((h, i) => /cel|telefone|fone|whats/.test(h) ? i : -1).filter(i => i >= 0);
+    if (cD < 0) cD = [...Array(nC).keys()].find(pareceCnpj) ?? -1;
+    if (cN < 0) cN = [...Array(nC).keys()].filter(j => j !== cD && ![cE, cT, cS, cM, cU].includes(j) && !cTs.includes(j)).sort((a, b) => texto(b) - texto(a))[0] ?? -1;
+    if (cN < 0 && cD < 0) return null;
+    const _L = rows.slice(hi + 1).filter(r => r[cN] || r[cD]), _ign = rows.slice(hi + 1).length - _L.length;
+    const out = _L
+    .map(r => { let d = dig(r[cD]); if (d.length === 12 || d.length === 13) d = d.padStart(14, "0"); return {nome:String(r[cN] ?? "").trim() || fmtCnpj(d), doc:d.length === 14 ? fmtCnpj(d) : "", cnae:String(r[cC] ?? "").trim(), fat:String(r[cF] ?? "").trim(), uf:String(r[cU] ?? "").toUpperCase().slice(0, 2), municipio:String(r[cM] ?? "").trim(), site:String(r[cS] ?? "").trim(), ...(cTp >= 0 && /invest|n1|compr/i.test(r[cTp] || "") ? {alvo:"investidor"} : {}), ...(cTi >= 0 && r[cTi] ? {tipoInv:String(r[cTi]).trim()} : {}), ...(cTe >= 0 && r[cTe] ? {tese:String(r[cTe]).trim()} : {}), ...(cG >= 0 && r[cG] ? {grupo:String(r[cG]).trim()} : {}), ...(cP >= 0 && r[cP] ? {pais:String(r[cP]).trim()} : {}), ...(cO >= 0 && r[cO] ? {obs:String(r[cO]).trim()} : {}), ...(cFu >= 0 && r[cFu] ? {funcionarios:String(r[cFu]).trim()} : {}), ...(cEnd >= 0 && r[cEnd] ? {endereco:String(r[cEnd]).trim()} : {}), ...(cPo >= 0 && r[cPo] ? {porte:String(r[cPo]).trim()} : {}), ...(cTn >= 0 && r[cTn] && cTn !== cC ? {tipoNegocio:String(r[cTn]).trim()} : {}),
       contatos:[...((r[cCt] || r[cE] || cTs.some(i => r[i])) ? [{nome:String(r[cCt] ?? "").trim(), cargo:String(r[cCg] ?? "").trim(), email:String(r[cE] ?? "").trim(), cel:[...new Set(cTs.map(i => String(r[i] ?? "").trim()).filter(Boolean))].join(" / ")}] : []),
         ...[...new Set(cEs.filter(i => i !== cE).map(i => String(r[i] ?? "").trim()).filter(x => x.includes("@")))].map(email => ({nome:"", cargo:"", email, cel:""})),
         ...(cSoc >= 0 && r[cSoc] ? String(r[cSoc]).split(/;|\||,(?![^(]*\))| e (?=[A-ZÁÉÍÓÚ])/).map(x => x.trim()).filter(x => x.length > 2).map(nome => ({nome, cargo:"Sócio", email:"", cel:""})) : [])]}; });
+    out.meta = {cabecalho:hi >= 0 ? hi + 1 : 0, nome:hi >= 0 && cN >= 0 ? rows[hi][cN] : (cN >= 0 ? `coluna ${cN + 1}` : "—"), cnpj:cD >= 0 ? (hi >= 0 && rows[hi][cD] ? rows[hi][cD] : `coluna ${cD + 1}`) : "não encontrada", ignoradas:_ign, lidas:out.length};
+    return out;
   }
   /* ---------------- importar listas ----------------
      Qualquer origem (arquivo CSV ou Excel); Econodata, Lemitti e Ramper aparecem como sugestão, com orientação.
@@ -457,9 +471,12 @@ if (window.KT_DD) (() => {
           <div class="form"><div class="fld"><label for="pi-o">De onde vem a lista</label><select id="pi-o">${ORIG_LISTA.map(([o]) => `<option value="${o}" ${o === fonte0 ? "selected" : ""}>${o === "Outra plataforma" ? o : o + " (sugestão)"}</option>`).join("")}</select></div>
             <div class="fld" id="pi-ow" hidden><label for="pi-on">Nome da plataforma ou origem</label><input id="pi-on" placeholder="ex.: Apollo, LinkedIn, lista de associação, indicação"></div>
             <div class="fld"><label for="pi-tp">A lista é de</label><select id="pi-tp"><option value="">Detectar pela coluna "Tipo"</option><option value="target">Targets · empresas vendedoras (N3)</option><option value="investidor">Investidores · compradores (N1)</option></select></div>
-            <div class="fld"><label for="pi-iv">Prospectado para o investidor</label><select id="pi-iv"><option value="">—</option>${N1s().sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt")).map(i => `<option value="${i.id}" ${i.id === invId ? "selected" : ""}>${esc(i.nome)}</option>`).join("")}</select></div>
+            <div class="fld"><label for="pi-iv">Prospectado para o investidor</label><select id="pi-iv"><option value="">${N1s().length ? "— nenhum —" : "— nenhum investidor ativo na Órbita ainda —"}</option>${N1s().sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt")).map(i => `<option value="${i.id}" ${i.id === invId ? "selected" : ""}>${esc(i.nome)}${i.tipo ? " · " + esc(i.tipo) : ""}</option>`).join("")}<option value="__novo">+ Cadastrar novo investidor…</option></select></div>
+            <div class="fld" data-pinovo hidden><label for="pi-nn">Novo investidor</label><input id="pi-nn" placeholder="ex.: Gestora X, Grupo Y"></div>
+            <div class="fld" data-pinovo hidden><label for="pi-nt">Tipo de investidor</label><select id="pi-nt">${TIPOS_INV.map(x => `<option>${x}</option>`).join("")}</select></div>
+            <div class="fld" data-pinovo hidden><label for="pi-nc">Cidade e UF ou país</label><input id="pi-nc" placeholder="ex.: São Paulo/SP ou Lisboa, Portugal"></div>
             <div class="fld"><label for="pi-r">Responsável pela abordagem</label><select id="pi-r"><option value="">Sem responsável (livres)</option>${equipe().map(e => `<option>${esc(e.nome)}</option>`).join("")}</select></div>
-            <div class="fld full"><label for="pi-a">Arquivo (CSV ou Excel)</label><input id="pi-a" type="file" accept=".csv,.xlsx,.txt"></div></div>
+            <div class="fld full"><label for="pi-a">Arquivo (CSV ou Excel)</label><input id="pi-a" type="file" accept=".csv,.xlsx,.xls,.ods,.txt"></div></div>
           <div class="banner" id="pi-dica" style="font-size:12.5px"></div>
           <p class="err" id="pi-err" hidden></p><div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="btn ghost" data-x>Cancelar</button><button type="submit" class="btn primary">Importar</button></div></form>
         <form id="pb-f" data-pip="busca" style="display:flex;flex-direction:column;gap:10px" hidden novalidate>
@@ -482,13 +499,16 @@ if (window.KT_DD) (() => {
           <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end"><button type="button" class="btn" id="pc-ex">Exportar CNPJs para o Lemitti</button>${publicado() ? `<button type="button" class="btn primary" id="pc-go">Buscar celulares no Lemitti</button>` : `<button type="button" class="btn" id="pc-imp">Importar o arquivo devolvido</button>`}</div></div></div>`);
     const aba = v => { $$("[data-pip]").forEach(x => x.hidden = x.dataset.pip !== v); $$("[data-pia]").forEach(b => b.setAttribute("aria-pressed", b.dataset.pia === v)); };
     $$("[data-pia]").forEach(b => b.onclick = () => aba(b.dataset.pia)); aba(aba0 || "arq");
+    $("#pi-iv").onchange = () => $$("[data-pinovo]").forEach(x => x.hidden = $("#pi-iv").value !== "__novo");
     const dica = () => { const o = $("#pi-o").value; $("#pi-dica").innerHTML = esc(ORIG_LISTA.find(x => x[0] === o)[1]); $("#pi-ow").hidden = o !== "Outra plataforma"; }; $("#pi-o").onchange = dica; dica();
     $("#pi-f").onsubmit = async e => { e.preventDefault(); const f = $("#pi-a").files[0], err = t => { $("#pi-err").textContent = t; $("#pi-err").hidden = false; }; if (!f) return err("Escolha o arquivo.");
-      let rows; try{ const buf = await f.arrayBuffer(); rows = /\.xlsx$/i.test(f.name) ? await IMP.lerXLSX(buf) : D.csv((() => { let x = new TextDecoder("utf-8").decode(buf); if (x.includes("\uFFFD")) x = new TextDecoder("latin1").decode(buf); return x; })()); }catch(x){ return err("Não consegui ler o arquivo."); }
-      const L = lerLinhas(rows); if (!L) return err("O arquivo precisa ter as colunas CNPJ e Empresa (ou Razão social).");
+      if (/\.xls$/i.test(f.name)) return err("Arquivo .xls (Excel antigo): abra no Excel e salve como .xlsx ou CSV, depois importe de novo.");
+      let rows; try{ const buf = await f.arrayBuffer(); rows = /\.xlsx$/i.test(f.name) ? await IMP.lerXLSX(buf) : /\.ods$/i.test(f.name) ? await IMP.lerODS(buf) : D.csv((() => { let x = new TextDecoder("utf-8").decode(buf); if (x.includes("\uFFFD")) x = new TextDecoder("latin1").decode(buf); return x; })()); }catch(x){ return err("Não consegui ler o arquivo."); }
+      const L = lerLinhas(rows); if (!L || !L.length) return err(rows && rows.length ? "Não encontrei empresas na planilha. Ela precisa ter uma coluna com o nome da empresa (ex.: Empresa, Razão social, Nome, Corretora) ou o CNPJ." : "A planilha está vazia ou não pôde ser lida. Se for Excel, salve como .xlsx ou CSV e tente de novo.");
       const tp = $("#pi-tp").value; if (tp) L.forEach(o => { o.alvo = tp; });
       const og = $("#pi-o").value === "Outra plataforma" ? ($("#pi-on").value.trim() || "Outra plataforma") : $("#pi-o").value;
-      const r = await incluir(L, og, f.name, $("#pi-r").value, $("#pi-iv").value); close(); toast(resumoInc(r)); renderView(); };
+      let iv = $("#pi-iv").value; if (iv === "__novo"){ iv = await novoInvestidor(); if (!iv) return err("Informe o nome do novo investidor."); }
+      const r = await incluir(L, og, f.name, $("#pi-r").value, iv); close(); renderView(); resultadoImport(r, L.meta, f.name); };
     const crit = () => { const v = id => $("#" + id).value.trim(), rg = v("pb-rg"), ufs = [...new Set([...(REGIOES_UF[rg] || []), ...v("pb-uf").toUpperCase().split(/[^A-Z]+/).filter(x => x.length === 2)])];
       return {texto:v("pb-t"), atividades:v("pb-t") ? [v("pb-t")] : [], cnaes:v("pb-c").split(/[^0-9]+/).filter(Boolean), regioes:rg ? [rg] : [], ufs, cidade:v("pb-ci"), fatMin:num(v("pb-f1")), fatMax:num(v("pb-f2")), funcMin:num(v("pb-n1")), funcMax:num(v("pb-n2"))}; };
     $("#pb-cp").onclick = () => { const F = crit(), t = `Plataforma: ${$("#pb-s").value}\nEmpresas: ${F.texto || "—"}\nCNAE: ${F.cnaes.join(", ") || "—"}\nRegião/UFs: ${F.ufs.join(", ") || "Brasil"}${F.cidade ? `\nCidade: ${F.cidade}` : ""}\nFaturamento: R$ ${F.fatMin ?? "—"} mi a R$ ${F.fatMax ?? "—"} mi\nFuncionários: ${F.funcMin ?? "—"} a ${F.funcMax ?? "—"}`; try{ navigator.clipboard.writeText(t); toast("Critérios copiados"); }catch(x){ toast("Não foi possível copiar"); } };
@@ -499,6 +519,24 @@ if (window.KT_DD) (() => {
       const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["\uFEFF" + csv], {type:"text/csv"})); a.download = `cnpjs_para_lemitti_${new Date().toISOString().slice(0, 10)}.csv`; a.click(); };
     const pi2 = $("#pc-imp"); if (pi2) pi2.onclick = () => { aba("arq"); $("#pi-o").value = "Lemitti"; dica(); };
     const pg = $("#pc-go"); if (pg) pg.onclick = () => celulares(alvosCel(), close);
+  }
+  /* investidor novo cadastrado na própria importação: entra na Órbita (N1) */
+  async function novoInvestidor(){
+    const nome = $("#pi-nn").value.trim(); if (!nome) return null;
+    const loc = $("#pi-nc").value.trim(), m = loc.match(/^(.+?)\s*[\/-]\s*([A-Za-z]{2})$/), id = novoId("i");
+    const o = {nivel:"N1", nome, tipo:$("#pi-nt").value, municipio:m ? m[1] : (loc.split(",")[0] || "").trim(), uf:m ? m[2].toUpperCase() : "", pais:m ? "Brasil" : (loc.split(",")[1] || "Brasil").trim(), origem:"Prospecção", criadoEm:nowISO(), parentId:"", answers:{}, docs:{}, invest:{}, tese:{texto:""}, mapa:{temperatura:"Morno", aba:"Prospecção"}};
+    if (window.KT_MAPA?.coords){ const [lat, lng] = KT_MAPA.coords(o); o.lat = lat; o.lng = lng; }
+    await save(Store.set("suppliers", id, o)); toast(`${nome} cadastrado como investidor na Órbita`); return id;
+  }
+  /* resumo da importação: o que entrou, o que já existia e o que foi ignorado */
+  function resultadoImport(r, meta, arq){
+    meta = meta || {};
+    sheet(`<div class="sheet-h"><div><div class="eyebrow">Importar listas · ${esc(arq || "")}</div><h2>Lista importada</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
+      <div class="sheet-b" style="display:flex;flex-direction:column;gap:12px">
+        <div class="dd-kpis">${[["Empresas lidas", meta.lidas ?? "—"], ["Novas na Prospecção", r.novos], ["Atualizadas", r.atual || 0, "contatos ou dados novos"], ["Já no cadastro M&A", r.base], ["Linhas ignoradas", meta.ignoradas ?? 0, "sem nome nem CNPJ"]].map(([l, v, sm]) => `<div class="dd-k"><span>${l}</span><b>${v}</b>${sm ? `<small>${sm}</small>` : ""}</div>`).join("")}</div>
+        <p class="sub" style="margin:0;font-size:12.5px">Colunas reconhecidas: nome da empresa em <b>${esc(meta.nome || "—")}</b> · CNPJ em <b>${esc(meta.cnpj || "—")}</b>${meta.cabecalho ? ` · cabeçalho na linha ${meta.cabecalho}` : " · sem cabeçalho (colunas deduzidas pelo conteúdo)"}.</p>
+        ${r.novos || r.atual ? `<p class="sub" style="margin:0">As empresas aparecem na lista da Prospecção (aba "Ativos" ou "Novos").</p>` : `<div class="banner" style="font-size:13px">Nenhuma empresa nova entrou${r.pros ? `: ${r.pros} já estavam na Prospecção` : ""}${r.base ? `, ${r.base} já estão no cadastro M&A` : ""}.</div>`}
+        <div style="display:flex;justify-content:flex-end"><button type="button" class="btn primary" data-x>Ver a Prospecção</button></div></div>`);
   }
   const resumoInc = r => `${r.novos} novo(s)${r.atual ? ` · ${r.atual} atualizado(s) com contatos ou dados novos` : ""} · ${r.base} já no cadastro M&A${r.pros - (r.atual || 0) > 0 ? ` · ${r.pros - (r.atual || 0)} já na prospecção sem novidade` : ""}`;
   const listaApi = r => (r?.lista || []).map(o => ({nome:o.nome || fmtCnpj(o.d || ""), doc:fmtCnpj(dig(o.d || o.cnpj || "")), cnae:o.cnae || "", fat:o.fat || "", funcionarios:o.func || "", uf:(o.uf || "").toUpperCase().slice(0, 2), municipio:o.cid || o.municipio || "", site:o.site || "", contatos:(o.pessoas || []).slice(0, 8)}));

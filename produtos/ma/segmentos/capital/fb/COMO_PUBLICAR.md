@@ -66,7 +66,8 @@ npx -y firebase-tools@13 deploy --project SEU_ID --only hosting,firestore,storag
 ## Parte C · Primeiro acesso e liberação do time
 1. Abra `https://SEU_ID.web.app` no Chrome.
 2. Entre com **Entrar com Google** usando **ia@kinsey.com.br** ou **newton.kao@kinsey.com.br**. Se o e-mail não for uma conta Google, use **Primeiro acesso: criar senha**, confirme pelo link que chega no e-mail e entre.
-3. Você entra como **administrador geral**. Clique em **Usuários** e convide cada pessoa do time, com e-mail, nome e perfil:
+3. Você entra como **administrador geral**. No primeiro acesso o sistema cria sozinho o espaço de trabalho **Kinsey Capital · M&A**, onde ficam a Prospecção, a Órbita, a Base inicial e as operações (não é preciso cadastrar cliente). Se algo foi importado antes desse primeiro acesso, o sistema recupera e mostra o aviso "registro(s) recuperados".
+4. Clique em **Usuários** e convide cada pessoa do time, com e-mail, nome e perfil:
 
 | Perfil | Para quem | O que pode fazer |
 |---|---|---|
@@ -75,9 +76,9 @@ npx -y firebase-tools@13 deploy --project SEU_ID --only hosting,firestore,storag
 | Colaborador (equipe Kinsey) | Apoio | Cadastra, responde e envia documentos |
 | Fornecedor (Portal) | Empresas convidadas ao Portal | Só o Portal e só os próprios dados |
 
-4. Envie o link à pessoa (mensagem pronta na Parte F). Ela entra com o mesmo e-mail do convite.
-5. Em **Prospecção → Equipe M&A e SDR**, confira o nome e o **e-mail corporativo** de cada membro. O e-mail liga a frequência no sistema e as atividades à pessoa certa.
-6. **Dados de demonstração:** não carregue na base de produção. Use só num projeto de teste.
+5. Envie o link à pessoa (mensagem pronta na Parte F). Ela entra com o mesmo e-mail do convite.
+6. Em **Prospecção → Equipe M&A e SDR**, confira o nome e o **e-mail corporativo** de cada membro. O e-mail liga a frequência no sistema e as atividades à pessoa certa.
+7. **Dados de demonstração:** não carregue na base de produção. Use só num projeto de teste.
 
 ## Parte D · Instalar o aplicativo no celular e no computador
 O KinseyTec M&A é um aplicativo web: instala direto pelo navegador, sem loja de aplicativos, e atualiza sozinho a cada publicação.

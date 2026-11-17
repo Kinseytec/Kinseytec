@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v2.61 — 2026-11-17 · Prospecção: investidores da Órbita, investidor novo e importação de qualquer planilha
+- Espaço de trabalho padrão "Kinsey Capital · M&A" criado no primeiro acesso do administrador: sem ele a versão publicada abria sem cliente, a Órbita ficava vazia (nenhum investidor para escolher) e as listas importadas não apareciam; o que foi gravado sem cliente é recuperado automaticamente
+- Importar listas: "Prospectado para o investidor" mostra os investidores ativos da Órbita (com o tipo) e a opção "+ Cadastrar novo investidor…", que cria o investidor na Órbita (N1) na própria importação
+- Leitura de planilhas tolerante: cabeçalho achado em qualquer uma das 30 primeiras linhas (títulos acima são ignorados), nome da empresa reconhecido também por Corretora, Companhia, Cliente, Conta, Lead, Nome etc., planilha sem cabeçalho com colunas deduzidas pelo conteúdo, CNPJ sem zeros à esquerda corrigido; aceita .ods e orienta salvar .xls antigo como .xlsx ou CSV
+- Resumo da importação: empresas lidas, novas, atualizadas, já no cadastro, linhas ignoradas e colunas reconhecidas
+
 ## v2.60 — 2026-11-16 · Pacote de publicação do M&A com guia próprio
 - Guia "como publicar e instalar" próprio do KinseyTec M&A (produtos/ma/segmentos/capital/fb/COMO_PUBLICAR.md): preparação do Firebase, publicação pelo Cloud Shell, chaves das integrações da Prospecção (Econodata, Ramper, Lemitti) no Secret Manager, perfis do time, instalação no iPhone, Android e computador, conferência pós-publicação e mensagens prontas
 - Construtor usa o guia do segmento quando existir (os demais produtos seguem com o guia do núcleo)

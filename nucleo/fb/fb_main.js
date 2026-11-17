@@ -12,10 +12,18 @@ const KT_FB = !KT_AUTH ? null : {
     const SCOPED = ["suppliers", "evidences", "contracts", "pareceres", "operacoes", "prospects", "presenca"], CFGS = ["geral", "precos", "relatorio", "relatorio_log", "personalizado", "portal", "consultas"];
     let clientes = [];
     if (r.role === "admin"){ try{ const q = await db.collection("clientes").get(); clientes = q.docs.map(d => ({id: d.id, ...d.data()})).sort((a, b) => (a.nome || "").localeCompare(b.nome || "")); }catch(e){} }
+    /* produto com espaço padrão (ex.: KinseyTec M&A, base única da Kinsey): criado no primeiro acesso do administrador */
+    const CP = window.KT_CLIENTE_PADRAO;
+    if (r.role === "admin" && CP && !clientes.length){ try{ await db.collection("clientes").doc(CP.id).set({nome:CP.nome, doc:CP.doc || "", local:CP.local || "", padrao:true, criadoEm:new Date().toISOString(), criadoPor:r.email}, {merge:true}); clientes = [{id:CP.id, nome:CP.nome, padrao:true}]; }catch(e){ console.warn("espaço padrão", e); } }
     let cid = "";
     if (r.role === "admin"){ let k = ""; try{ k = localStorage.getItem("kt-cli") || ""; }catch(e){} cid = clientes.some(c => c.id === k) ? k : (clientes[0]?.id || ""); }
     else cid = r.clienteId || "";
     KT_FB.clientes = clientes; KT_FB.cid = cid; KT_FB.SCOPED = SCOPED; KT_FB.CFGS = CFGS;
+    /* registros gravados com cliente vazio (antes do espaço padrão existir) passam para o espaço padrão */
+    if (r.role === "admin" && CP && cid === CP.id) (async () => { try{ let n = 0;
+      for (const col of SCOPED){ const q = await db.collection(col).where("clienteId", "==", "").get();
+        for (let i = 0; i < q.docs.length; i += 400){ const b = db.batch(); q.docs.slice(i, i + 400).forEach(d => b.set(d.ref, {clienteId:cid}, {merge:true})); await b.commit(); } n += q.docs.length; }
+      if (n){ toast(`${n} registro(s) gravado(s) antes da configuração foram recuperados`); setTimeout(() => location.reload(), 1500); } }catch(e){ console.warn("recuperação", e); } })();
     if (r.role !== "admin" && !cid){
       const o = document.createElement("div"); o.className = "ktl"; o.style.cssText = "position:fixed;inset:0;z-index:90;background:var(--bg,#011F4B);display:grid;place-items:center;padding:16px";
       o.innerHTML = `<div class="card" style="max-width:440px;display:flex;flex-direction:column;gap:12px"><h2>Acesso sem cliente vinculado</h2><p class="sub" style="margin:0">Seu e-mail (${esc(r.email)}) ainda não está ligado a um cliente. Peça ao administrador da Kinsey BR para vincular o seu convite ao cliente correto.</p><button type="button" class="btn" id="kt-out3">Sair</button></div>`;
