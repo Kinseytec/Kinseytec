@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v2.63 — 2026-11-17 · Mandato de venda automático no Jurídico
+- Modelo Kinsey BR de mandato (sell-side) no sistema, com as correções da revisão: sócios como intervenientes anuentes, "Cliente" definido, contratadas que assinam iguais às do preâmbulo, cláusula do retainer completa, sucesso mínimo definido (base da multa), testemunhas e quadro de conferência
+- Jurídico · Mandatos: escolhe o target e o sistema preenche razão social, CNPJ, endereço, atividade e sócios do cadastro (Receita e contrato social)
+- Condições calculadas: success fee de 6% do valor total; valor mínimo da operação pelo valuation ou, sem ele, pelo múltiplo de mercado sobre o faturamento (ou EBITDA) do balancete, arredondado ao milhão; sucesso mínimo = valor mínimo × 6%; retainer = 10% do sucesso mínimo em 10 parcelas, a 1ª 15 dias após o primeiro NDA assinado com investidor, abatido do success fee; tudo ajustável por mandato
+- Minuta em Word para revisão jurídica (campos a completar em amarelo), versões, aprovação ou pedido de ajustes, cronograma do retainer a partir do NDA e resumo no dossiê do target
+
 ## v2.62 — 2026-11-17 · Publicação automática do M&A
 - Publicação automática pelo GitHub Actions ajustada para o M&A: a cada versão na branch main, constrói, testa e publica o projeto kinsey-capital-ma (antes apontava para os sistemas de cadeias e nunca tinha rodado)
 - Script de configuração única no Cloud Shell (ferramentas/configurar_publicacao_automatica.sh): conta de serviço e federação de identidade, sem chave guardada, restrita à branch main deste repositório

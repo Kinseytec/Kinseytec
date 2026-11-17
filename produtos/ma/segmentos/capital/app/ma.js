@@ -110,13 +110,13 @@ if (typeof MA_MODELOS !== "undefined") (() => {
   const NDA_PROV = NDA_TEXT.slice(), NDA_VPROV = NDA_VERSION;
   const ov = () => S.config.modelos_ma || {};
   const modelo = id => { const m = MA_MODELOS.find(x => x.id === id); if (!m) return null; const o = ov()[id];
-    return o?.texto?.length ? {...m, texto:o.texto, versao:o.versao || "oficial", oficial:true, em:o.em} : {...m, texto: id === "nda_geral" ? NDA_PROV : m.texto, oficial:false}; };
+    return o?.texto?.length ? {...m, texto:o.texto, versao:o.versao || "oficial", oficial:true, em:o.em} : {...m, texto: id === "nda_geral" ? NDA_PROV : m.texto, oficial:!!m.base}; };
   const syncNda = () => { const m = modelo("nda_geral"); NDA_TEXT.splice(0, NDA_TEXT.length, ...m.texto); NDA_VERSION = m.oficial ? "NDA Kinsey Capital · " + m.versao : NDA_VPROV; };
   const _rl = renderLgpd; renderLgpd = function(s, b){ syncNda(); return _rl(s, b); };
   const campos = (s, extra = {}) => { const md = extra.mand || s.mandato || {}, H = window.KT_HON ? KT_HON.campos(s, s.lado === "compra" || s.nivel === "N1" ? "compra" : "venda") : {};
     return {EMPRESA:s.nome || "[empresa]", DOC:s.doc || "[CNPJ / registro]", REPRESENTANTE:s.nda?.nome || s.responsavel || "[representante]", CODINOME:md.codinome || "[nome-código]",
       PARTICIPACAO:md.participacao || "[participação]", EXCLUSIVIDADE:md.exclusividade || "[exclusividade]", PRAZO:md.prazo || "[prazo]", RETAINER:md.retainer || H.RETAINER || "[retainer]",
-      SUCCESS:md.success || s.acordo?.fee || H.SUCCESS || "[success fee]", TAIL:H.TAIL || "12", DATA:hoje()}; };
+      SUCCESS:md.success || s.acordo?.fee || H.SUCCESS || "[success fee]", TAIL:H.TAIL || "12", DATA:hoje(), ...(window.KT_MAND && s.nivel === "N3" ? KT_MAND.campos(s) : {})}; };
   const preenche = (txt, c) => String(txt).replace(/\{([A-Z]+)\}/g, (m, k) => c[k] != null ? c[k] : m);
   const textoPlano = (m, c) => `${m.titulo.toUpperCase()}\n${m.oficial ? "Versão oficial " + m.versao : "MODELO PROVISÓRIO — substituir pelo modelo oficial Kinsey"}\n\n` + m.texto.map(([h, t]) => `${preenche(h, c)}\n${preenche(t, c)}`).join("\n\n") + `\n\n\n______________________________          ______________________________\n${c.EMPRESA}          Kinsey Capital`;
   const mandatos = () => S.suppliers.filter(x => x.nivel === "N3" && x.mandato?.codinome);
@@ -129,7 +129,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     P.para("Kinsey Capital", {size:9, bold:true, color:[4,115,195], gap:2});
     P.para(m.titulo, {size:15, bold:true, color:[1,31,75], gap:2});
     P.para(m.oficial ? `Versão oficial ${m.versao}` : "MODELO PROVISÓRIO — substituir pelo modelo oficial Kinsey antes da assinatura", {size:8.5, color: m.oficial ? [90,101,120] : [176,48,43], gap:12});
-    m.texto.forEach(([h, t]) => { P.para(preenche(h, c), {size:10.5, bold:true, gap:2}); P.para(preenche(t, c), {size:9.5, gap:9}); });
+    m.texto.forEach(([h, t]) => { P.para(preenche(h, c), {size:10.5, bold:true, gap:2}); preenche(t, c).split("\n").forEach((x, i, a) => P.para(x, {size:9.5, gap:i === a.length - 1 ? 9 : 4})); });
     P.y += 30; P.ensure(60); const y = P.y + 30, W2 = (P.CW - 30) / 2;
     P.line(P.M, y, P.M + W2, y, [27,36,51], .6); P.line(P.M + W2 + 30, y, P.M + P.CW, y, [27,36,51], .6);
     P.text(P.M, y + 12, c.EMPRESA.slice(0, 48), 8.5); P.text(P.M + W2 + 30, y + 12, "Kinsey Capital", 8.5);
@@ -161,14 +161,14 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     const m = modelo(id), txt = m.texto.map(([h, t]) => `${h}\n${t}`).join("\n\n");
     const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Modelo oficial Kinsey</div><h2>${esc(m.titulo)}</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
       <form class="sheet-b" id="fmod" style="display:flex;flex-direction:column;gap:12px" novalidate>
-        <p class="sub" style="margin:0">Cole o texto oficial. Cada cláusula é um bloco: título na primeira linha e o texto nas linhas seguintes, com uma linha em branco entre as cláusulas. Campos que o sistema preenche: {EMPRESA}, {DOC}, {REPRESENTANTE}, {CODINOME}, {PARTICIPACAO}, {EXCLUSIVIDADE}, {PRAZO}, {RETAINER}, {SUCCESS}, {DATA}.</p>
+        <p class="sub" style="margin:0">Cole o texto oficial. Cada cláusula é um bloco: título na primeira linha e o texto nas linhas seguintes, com uma linha em branco entre as cláusulas. Campos que o sistema preenche: {EMPRESA}, {DOC}, {ENDERECO}, {ATIVIDADE}, {SOCIOS}, {KINSEY}, {REPRESENTANTE}, {CODINOME}, {PARTICIPACAO}, {EXCLUSIVIDADE}, {PRAZO}, {RESILICAO}, {TAIL}, {RETAINER}, {SUCCESS}, {SUCPCT}, {VALORMIN}, {BASEMIN}, {SUCMIN}, {RETPCT}, {RETTOTAL}, {PARCELAS}, {PARCELA}, {RETDIAS}, {TRIBUTOS}, {DATABASE}, {DATA}.</p>
         <div class="form"><div class="fld"><label for="m-ver">Versão</label><input id="m-ver" value="${esc(m.oficial ? m.versao : "")}" placeholder="ex.: v1.0 · aprovada em ${hoje()}"></div></div>
         <textarea id="m-txt" rows="20" style="width:100%;font-size:13px;line-height:1.5;background:transparent;color:inherit;border:1px solid var(--line);border-radius:8px;padding:10px" aria-label="Texto do modelo">${esc(m.oficial ? txt : "")}</textarea>
         <details><summary class="sub">Ver o texto provisório atual</summary><pre style="white-space:pre-wrap;font-size:12px">${esc(MA_MODELOS.find(x => x.id === id).texto === NDA_TEXT ? NDA_PROV.map(([h, t]) => h + "\n" + t).join("\n\n") : MA_MODELOS.find(x => x.id === id).texto.map(([h, t]) => h + "\n" + t).join("\n\n"))}</pre></details>
         <p class="err" id="m-err" hidden></p>
         <div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="btn ghost" data-x>Cancelar</button><button type="submit" class="btn primary">Salvar como modelo oficial</button></div></form>`);
     $("#fmod").onsubmit = e => { e.preventDefault();
-      const blocos = $("#m-txt").value.replace(/\r/g, "").split(/\n\s*\n/).map(b => b.trim()).filter(Boolean).map(b => { const [h, ...r] = b.split("\n"); return [h.trim(), r.join(" ").trim()]; });
+      const blocos = $("#m-txt").value.replace(/\r/g, "").split(/\n\s*\n/).map(b => b.trim()).filter(Boolean).map(b => { const [h, ...r] = b.split("\n"); return [h.trim(), r.map(x => x.trim()).filter(Boolean).join("\n")]; });
       const ver = $("#m-ver").value.trim();
       if (!blocos.length || !ver){ $("#m-err").textContent = !ver ? "Informe a versão do modelo oficial." : "Cole o texto do modelo."; $("#m-err").hidden = false; return; }
       save(Store.set("config", "modelos_ma", {...ov(), [id]: {versao:ver, texto:blocos, em:nowISO(), por:Store.me?.email || Store.me?.id || ""}})).then(() => { close(); toast("Modelo oficial salvo"); }); };
