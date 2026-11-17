@@ -1,7 +1,8 @@
-name: Publicar sistemas KinseyTec
+name: Publicar KinseyTec M&A
 
-# Ao aprovar uma alteração na branch main, constrói e publica só os sistemas afetados
-# (mudança no núcleo = todos). Também pode ser disparado manualmente pela aba Actions.
+# Ao entrar uma alteração na branch main, testa, constrói e publica o KinseyTec M&A no Firebase
+# (projeto kinsey-capital-ma). Também pode ser disparado manualmente pela aba Actions.
+# Login no Google Cloud sem chave guardada (Workload Identity Federation): veja ferramentas/configurar_publicacao_automatica.sh
 on:
   push:
     branches: [main]
@@ -12,9 +13,9 @@ on:
   workflow_dispatch:
     inputs:
       sistemas:
-        description: 'Sistemas: "todos" ou produto/segmento separados por espaço (ex.: cadeias/soja cadeias/metal)'
+        description: 'Sistema a publicar (produto/segmento)'
         required: true
-        default: "todos"
+        default: "ma/capital"
 
 permissions:
   contents: read
@@ -32,8 +33,8 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "20" }
       - run: pip install pillow
-      - name: Construir todos os sistemas (confere se nada quebrou)
-        run: python3 ferramentas/construir.py cadeias todos
+      - name: Construir o M&A (confere se nada quebrou)
+        run: python3 ferramentas/construir.py ma capital
 
   publicar:
     needs: testar
@@ -51,5 +52,5 @@ jobs:
       - run: pip install pillow && npm install -g firebase-tools@13
       - name: Construir, publicar e conferir
         env:
-          ESCOLHA: ${{ github.event.inputs.sistemas }}
+          ESCOLHA: ${{ github.event.inputs.sistemas || 'ma/capital' }}
         run: bash ferramentas/publicar_ci.sh

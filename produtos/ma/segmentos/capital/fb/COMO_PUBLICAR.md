@@ -125,6 +125,14 @@ O perfil de instalação do iPhone aponta para `https://kinsey-capital-ma.web.ap
 ## Parte G · Endereço próprio (opcional)
 *Hosting → Adicionar domínio personalizado* → por exemplo `ma.kinseytec.com.br` → siga os registros de DNS indicados. O endereço `web.app` continua funcionando.
 
+## Parte H · Publicação automática (opcional, configurar uma vez)
+Depois de configurada, cada nova versão aprovada na branch **main** do repositório é testada e publicada sozinha no Firebase, sem Cloud Shell e sem baixar pacote. Nenhuma chave ou senha é guardada: o GitHub entra no Google Cloud pela federação de identidade, e só a branch main deste repositório pode publicar.
+1. No Cloud Shell do projeto, rode o script `ferramentas/configurar_publicacao_automatica.sh` do repositório (ele mostra no final os dois valores do passo 2).
+2. No GitHub, em **Settings → Secrets and variables → Actions → Variables**, crie `GCP_WIF_PROVIDER` e `GCP_SERVICE_ACCOUNT` com os valores mostrados.
+3. Em **Settings → Environments**, crie o ambiente **producao**. Em *Required reviewers*, coloque quem aprova cada publicação (ex.: ia@ ou newton.kao@): a versão só vai ao ar depois desse clique.
+4. Para publicar na hora, sem esperar uma nova versão: aba **Actions → Publicar KinseyTec M&A → Run workflow**.
+5. O resultado (site no ar e banco de dados) aparece no resumo da execução, na aba Actions.
+
 ## Segurança
 - Ninguém deve compartilhar senha. Cada pessoa entra com o próprio e-mail.
 - Chaves de API só no Secret Manager.

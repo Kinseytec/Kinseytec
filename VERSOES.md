@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v2.62 — 2026-11-17 · Publicação automática do M&A
+- Publicação automática pelo GitHub Actions ajustada para o M&A: a cada versão na branch main, constrói, testa e publica o projeto kinsey-capital-ma (antes apontava para os sistemas de cadeias e nunca tinha rodado)
+- Script de configuração única no Cloud Shell (ferramentas/configurar_publicacao_automatica.sh): conta de serviço e federação de identidade, sem chave guardada, restrita à branch main deste repositório
+- Guia de publicação: Parte H, publicação automática com aprovação antes de ir ao ar
+
 ## v2.61 — 2026-11-17 · Prospecção: investidores da Órbita, investidor novo e importação de qualquer planilha
 - Espaço de trabalho padrão "Kinsey Capital · M&A" criado no primeiro acesso do administrador: sem ele a versão publicada abria sem cliente, a Órbita ficava vazia (nenhum investidor para escolher) e as listas importadas não apareciam; o que foi gravado sem cliente é recuperado automaticamente
 - Importar listas: "Prospectado para o investidor" mostra os investidores ativos da Órbita (com o tipo) e a opção "+ Cadastrar novo investidor…", que cria o investidor na Órbita (N1) na própria importação
