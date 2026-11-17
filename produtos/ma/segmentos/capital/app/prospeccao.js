@@ -255,6 +255,7 @@ if (window.KT_DD) (() => {
   S.prosF = S.prosF || {q:"", st:"ativos", or:"", resp:"", inv:"", tp:""};
 
   EXT_VIEWS.prospeccao = function(){
+    if (!window.__ktNomes){ window.__ktNomes = true; setTimeout(() => corrigirNomes().catch(() => {}), 2500); }
     const host = $("#prospeccao"); if (!host) return; const F = S.prosF, R = regras();
     const all = S.prospects.slice().sort((a, b) => String(ultimo(b)?.em || b.criadoEm).localeCompare(ultimo(a)?.em || a.criadoEm));
     const L = all.filter(p => (F.st === "ativos" ? !["promovido", "arquivado"].includes(p.status) : F.st === "livres" ? livre(p) && !["promovido", "arquivado"].includes(p.status) : !F.st || p.status === F.st)
@@ -431,22 +432,40 @@ if (window.KT_DD) (() => {
   }
   function lerLinhas(rows){
     rows = (rows || []).map(r => [...(r || [])].map(c => String(c ?? "").trim())).filter(r => r.some(Boolean)); if (!rows.length) return null;
+    const ehUrl = x => /^(https?:\/\/|www\.)|\.com(\.br)?\//i.test(String(x || "").trim());
     const NOMEH = /raz[aã]o|empresa|fantasia|corretor|companhia|organiza|denomina|estabelecimento|cliente|conta|lead|prospect|^nome$|^nome d[ao] (empresa|cliente|corretora)/i;
     const pont = r => r.some(c => dig(c).length >= 11 || c.includes("@")) ? 0 : r.reduce((s, c) => s + (/cnpj/i.test(c) ? 3 : NOMEH.test(c) ? 2 : /cidade|munic|^uf$|estado|telefone|celular|e-?mail|site|setor|segmento|cnae|fatur|contato|cargo/i.test(c) ? 1 : 0), 0);
     let hi = -1, best = 0; rows.slice(0, 30).forEach((r, i) => { const p = pont(r); if (p > best){ best = p; hi = i; } });
     const nC = Math.max(...rows.slice(0, 60).map(r => r.length)), colDe = j => rows.slice(hi + 1, hi + 300).map(r => r[j] || "").filter(Boolean);
     const pareceCnpj = j => { const v = colDe(j); return v.length > 0 && v.filter(x => { const d = dig(x); return d.length >= 12 && d.length <= 14; }).length / v.length > .6; };
-    const texto = j => colDe(j).filter(x => !/^[\d.,/\-()\s%R$]+$/.test(x) && x.length > 2 && !x.includes("@")).length;
+    const texto = j => colDe(j).filter(x => !/^[\d.,/\-()\s%R$]+$/.test(x) && x.length > 2 && !x.includes("@") && !ehUrl(x)).length;
     if (best < 2) hi = -1;
     const H = hi >= 0 ? rows[hi].map(c => nrm(c)) : [...Array(nC)].map(() => ""), ix = re => H.findIndex(h => re.test(h));
     let cN = ix(/raz|empresa|fantasia|corretor|companhia|organiza|denomina|estabelecimento|^cliente|^conta|^lead|prospect|^nome$|^nome d[ao] (empresa|cliente|corretora)/), cD = ix(/cnpj/), cC = ix(/cnae|atividade|segmento|setor/), cF = ix(/fatur|receita/), cU = ix(/^uf$|estado/), cM = ix(/cidade|municip/), cE = ix(/e ?mail/), cT = ix(/telefone|celular|fone|whats/), cS = ix(/site|dominio|url/), cCt = ix(/contato|decisor|responsavel|^nome do|^socio$|^socio administrador$/), cCg = ix(/cargo/), cTp = ix(/^tipo$|^nivel$|^tipo de prosp/), cTi = ix(/tipo de investidor/), cTe = ix(/^tese|o que compra/), cG = ix(/^grupo|controlador/), cP = ix(/^pais$/), cO = ix(/observ|^obs$|ranking/), cFu = ix(/funcion|colaborador|empregad/), cSoc = ix(/^socios$|quadro societ|^administradores|^socios e administradores/), cEnd = ix(/endere|logradouro/), cPo = ix(/^porte/), cTn = ix(/natureza|tipo de neg|descricao da atividade|ramo/), cEs = H.map((h, i) => /e ?mail/.test(h) ? i : -1).filter(i => i >= 0), cTs = H.map((h, i) => /cel|telefone|fone|whats/.test(h) ? i : -1).filter(i => i >= 0);
+    /* nome da empresa: razão social, depois nome fantasia, depois "empresa"; nunca uma coluna de link (ex.: perfil do Econodata) */
+    const colUrl = j => { const v = colDe(j); return v.length > 0 && v.filter(ehUrl).length / v.length > .5; };
+    const ruim = j => j < 0 || /link|url|site|perfil|econodata|http|endere|e ?mail/.test(H[j] || "") || colUrl(j);
+    const achaN = res => { for (const re of res){ const j = H.findIndex((h, i) => re.test(h) && !ruim(i)); if (j >= 0) return j; } return -1; };
+    const cRaz = achaN([/raz[aã]o social|^razao$/]), cFan = achaN([/fantasia/]);
+    { const j = achaN([/raz[aã]o social|^razao$/, /fantasia/, /^empresa$|^nome da empresa$|^nome empresa$|companhia|corretor|organiza|denomina|estabelecimento/, /^cliente|^conta|^lead|prospect|^nome$/, /empresa/]); if (j >= 0 || ruim(cN)) cN = j; }
+    if (cSoc < 0) cSoc = H.findIndex((h, i) => /socio/.test(h) && i !== cCt);
+    const cDec = H.findIndex((h, i) => /decisor/.test(h) && i !== cCt);
+    const nomeDe = r => [cN, cRaz, cFan].filter(j => j >= 0).map(j => String(r[j] ?? "").trim()).find(x => x && !ehUrl(x)) || "";
+    /* várias pessoas na mesma célula: "Nome (Cargo); Nome - Cargo | Nome" */
+    const pessoas = t => String(t || "").split(/\s*(?:;|\||\n)\s*/).map(x => x.trim()).filter(x => x.length > 2 && !ehUrl(x)).map(x => { const m = x.match(/^(.*?)\s*(?:\(([^)]+)\)|\s[-–]\s(.+))$/); return m ? {nome:m[1].trim(), cargo:(m[2] || m[3] || "").trim()} : {nome:x, cargo:""}; });
     if (cD < 0) cD = [...Array(nC).keys()].find(pareceCnpj) ?? -1;
-    if (cN < 0) cN = [...Array(nC).keys()].filter(j => j !== cD && ![cE, cT, cS, cM, cU].includes(j) && !cTs.includes(j)).sort((a, b) => texto(b) - texto(a))[0] ?? -1;
+    /* sem coluna de nome: só uma coluna sem título reconhecido pode ser o nome; senão, o nome vem da Receita pelo CNPJ */
+    const conhecidas = new Set([cD, cC, cF, cU, cM, cE, cT, cS, cCt, cCg, cTp, cTi, cTe, cG, cP, cO, cFu, cSoc, cEnd, cPo, cTn, cDec, ...cEs, ...cTs].filter(j => j >= 0));
+    if (cN < 0) cN = [...Array(nC).keys()].filter(j => !conhecidas.has(j) && !ruim(j) && (hi < 0 || !/[a-z]{3}/.test(H[j]) || NOMEH.test(H[j]))).sort((a, b) => texto(b) - texto(a)).find(j => texto(j) > 0) ?? -1;
     if (cN < 0 && cD < 0) return null;
     const _L = rows.slice(hi + 1).filter(r => r[cN] || r[cD]), _ign = rows.slice(hi + 1).length - _L.length;
     const out = _L
-    .map(r => { let d = dig(r[cD]); if (d.length === 12 || d.length === 13) d = d.padStart(14, "0"); return {nome:String(r[cN] ?? "").trim() || fmtCnpj(d), doc:d.length === 14 ? fmtCnpj(d) : "", cnae:String(r[cC] ?? "").trim(), fat:String(r[cF] ?? "").trim(), uf:String(r[cU] ?? "").toUpperCase().slice(0, 2), municipio:String(r[cM] ?? "").trim(), site:String(r[cS] ?? "").trim(), ...(cTp >= 0 && /invest|n1|compr/i.test(r[cTp] || "") ? {alvo:"investidor"} : {}), ...(cTi >= 0 && r[cTi] ? {tipoInv:String(r[cTi]).trim()} : {}), ...(cTe >= 0 && r[cTe] ? {tese:String(r[cTe]).trim()} : {}), ...(cG >= 0 && r[cG] ? {grupo:String(r[cG]).trim()} : {}), ...(cP >= 0 && r[cP] ? {pais:String(r[cP]).trim()} : {}), ...(cO >= 0 && r[cO] ? {obs:String(r[cO]).trim()} : {}), ...(cFu >= 0 && r[cFu] ? {funcionarios:String(r[cFu]).trim()} : {}), ...(cEnd >= 0 && r[cEnd] ? {endereco:String(r[cEnd]).trim()} : {}), ...(cPo >= 0 && r[cPo] ? {porte:String(r[cPo]).trim()} : {}), ...(cTn >= 0 && r[cTn] && cTn !== cC ? {tipoNegocio:String(r[cTn]).trim()} : {}),
-      contatos:[...((r[cCt] || r[cE] || cTs.some(i => r[i])) ? [{nome:String(r[cCt] ?? "").trim(), cargo:String(r[cCg] ?? "").trim(), email:String(r[cE] ?? "").trim(), cel:[...new Set(cTs.map(i => String(r[i] ?? "").trim()).filter(Boolean))].join(" / ")}] : []),
+    .map(r => { let d = dig(r[cD]); if (d.length === 12 || d.length === 13) d = d.padStart(14, "0");
+      if (d.length !== 14){ const u = [cN, cS].filter(j => j >= 0).map(j => String(r[j] || "")).find(ehUrl); const m = u && dig(u).match(/\d{14}/); if (m) d = m[0]; }
+      const nm = nomeDe(r), fan = cFan >= 0 && r[cFan] && !ehUrl(r[cFan]) ? String(r[cFan]).trim() : "", P1 = pessoas(r[cCt]), PD = cDec >= 0 ? pessoas(r[cDec]) : [];
+      return {nome:nm || fmtCnpj(d), ...(nm ? {} : {nomePendente:true}), ...(fan && fan !== nm ? {fantasia:fan} : {}), doc:d.length === 14 ? fmtCnpj(d) : "", cnae:String(r[cC] ?? "").trim(), fat:String(r[cF] ?? "").trim(), uf:String(r[cU] ?? "").toUpperCase().slice(0, 2), municipio:String(r[cM] ?? "").trim(), site:/econodata/i.test(String(r[cS] ?? "")) ? "" : String(r[cS] ?? "").trim(), ...(cTp >= 0 && /invest|n1|compr/i.test(r[cTp] || "") ? {alvo:"investidor"} : {}), ...(cTi >= 0 && r[cTi] ? {tipoInv:String(r[cTi]).trim()} : {}), ...(cTe >= 0 && r[cTe] ? {tese:String(r[cTe]).trim()} : {}), ...(cG >= 0 && r[cG] ? {grupo:String(r[cG]).trim()} : {}), ...(cP >= 0 && r[cP] ? {pais:String(r[cP]).trim()} : {}), ...(cO >= 0 && r[cO] ? {obs:String(r[cO]).trim()} : {}), ...(cFu >= 0 && r[cFu] ? {funcionarios:String(r[cFu]).trim()} : {}), ...(cEnd >= 0 && r[cEnd] ? {endereco:String(r[cEnd]).trim()} : {}), ...(cPo >= 0 && r[cPo] ? {porte:String(r[cPo]).trim()} : {}), ...(cTn >= 0 && r[cTn] && cTn !== cC ? {tipoNegocio:String(r[cTn]).trim()} : {}),
+      contatos:[...((P1.length || r[cE] || cTs.some(i => r[i])) ? [{nome:P1[0]?.nome || "", cargo:String(r[cCg] ?? "").trim() || P1[0]?.cargo || "", email:String(r[cE] ?? "").trim(), cel:[...new Set(cTs.map(i => String(r[i] ?? "").trim()).filter(Boolean))].join(" / ")}] : []),
+        ...P1.slice(1).map(x => ({nome:x.nome, cargo:x.cargo, email:"", cel:""})), ...PD.map(x => ({nome:x.nome, cargo:x.cargo || "Decisor", email:"", cel:""})),
         ...[...new Set(cEs.filter(i => i !== cE).map(i => String(r[i] ?? "").trim()).filter(x => x.includes("@")))].map(email => ({nome:"", cargo:"", email, cel:""})),
         ...(cSoc >= 0 && r[cSoc] ? String(r[cSoc]).split(/;|\||,(?![^(]*\))| e (?=[A-ZÁÉÍÓÚ])/).map(x => x.trim()).filter(x => x.length > 2).map(nome => ({nome, cargo:"Sócio", email:"", cel:""})) : [])]}; });
     out.meta = {cabecalho:hi >= 0 ? hi + 1 : 0, nome:hi >= 0 && cN >= 0 ? rows[hi][cN] : (cN >= 0 ? `coluna ${cN + 1}` : "—"), cnpj:cD >= 0 ? (hi >= 0 && rows[hi][cD] ? rows[hi][cD] : `coluna ${cD + 1}`) : "não encontrada", ignoradas:_ign, lidas:out.length};
@@ -508,7 +527,7 @@ if (window.KT_DD) (() => {
       const tp = $("#pi-tp").value; if (tp) L.forEach(o => { o.alvo = tp; });
       const og = $("#pi-o").value === "Outra plataforma" ? ($("#pi-on").value.trim() || "Outra plataforma") : $("#pi-o").value;
       let iv = $("#pi-iv").value; if (iv === "__novo"){ iv = await novoInvestidor(); if (!iv) return err("Informe o nome do novo investidor."); }
-      const r = await incluir(L, og, f.name, $("#pi-r").value, iv); close(); renderView(); resultadoImport(r, L.meta, f.name); };
+      const r = await incluir(L, og, f.name, $("#pi-r").value, iv); close(); renderView(); resultadoImport(r, L.meta, f.name); setTimeout(() => corrigirNomes().catch(() => {}), 1500); };
     const crit = () => { const v = id => $("#" + id).value.trim(), rg = v("pb-rg"), ufs = [...new Set([...(REGIOES_UF[rg] || []), ...v("pb-uf").toUpperCase().split(/[^A-Z]+/).filter(x => x.length === 2)])];
       return {texto:v("pb-t"), atividades:v("pb-t") ? [v("pb-t")] : [], cnaes:v("pb-c").split(/[^0-9]+/).filter(Boolean), regioes:rg ? [rg] : [], ufs, cidade:v("pb-ci"), fatMin:num(v("pb-f1")), fatMax:num(v("pb-f2")), funcMin:num(v("pb-n1")), funcMax:num(v("pb-n2"))}; };
     $("#pb-cp").onclick = () => { const F = crit(), t = `Plataforma: ${$("#pb-s").value}\nEmpresas: ${F.texto || "—"}\nCNAE: ${F.cnaes.join(", ") || "—"}\nRegião/UFs: ${F.ufs.join(", ") || "Brasil"}${F.cidade ? `\nCidade: ${F.cidade}` : ""}\nFaturamento: R$ ${F.fatMin ?? "—"} mi a R$ ${F.fatMax ?? "—"} mi\nFuncionários: ${F.funcMin ?? "—"} a ${F.funcMax ?? "—"}`; try{ navigator.clipboard.writeText(t); toast("Critérios copiados"); }catch(x){ toast("Não foi possível copiar"); } };
@@ -553,17 +572,39 @@ if (window.KT_DD) (() => {
       const x = await incluir(listaApi(r), "Lemitti", `Celulares Lemitti · ${new Date().toLocaleDateString("pt-BR")}`, "", ""); close(); toast(`Lemitti: ${x.atual || 0} prospect(s) com contatos novos`); renderView(); }
     catch(e){ toast(/configurad|precondition/i.test(e.message || "") ? "A conexão com o Lemitti ainda não foi configurada pelo administrador. Exporte os CNPJs e importe o arquivo devolvido." : `Consulta indisponível: ${e.message || "erro"}`); }
   }
+  /* nomes que entraram como link (ex.: perfil do Econodata) ou sem nome: busca a razão social na Receita pelo CNPJ */
+  let corrigindo = false;
+  async function corrigirNomes(){
+    if (corrigindo || typeof ORG === "undefined" || !ORG.receita || Store.me?.canWrite === false) return; corrigindo = true;
+    const ruim = p => p.nomePendente || /^(https?:\/\/|www\.)/i.test(String(p.nome || "").trim());
+    const L = S.prospects.filter(ruim).map(p => ({p, d:dig(p.doc).length === 14 ? dig(p.doc) : (dig(p.nome).match(/\d{14}/) || [])[0]})).filter(x => x.d).slice(0, 150);
+    if (!L.length){ corrigindo = false; return; } toast(`Corrigindo o nome de ${L.length} prospect(s) pela Receita Federal…`); let ok = 0;
+    for (const {p, d} of L){ try{ const r = await ORG.receita(d); const nome = r.razao || r.fantasia; if (nome){ await atualizar(p, {nome, nomePendente:false, doc:fmtCnpj(d), ...(r.fantasia && r.fantasia !== nome ? {fantasia:r.fantasia} : {}), ...(!p.municipio && r.municipio ? {municipio:r.municipio, uf:r.uf} : {}), ...(!p.cnae && r.cnaeDesc ? {cnae:r.cnaeDesc} : {})}); ok++; } }catch(e){}
+      await new Promise(res => setTimeout(res, 1200)); }
+    corrigindo = false; if (ok){ toast(`${ok} nome(s) corrigido(s) pela Receita Federal`); renderView(); }
+  }
   /* mesma empresa: soma contatos e completa dados vazios, sem duplicar o prospect */
   function juntar(p, o, origem){
     const chave = c => dig(c.cel) || String(c.email || "").toLowerCase() || nrm(c.nome), tem = new Set((p.contatos || []).map(chave).filter(Boolean));
-    const novos = (o.contatos || []).filter(c => (c.nome || c.email || c.cel) && !tem.has(chave(c)));
-    const patch = {}; ["doc", "cnae", "fat", "funcionarios", "uf", "municipio", "site", "segmento"].forEach(k => { if (!p[k] && o[k]) patch[k] = o[k]; });
-    if (novos.length) patch.contatos = [...(p.contatos || []), ...novos.map(c => ({...c, fonte:origem}))];
+    let lista = (p.contatos || []).map(c => ({...c})), mudou = false;
+    const novos = (o.contatos || []).filter(c => { if (!(c.nome || c.email || c.cel) || tem.has(chave(c))) return false;
+      const j = c.nome ? lista.findIndex(x => x.nome && nrm(x.nome) === nrm(c.nome)) : -1; if (j < 0) return true;
+      const x = lista[j], ant = JSON.stringify(x);
+      if (c.cel && !String(x.cel || "").includes(c.cel)) x.cel = [x.cel, c.cel].filter(Boolean).join(" / ");
+      if (c.email && !String(x.email || "").toLowerCase().includes(String(c.email).toLowerCase())) x.email = [x.email, c.email].filter(Boolean).join(" / ");
+      if (!x.cargo && c.cargo) x.cargo = c.cargo; if (JSON.stringify(x) !== ant){ x.fonte = [x.fonte, origem].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(" + "); mudou = true; }
+      tem.add(chave(c)); return false; });
+    const patch = {}; ["doc", "cnae", "fat", "funcionarios", "uf", "municipio", "site", "segmento", "fantasia", "porte", "endereco", "tipoNegocio"].forEach(k => { if (!p[k] && o[k]) patch[k] = o[k]; });
+    const linkOuVazio = x => !x || /^(https?:\/\/|www\.)/i.test(String(x).trim()) || /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/.test(String(x).trim());
+    if ((linkOuVazio(p.nome) || p.nomePendente) && o.nome && !linkOuVazio(o.nome)){ patch.nome = o.nome; patch.nomePendente = false; }
+    if (novos.length || mudou) patch.contatos = [...lista, ...novos.map(c => ({...c, fonte:origem}))];
     if (!Object.keys(patch).length) return null; patch.fontes = [...new Set([...(p.fontes || [p.origem].filter(Boolean)), origem])]; return patch;
   }
   async function incluir(L, origem, lista, resp, invId){
-    let novos = 0, base = 0, pros = 0, atual = 0; const vistos = new Set();
-    for (const o of L){ const k = dig(o.doc) || nrm(o.nome); if (vistos.has(k)) continue; vistos.add(k); const {naBase, naPros} = duplicado(o); if (naBase){ base++; continue; }
+    let novos = 0, base = 0, pros = 0, atual = 0; const G = new Map();
+    for (const o of L){ const k = dig(o.doc) || nrm(o.nome); if (!k) continue; const g = G.get(k); if (!g){ G.set(k, {...o, contatos:[...(o.contatos || [])]}); continue; }
+      const pt = juntar(g, o, origem); if (pt){ delete pt.fontes; Object.assign(g, pt); } }
+    for (const o of G.values()){ const {naBase, naPros} = duplicado(o); if (naBase){ base++; continue; }
       if (naPros){ pros++; const pt = juntar(naPros, o, origem); if (pt){ await atualizar(naPros, pt); atual++; } continue; }
       const iv = invId || o.invId || ""; delete o.invId; await salvar(novoId("p"), {alvo:"target", ...o, ...(iv && o.alvo !== "investidor" ? {investidores:[iv]} : {}), ...(o.alvo === "investidor" ? {interesse:"Comprar empresas (investidor N1)", tipoInv:o.tipoInv || "Investidor estratégico"} : {}), segmento:o.segmento || o.cnae || "", origem, fontes:[origem], lista:lista || "", responsavel:resp || "", desde:resp ? nowISO() : "", status:"novo", toques:[], criadoEm:nowISO()}); novos++; }
     return {novos, base, pros, atual}; }
