@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v2.66 — 2026-11-17 · Tela de entrada: cliente, usuário e senha
+- Entrada com Cliente (empresa), Usuário (e-mail) e Senha, botão para mostrar a senha e Enter para entrar; "Entrar com Google" passa a ser a alternativa abaixo
+- Mensagens claras: primeiro acesso sem senha criada, login por e-mail e senha desativado no Firebase, muitas tentativas, domínio não autorizado, usuário desativado
+- O administrador entra direto no espaço do cliente digitado; o usuário de outro cliente é avisado de que não pertence ao cliente informado
+- Guia: passo a passo do primeiro acesso (criar senha, confirmar o e-mail) e confirmação de que não é preciso cadastrar usuários no console do Firebase
+
 ## v2.65 — 2026-11-17 · Avaliação de ativos, imóveis (NBR 14653) e marca por cliente
 - Nova pasta "Avaliação de ativos" (depois do Valuation) sobre o controle individual de bens do cliente (importação com custo, depreciação, valor contábil, vida útil e remanescente contábil)
 - Valor justo para o PPA: amostra por representatividade (80% do valor), inspeção com nota de 1 a 5, vida remanescente, cotações com fonte (Brasil e exterior, PTAX da data-base buscada no Banco Central), custo de reposição depreciado por Ross-Heidecke ou fator Kinsey, ociosidade e baixa; mais ou menos-valia levada ao PPA

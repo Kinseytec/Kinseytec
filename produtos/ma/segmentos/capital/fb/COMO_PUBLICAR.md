@@ -65,7 +65,11 @@ npx -y firebase-tools@13 deploy --project SEU_ID --only hosting,firestore,storag
 
 ## Parte C · Primeiro acesso e liberação do time
 1. Abra `https://SEU_ID.web.app` no Chrome.
-2. Entre com **Entrar com Google** usando **ia@kinsey.com.br** ou **newton.kao@kinsey.com.br**. Se o e-mail não for uma conta Google, use **Primeiro acesso: criar senha**, confirme pelo link que chega no e-mail e entre.
+2. Na tela de entrada preencha **Cliente** (já vem "Kinsey Capital"), **Usuário** (o e-mail) e **Senha**. O botão **Mostrar** exibe a senha digitada.
+   - **Primeira vez:** digite o e-mail e a senha que quer usar e clique em **Primeiro acesso: criar senha**. Chega um link de confirmação no e-mail (veja também o spam); clique no link e depois volte e clique em **Entrar**. Sem confirmar o e-mail, o sistema não libera o acesso de administrador.
+   - Se o e-mail for uma conta Google (Gmail ou Google Workspace), pode usar **Entrar com Google**, que já vem confirmado.
+   - **Não é preciso cadastrar ninguém no console do Firebase.** Os administradores (ia@ e newton.kao@) criam a senha no primeiro acesso; os demais são convidados pelo sistema (passo 4) e fazem o mesmo primeiro acesso. Se alguém tiver sido criado à mão no console, use **Reenviar confirmação** na tela que aparece ao entrar.
+   - Se aparecer "O login por e-mail e senha não está ativado no Firebase", volte à Parte A, item 3, e ative **E-mail/senha**.
 3. Você entra como **administrador geral**. No primeiro acesso o sistema cria sozinho o espaço de trabalho **Kinsey Capital · M&A**, onde ficam a Prospecção, a Órbita, a Base inicial e as operações (não é preciso cadastrar cliente). Se algo foi importado antes desse primeiro acesso, o sistema recupera e mostra o aviso "registro(s) recuperados".
 4. Clique em **Usuários** e convide cada pessoa do time, com e-mail, nome e perfil:
 

@@ -16,7 +16,7 @@ const KT_FB = !KT_AUTH ? null : {
     const CP = window.KT_CLIENTE_PADRAO;
     if (r.role === "admin" && CP && !clientes.length){ try{ await db.collection("clientes").doc(CP.id).set({nome:CP.nome, doc:CP.doc || "", local:CP.local || "", padrao:true, criadoEm:new Date().toISOString(), criadoPor:r.email}, {merge:true}); clientes = [{id:CP.id, nome:CP.nome, padrao:true}]; }catch(e){ console.warn("espaço padrão", e); } }
     let cid = "";
-    if (r.role === "admin"){ let k = ""; try{ k = localStorage.getItem("kt-cli") || ""; }catch(e){} cid = clientes.some(c => c.id === k) ? k : (clientes[0]?.id || ""); }
+    if (r.role === "admin"){ let k = "", nm = ""; try{ k = localStorage.getItem("kt-cli") || ""; nm = localStorage.getItem("kt-cli-nome") || ""; }catch(e){} const nC = x => String(x || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim(); const pn = nm ? clientes.find(c => nC(c.nome).includes(nC(nm)) || nC(nm).includes(nC(c.nome))) : null; cid = pn ? pn.id : clientes.some(c => c.id === k) ? k : (clientes[0]?.id || ""); }
     else cid = r.clienteId || "";
     KT_FB.clientes = clientes; KT_FB.cid = cid; KT_FB.SCOPED = SCOPED; KT_FB.CFGS = CFGS;
     /* registros gravados com cliente vazio (antes do espaço padrão existir) passam para o espaço padrão */
