@@ -116,7 +116,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
   const campos = (s, extra = {}) => { const md = extra.mand || s.mandato || {}, H = window.KT_HON ? KT_HON.campos(s, s.lado === "compra" || s.nivel === "N1" ? "compra" : "venda") : {};
     return {EMPRESA:s.nome || "[empresa]", DOC:s.doc || "[CNPJ / registro]", REPRESENTANTE:s.nda?.nome || s.responsavel || "[representante]", CODINOME:md.codinome || "[nome-código]",
       PARTICIPACAO:md.participacao || "[participação]", EXCLUSIVIDADE:md.exclusividade || "[exclusividade]", PRAZO:md.prazo || "[prazo]", RETAINER:md.retainer || H.RETAINER || "[retainer]",
-      SUCCESS:md.success || s.acordo?.fee || H.SUCCESS || "[success fee]", TAIL:H.TAIL || "12", DATA:hoje(), ...(window.KT_MAND && s.nivel === "N3" ? KT_MAND.campos(s) : {})}; };
+      SUCCESS:md.success || s.acordo?.fee || H.SUCCESS || "[success fee]", TAIL:H.TAIL || "12", DATA:hoje(), ...(window.KT_MAND && s.nivel === "N3" ? KT_MAND.campos(s) : {}), ...(window.KT_OPDOC && s.nivel === "N3" ? KT_OPDOC.campos(s) : {})}; };
   const preenche = (txt, c) => String(txt).replace(/\{([A-Z]+)\}/g, (m, k) => c[k] != null ? c[k] : m);
   const textoPlano = (m, c) => `${m.titulo.toUpperCase()}\n${m.oficial ? "Versão oficial " + m.versao : "MODELO PROVISÓRIO — substituir pelo modelo oficial Kinsey"}\n\n` + m.texto.map(([h, t]) => `${preenche(h, c)}\n${preenche(t, c)}`).join("\n\n") + `\n\n\n______________________________          ______________________________\n${c.EMPRESA}          Kinsey Capital`;
   const mandatos = () => S.suppliers.filter(x => x.nivel === "N3" && x.mandato?.codinome);

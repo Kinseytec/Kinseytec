@@ -1,5 +1,12 @@
 # Registro de versões
 
+## v2.64 — 2026-11-17 · Resumo da operação, SPA e MOU pró-vendedor, earn-out por Monte Carlo e fiscal do PPA
+- Resumo da operação no painel do target e no Jurídico: valor da operação e como foi apurado (FCD, múltiplos de faturamento e EBITDA, P/L, transações), valor mínimo arredondado, success fee de 6%, retainer sugerido e início após o NDA
+- Jurídico · SPA e MOU: termos da operação (comprador, preço, à vista, parcelas, earn-out, retenção, exclusividade, auditoria, permanência); emissão do MOU (resumo não vinculante) e do SPA pelos modelos Kinsey pró-vendedor, em Word
+- Importação do MOU ou SPA do advogado do investidor (Word ou PDF): análise pró-vendedor e duas versões em Word, uma corrigida pelo sistema e outra com controle de alterações e as observações nas margens; versão revisada pelo nosso advogado importada de novo e comparada com a anterior
+- PPA: importar o SPA (preço, à vista, parcelas, earn-out e retenção); earn-out a valor justo por Monte Carlo sobre o fluxo de caixa (metas, mínimo, teto, proporcional ou tudo ou nada, volatilidade, desconto); fluxo do valuation ou importado; PPA avulso pelo fluxo de caixa do cliente
+- PPA: contratos e exclusividade como intangível, mais ou menos-valia do imobilizado, desdobramento fiscal do custo (Lei 12.973/2014, art. 20), prazo do laudo (13º mês) e novas abas na planilha (Fiscal, Earn-out Monte Carlo, Fluxo de caixa)
+
 ## v2.63 — 2026-11-17 · Mandato de venda automático no Jurídico
 - Modelo Kinsey BR de mandato (sell-side) no sistema, com as correções da revisão: sócios como intervenientes anuentes, "Cliente" definido, contratadas que assinam iguais às do preâmbulo, cláusula do retainer completa, sucesso mínimo definido (base da multa), testemunhas e quadro de conferência
 - Jurídico · Mandatos: escolhe o target e o sistema preenche razão social, CNPJ, endereço, atividade e sócios do cadastro (Receita e contrato social)

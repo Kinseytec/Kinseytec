@@ -159,6 +159,7 @@ if (window.KT_DD) (() => {
         ${k("Valuation prévio", val?.mod ? fx(val.mod.min, val.mod.max) : "—", mult ? "múltiplos " + fx(mult[1], mult[2]) : `data-base ${esc(s.perfil?.dataBase || "—")}`)}
         ${k("Jurídico", `${ct.length} documento(s)`, `${par} com parecer · NDA ${s.nda?.aceito ? "assinado" : "pendente"}`)}
         ${k("Investidores", String(inv.length), esc(inv.slice(0, 2).map(i => i.nome).join(", ")))}</div>
+      ${window.KT_MAND ? (() => { try{ return KT_MAND.resumoHtml(s); }catch(e){ return ""; } })() : ""}
       ${passos.length ? `<div><div class="eyebrow" style="margin-bottom:6px">Próximos passos</div><div style="display:flex;flex-wrap:wrap;gap:6px">${passos.map(([t, a]) => `<button type="button" class="btn sm ghost" data-pj="${a}">${esc(t)} ›</button>`).join("")}</div></div>` : `<div class="sub" style="margin:0">Sem pendências no cadastro.</div>`}
       <div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn sm" data-pj="dd">Due Diligence</button><button type="button" class="btn sm" data-pj="fin">Análises financeiras</button><button type="button" class="btn sm" data-pj="val">Valuation</button><button type="button" class="btn sm" data-pj="jur">Jurídico</button></div></div>`;
   }

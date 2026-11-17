@@ -45,16 +45,39 @@ if (window.KT_DD) (() => {
   function valorBase(s){
     const c = cond(s); if (num(c.valorManual) > 0) return {ev:num(c.valorManual) * 1e6, fonte:"valor informado pelo Jurídico", tipo:"manual"};
     let V = null; try{ V = window.KT_BASE ? KT_BASE.valorAlvo(s) : null; }catch(e){}
-    if (!V || !(V.ev > 0)) return null;
+    if (!V || !(V.ev > 0)){ /* sem múltiplo do segmento: múltiplo do faturamento ou FCD prévio pelo faturamento do cadastro */
+      const M = metodos(s).L, m = M.find(x => /Receita/.test(x.n)) || M.find(x => /FCD/.test(x.n)) || M[0]; if (!m) return null;
+      return {ev:(m.min + m.max) / 2, fonte:m.n.replace(/ · /, ": ") + (m.nota ? " (" + m.nota.split(" · ")[0] + ")" : ""), tipo:/Receita/.test(m.n) ? "faturamento" : /EBITDA/.test(m.n) ? "ebitda" : "fcd"}; }
     const tipo = /valuation/.test(V.fonte) ? "valuation" : /EBITDA/.test(V.fonte) ? "ebitda" : "faturamento";
     return {ev:V.ev, fonte:tipo === "valuation" ? "valuation (meio da faixa moderada)" : V.fonte, tipo};
   }
   const BASETXT = {valuation:"o laudo de avaliação econômico-financeira (valuation) da Empresa", faturamento:"o faturamento anual da Empresa multiplicado pelo múltiplo de mercado do seu segmento (EV/Receita)",
-    ebitda:"o EBITDA anual da Empresa multiplicado pelo múltiplo de mercado do seu segmento (EV/EBITDA)", manual:"a estimativa de valor acordada entre as Partes"};
+    ebitda:"o EBITDA anual da Empresa multiplicado pelo múltiplo de mercado do seu segmento (EV/EBITDA)", fcd:"o fluxo de caixa descontado projetado a partir do faturamento anual da Empresa", manual:"a estimativa de valor acordada entre as Partes"};
   function calc(s){
     const c = cond(s), B = valorBase(s); if (!B) return {c, B:null};
     const vmin = arred(B.ev), sucMin = vmin * c.pct / 100, parc = Math.round(sucMin * c.retPct / 100 / c.parcelas * 100) / 100, ret = parc * c.parcelas;
     return {c, B, vmin, sucMin, ret, parc};
+  }
+  /* todas as formas de valor disponíveis para o target (valuation completo, ou prévio pelo faturamento do cadastro) */
+  function metodos(s){
+    const L = []; let fonte = "";
+    try{ if (D.temBal(s) && window.KT_VAL){ const R = KT_VAL.resumo(s); if (R.X && !R.X.vazio){ R.met.forEach(m => L.push({n:m[0], min:m[1], max:m[2], nota:m[3]})); fonte = "valuation com balancetes"; } } }catch(e){}
+    if (!L.length && window.KT_VAL){ try{ const Pv = KT_VAL.prev(s); if (!Pv.vazio){ const d = 1 - (KT_VAL.base().P.desc?.v || 0) / 100, C = Pv.C || {};
+      L.push({n:"FCD prévio · moderado", min:Pv.ev, max:Pv.ev, nota:`faturamento ${miTxt(Pv.rl)} (${Pv.fonteF}) · margem ${(Pv.mg * 100).toLocaleString("pt-BR", {maximumFractionDigits:1})}% · ${Pv.fonteMg}`});
+      if (C.rec) L.push({n:"Múltiplo do faturamento · EV/Receita", min:Pv.rl * C.rec.p25 * d, max:Pv.rl * C.rec.p75 * d, nota:`${C.rec.p25.toFixed(2).replace(".", ",")}x a ${C.rec.p75.toFixed(2).replace(".", ",")}x do segmento, com desconto de liquidez`});
+      if (C.eb && Pv.eb) L.push({n:"Múltiplo do EBITDA · EV/EBITDA", min:Pv.eb * C.eb.p25 * d, max:Pv.eb * C.eb.p75 * d, nota:`${C.eb.p25.toFixed(1).replace(".", ",")}x a ${C.eb.p75.toFixed(1).replace(".", ",")}x sobre o EBITDA estimado`});
+      fonte = "prévio, pelo faturamento do cadastro"; } }catch(e){} }
+    return {L, fonte};
+  }
+  /* resumo da operação: valor estimado, valor mínimo, 6% e retainer sugerido */
+  function resumoHtml(s, o = {}){
+    const R = calc(s), M = metodos(s), c = R.c, nda = ndaInv(s), k = (l, v, sm) => `<div class="dd-k"><span>${l}</span><b style="font-size:14px">${v}</b>${sm ? `<small>${sm}</small>` : ""}</div>`;
+    const fx = (a, b) => Math.abs(a - b) < 1e3 ? miTxt(a) : `${miTxt(a)} a ${miTxt(b)}`;
+    return `<div style="display:flex;flex-direction:column;gap:8px">${o.titulo !== false ? `<div class="eyebrow">Operação estimada · condições Kinsey</div>` : ""}
+      <div class="dd-kpis">${k("Valor da operação", R.B ? miTxt(R.B.ev) : "—", R.B ? esc(R.B.fonte) : "sem valuation nem faturamento")}${k("Valor mínimo (arredondado)", R.B ? miTxt(R.vmin) : "—", "ao milhão mais próximo")}
+        ${k(`Success fee ${String(c.pct).replace(".", ",")}%`, R.B ? brl(R.sucMin) : "—", "sobre o valor mínimo (sucesso mínimo)")}${k("Retainer sugerido", R.B ? brl(R.ret) : "—", R.B ? `${c.retPct}% do sucesso · ${c.parcelas} × ${brl(R.parc)}` : "")}
+        ${k("1ª parcela do retainer", nda ? dBR(somaDias(nda.em, c.dias)) : "após o NDA", nda ? `NDA com investidor em ${dBR(nda.em)}` : `${c.dias} dias após o 1º NDA com investidor`)}</div>
+      ${M.L.length ? `<div class="tbl"><table><thead><tr><th>Como o valor foi apurado (${esc(M.fonte)})</th><th>Valor</th><th>Base</th></tr></thead><tbody>${M.L.map(m => `<tr><td>${esc(m.n)}</td><td class="dd-num" style="white-space:nowrap">${fx(m.min, m.max)}</td><td class="sub" style="font-size:12px">${esc(m.nota || "")}</td></tr>`).join("")}</tbody></table></div>` : ""}</div>`;
   }
   /* primeiro NDA assinado por investidor no mandato (acesso em NDA, data room, IOI ou LOI) */
   function ndaInv(s){
@@ -175,6 +198,7 @@ if (window.KT_DD) (() => {
           ${kpi("Retainer", R.B ? brl(R.ret) : "—", R.B ? `${c.retPct}% do sucesso mínimo · ${c.parcelas} × ${brl(R.parc)}` : "")}
           ${kpi("Início do retainer", nda ? dBR(somaDias(nda.em, c.dias)) : "após o NDA", nda ? `NDA de ${esc(inv?.nome || "investidor")} em ${dBR(nda.em)} + ${c.dias} dias` : `${c.dias} dias após o 1º NDA assinado com investidor`)}</div>
         ${(() => { const pm = num(String(M.success || "").match(/^\s*([\d.,]+)\s*%/)?.[1]); return pm != null && !M.autoCond && pm !== c.pct ? `<div class="banner" style="font-size:13px">O mandato registrado no dossiê tem success fee de ${String(pm).replace(".", ",")}%; a minuta usa ${String(c.pct).replace(".", ",")}%. Ajuste em "Condições do mandato" se a condição negociada for outra.</div>` : ""; })()}
+        ${metodos(s).L.length ? `<details ${S.jmMet ? "open" : ""} id="jm-met"><summary class="sub">Como o valor foi apurado (${esc(metodos(s).fonte)})</summary>${resumoHtml(s, {titulo:false}).replace(/^[\s\S]*?<\/div>\s*(<div class="tbl">)/, "$1")}</details>` : ""}
         ${R.B ? "" : `<div class="banner" style="font-size:13px">Sem base para o valor mínimo: importe o balancete na Due Diligence (o sistema usa o múltiplo do faturamento do segmento), faça o valuation ou informe o valor abaixo.</div>`}
       </div>
       <div class="card" style="display:flex;flex-direction:column;gap:10px"><h3 style="margin:0">Dados do cadastro que vão para o mandato</h3>
@@ -231,5 +255,5 @@ if (window.KT_DD) (() => {
     (b.firstElementChild || b).appendChild(el);
     el.querySelector("[data-jm-ir]").onclick = () => { S.jurTab = "mand"; S.mandAlvo = s.id; $("#layer").innerHTML = ""; S.openSup = null; go("juridico"); }; };
 
-  window.KT_MAND = {campos, calc, cond, valorBase, arred, extenso, reais, ndaInv, parcelas, docx, emitir, partes, pendencias};
+  window.KT_MAND = {brl, pctTxt, qtd, dataExt, metodos, resumoHtml, campos, calc, cond, valorBase, arred, extenso, reais, ndaInv, parcelas, docx, emitir, partes, pendencias};
 })();
