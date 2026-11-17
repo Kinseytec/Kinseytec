@@ -1,5 +1,14 @@
 # Registro de versões
 
+## v2.65 — 2026-11-17 · Avaliação de ativos, imóveis (NBR 14653) e marca por cliente
+- Nova pasta "Avaliação de ativos" (depois do Valuation) sobre o controle individual de bens do cliente (importação com custo, depreciação, valor contábil, vida útil e remanescente contábil)
+- Valor justo para o PPA: amostra por representatividade (80% do valor), inspeção com nota de 1 a 5, vida remanescente, cotações com fonte (Brasil e exterior, PTAX da data-base buscada no Banco Central), custo de reposição depreciado por Ross-Heidecke ou fator Kinsey, ociosidade e baixa; mais ou menos-valia levada ao PPA
+- Inventário físico: leitura do código de barras ou QR Code pela câmera (ou digitação), foto do bem e da plaqueta, nota, vida remanescente e situação; conciliação com o CIB (localizados, não localizados, sobras)
+- Nova depreciação (CPC 27): valor residual de venda por grupo, líquido das despesas de venda, e vida remanescente; planilha completa e laudo em Word com os responsáveis técnicos
+- Imóveis: leitura de matrícula, escritura e IPTU (matrícula, cartório, inscrição, áreas, valor venal, ônus); método comparativo com tratamento por fatores (oferta, área, localização, padrão, conservação, vagas, andar), saneamento de Chauvenet, IC 80%, campo de arbítrio e graus de fundamentação e precisão (NBR 14653-2); método evolutivo; laudo e planilha de homogeneização; revisão de laudo de terceiro com memorando; mais ou menos-valia de imóveis no PPA
+- Marca por cliente: logotipo e nome Kinsey só quando a empresa contratante cadastrada é da Kinsey; para outro cliente, só as cores, o nome do cliente e sem nomes de pessoas
+- Nova coleção "ativos" no banco, com regras de acesso por cliente
+
 ## v2.64 — 2026-11-17 · Resumo da operação, SPA e MOU pró-vendedor, earn-out por Monte Carlo e fiscal do PPA
 - Resumo da operação no painel do target e no Jurídico: valor da operação e como foi apurado (FCD, múltiplos de faturamento e EBITDA, P/L, transações), valor mínimo arredondado, success fee de 6%, retainer sugerido e início após o NDA
 - Jurídico · SPA e MOU: termos da operação (comprador, preço, à vista, parcelas, earn-out, retenção, exclusividade, auditoria, permanência); emissão do MOU (resumo não vinculante) e do SPA pelos modelos Kinsey pró-vendedor, em Word

@@ -121,7 +121,7 @@ if (window.KT_DD && window.KT_VAL && window.KT_POS) (() => {
   function ultimoUtil13(iso){ const m = String(iso || "").match(/(\d{4})-(\d{2})/); if (!m) return null; const d = new Date(+m[1], +m[2] - 1 + 14, 0, 12); while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10); }
   function fiscal(s, Z){
     const q = Z.q, p = Z.pct, vp = Z.plContabil * p, vidaImob = q.vidaImob || 10;
-    const A = [["Ajustes da due diligence (ativos e passivos a valor justo)", Z.ajDD, "conforme a natureza de cada ajuste", null], ["Imobilizado", Z.imob, "depreciação, alienação ou baixa", vidaImob], ["Estoques", Z.est, "custo das vendas (baixa)", 1],
+    const A = [["Ajustes da due diligence (ativos e passivos a valor justo)", Z.ajDD, "conforme a natureza de cada ajuste", null], ["Imobilizado", Z.imob, "depreciação, alienação ou baixa", vidaImob], ["Imóveis (terrenos e edificações)", Z.imovMV || 0, "edificação: depreciação; terreno: só na alienação", q.vidaImov || null], ["Estoques", Z.est, "custo das vendas (baixa)", 1],
       ["Carteira de clientes", Z.vC, "amortização", Z.vidaC], ["Marca", Z.vM, Z.vidaM ? "amortização" : "vida indefinida: só na alienação ou baixa", Z.vidaM || null], ["Tecnologia", Z.vT, "amortização", Z.vidaT], ["Não concorrência", Z.vNc, "amortização", Z.nNc],
       ["Contratos e exclusividade", Z.vK || 0, "amortização pelo prazo dos contratos", Z.nK || null], ["Passivos contingentes (menos-valia)", -Z.cont, "na realização (pagamento ou reversão)", null]]
       .map(([a, v, r, vida]) => ({a, v:v * p, real:r, vida, anual:vida ? v * p / vida : 0})).filter(x => Math.abs(x.v) > 1);

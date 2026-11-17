@@ -15,7 +15,15 @@
       return seg.k === "ins" ? `<w:ins w:id="${RID++}" w:author="${xe(o.autor || AUT)}" w:date="${o.data || agora()}">${r}</w:ins>` : r; }).join("");
   }
   /* parágrafo: {runs:[{t,k,b,hl}] | t, jc, b, i, ind, brk, keep, before, after, sz, color, comment, insPara, delPara} */
+  /* tabela: {table:{rows:[[célula, ...]], head:true, widths:[...]}}; células em texto */
+  function tabela(p, ctx){
+    const T = p.table, W = T.widths || T.rows[0].map(() => Math.floor(9000 / T.rows[0].length)), bd = '<w:top w:val="single" w:sz="4" w:color="BFC5CF"/><w:left w:val="single" w:sz="4" w:color="BFC5CF"/><w:bottom w:val="single" w:sz="4" w:color="BFC5CF"/><w:right w:val="single" w:sz="4" w:color="BFC5CF"/><w:insideH w:val="single" w:sz="4" w:color="BFC5CF"/><w:insideV w:val="single" w:sz="4" w:color="BFC5CF"/>';
+    const cel = (t, i, j) => { const h = T.head && i === 0, num = /^[-−]?[R$\s\d.,%]+$/.test(String(t).trim()) && j > 0;
+      return `<w:tc><w:tcPr><w:tcW w:w="${W[j] || 1200}" w:type="dxa"/>${h ? '<w:shd w:val="clear" w:color="auto" w:fill="011F4B"/>' : i % 2 === 0 && i ? '<w:shd w:val="clear" w:color="auto" w:fill="E6E8EC"/>' : ""}</w:tcPr><w:p><w:pPr><w:spacing w:after="0"/><w:jc w:val="${num ? "right" : "left"}"/></w:pPr>${runs({t:String(t ?? ""), k:"keep"}, {b:h, sz:p.sz || 17, color:h ? "FFFFFF" : undefined, autor:ctx.autor, data:ctx.data})}</w:p></w:tc>`; };
+    return `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/><w:tblBorders>${bd}</w:tblBorders><w:tblCellMar><w:left w:w="70" w:type="dxa"/><w:right w:w="70" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${W.map(w => `<w:gridCol w:w="${w}"/>`).join("")}</w:tblGrid>${T.rows.map((r, i) => `<w:tr>${r.map((c, j) => cel(c, i, j)).join("")}</w:tr>`).join("")}</w:tbl><w:p><w:pPr><w:spacing w:after="120"/></w:pPr></w:p>`;
+  }
   function par(p, ctx){
+    if (p.table) return tabela(p, ctx);
     const segs = p.runs || [{t:p.t ?? "", k:"keep"}], o = {...p};
     const mark = p.insPara ? `<w:rPr><w:ins w:id="${RID++}" w:author="${xe(ctx.autor || AUT)}" w:date="${ctx.data}"/></w:rPr>` : p.delPara ? `<w:rPr><w:del w:id="${RID++}" w:author="${xe(ctx.autor || AUT)}" w:date="${ctx.data}"/></w:rPr>` : "";
     const ppr = `<w:pPr>${p.brk ? "<w:pageBreakBefore/>" : ""}${p.keep ? "<w:keepNext/>" : ""}<w:spacing w:before="${p.before || 0}" w:after="${p.after ?? 120}" w:line="276" w:lineRule="auto"/>${p.ind ? `<w:ind w:left="${p.ind}"/>` : ""}<w:jc w:val="${p.jc || "both"}"/>${mark}</w:pPr>`;

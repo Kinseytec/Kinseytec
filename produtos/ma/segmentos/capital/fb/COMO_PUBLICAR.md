@@ -125,6 +125,9 @@ O perfil de instalação do iPhone aponta para `https://kinsey-capital-ma.web.ap
 ## Parte G · Endereço próprio (opcional)
 *Hosting → Adicionar domínio personalizado* → por exemplo `ma.kinseytec.com.br` → siga os registros de DNS indicados. O endereço `web.app` continua funcionando.
 
+## Atualização da v2.65 (avaliação de ativos)
+A v2.65 cria a coleção "ativos" no banco. As regras de acesso dela vão junto na publicação (comando de publicação da Parte B, que já inclui as regras). As fotos do inventário ficam no Storage, na pasta do cliente.
+
 ## Parte H · Publicação automática (opcional, configurar uma vez)
 Depois de configurada, cada nova versão aprovada na branch **main** do repositório é testada e publicada sozinha no Firebase, sem Cloud Shell e sem baixar pacote. Nenhuma chave ou senha é guardada: o GitHub entra no Google Cloud pela federação de identidade, e só a branch main deste repositório pode publicar.
 1. No Cloud Shell do projeto, rode o script `ferramentas/configurar_publicacao_automatica.sh` do repositório (ele mostra no final os dois valores do passo 2).
