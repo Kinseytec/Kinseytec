@@ -1,5 +1,12 @@
 # Registro de versões
 
+## v2.98 — 2026-11-18 · Jurídico: documentos do questionário localizados pelo sistema
+- Em cada pergunta do questionário de diligência jurídica, a lista com todos os arquivos da empresa foi trocada por uma caixa com o documento: "Localizado pelo sistema", "Validado" ou "Sem documento", com Ver, Validar e Documentos.
+- O sistema localiza e vincula sozinho o documento esperado (contrato social, certidões, apólices, licenças…) quando o arquivo traz todos os termos específicos; na dúvida, só sugere.
+- "Documentos" abre a lista da empresa com os mais prováveis primeiro (demonstrações e balancetes separados): Ver, Vincular e validar, Classificar (trocar o tipo), Excluir, Enviar documento, Desvincular e "Documento não se aplica".
+- Nomes de arquivos com acentos quebrados ("BalanÃ§o") aparecem corrigidos nas listas, e os novos arquivos importados já entram com o nome certo.
+- A análise automática da importação também vincula os documentos do questionário jurídico.
+
 ## v2.97 — 2026-11-18 · Jurídico: validação dos documentos e parecer final do advogado
 - "Contratos e pareceres" vira "Validação dos documentos": o sistema lê cada documento (leitura automática ao abrir) e aponta fragilidades e cláusulas desfavoráveis ou ausentes; o advogado só escolhe Validar, Validar com ressalva ou Não validar, com observação opcional, sem parecer nem OAB por documento. Saem do M&A o checklist de cláusulas e a cotação do cacau.
 - Nova aba "Parecer do advogado": base consolidada com todos os pontos da diligência, por nível de risco: questionário jurídico, processos e contingências, contratos da empresa (mudança de controle, exclusividade), documentos validados e não validados, contrato social (ônus, preferência), pré-diligência, procedimentos automáticos, workbook e recomendações para o SPA.

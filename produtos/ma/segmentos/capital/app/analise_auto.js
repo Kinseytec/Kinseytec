@@ -30,6 +30,7 @@ if (window.KT_DD && window.KT_DOCS) (() => {
     s = supById(s.id) || s; let rep = null;
     if (op.reler !== false && window.KT_FINX?.reprocessar) rep = await KT_FINX.reprocessar(s).catch(() => null);
     if (s.jdd?.soc && window.KT_JAUTO?.aplicar) await Promise.resolve(KT_JAUTO.aplicar(supById(s.id) || s)).catch(() => {});
+    if (window.KT_JDOCS) await KT_JDOCS.autoVincula(supById(s.id) || s).catch(() => {}); /* documentos do questionário jurídico */
     const res = resumo(supById(s.id) || s); res.reproc = rep;
     await Store.update("suppliers", s.id, {anaAuto:{em:res.em, por:Store.me?.email || "", periodos:res.periodos, per:res.per || null}}).catch(() => {});
     return res;
@@ -69,7 +70,7 @@ if (window.KT_DD && window.KT_DOCS) (() => {
         <div class="fld"><label for="aa-q">Empresa</label><input type="search" id="aa-q" autocomplete="off" placeholder="Digite o nome ou o CNPJ"><div id="aa-res" style="display:flex;flex-direction:column;gap:4px;margin-top:4px"></div></div>
         <div id="aa-docs"></div><div id="aa-out"></div></div>`);
     const docsHtml = s => { const L = docs(s); return `<div class="card" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><b style="font-size:14px">Documentos de ${esc(s.nome)} (${L.length})</b><button type="button" class="btn sm primary" data-aaimp>Importar novo documento</button></div>
-      ${L.length ? `<div class="tbl" style="max-height:300px;overflow:auto"><table><tbody>${L.map(e => `<tr><td style="font-size:12.5px;word-break:break-all">${esc(e.nome || "documento")}<div class="sub" style="margin:0;font-size:11px">${esc(e.tipo || "")} · ${dBR(e.criadoEm)}</div><div class="sub" style="margin:0;font-size:11px" data-aamsg="${e.id}"></div></td>
+      ${L.length ? `<div class="tbl" style="max-height:300px;overflow:auto"><table><tbody>${L.map(e => `<tr><td style="font-size:12.5px;word-break:break-all">${esc(fixMoji(e.nome || "documento"))}<div class="sub" style="margin:0;font-size:11px">${esc(e.tipo || "")} · ${dBR(e.criadoEm)}</div><div class="sub" style="margin:0;font-size:11px" data-aamsg="${e.id}"></div></td>
         <td style="text-align:right;white-space:nowrap">${e.url ? `<a class="btn sm ghost" href="${esc(e.url)}" target="_blank" rel="noopener">Ver</a> ` : ""}${Store.me?.canWrite === false ? "" : `<button type="button" class="btn sm ghost" data-aaler="${e.id}">Ler documento</button> <button type="button" class="btn sm ghost" data-aadel="${e.id}" style="color:var(--bad)">Excluir</button>`}</td></tr>`).join("")}</tbody></table></div>` : `<p class="sub" style="margin:0;font-size:12.5px">Nenhum documento no dossiê.</p>`}</div>`; };
     const mostra = async s => { $("#aa-res").innerHTML = ""; $("#aa-q").value = s.nome; const D0 = $("#aa-docs"), O = $("#aa-out");
       const ligaDocs = () => { D0.innerHTML = docsHtml(supById(s.id) || s); bind(D0, s, close);

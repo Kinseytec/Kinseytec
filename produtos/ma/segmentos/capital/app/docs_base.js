@@ -141,7 +141,7 @@ if (window.KT_DD) (() => {
     if ((r.tipo === "spa" || r.tipo === "mou") && window.KT_OPDOC && r.texto){ try{ await KT_OPDOC.registrar(supById(s.id) || s, r.tipo.toUpperCase(), "investidor", r.texto.split(/\n+/).map(x => x.trim()).filter(Boolean), r.f.name); feito.push("Jurídico: análise pró-vendedor (SPA e MOU)"); }catch(e){} }
     /* arquivo no dossiê (na releitura de um documento que já está lá, não duplica) */
     if (!o.semArquivo) try{ const blob = r.f.type?.startsWith("image/") && typeof shrink === "function" ? await shrink(r.f) : r.f, up = await Store.upload(blob);
-      await salvarEvid(uid(), {supplierId:s.id, tipo:evTipo(r.tipo), obs:`Importação de documentos · ${rotulo(r.tipo)}${r.como ? " (identificado pelo " + r.como + ")" : ""}`, ...up, mime:blob.type || r.f.type, nome:r.f.name, criadoEm:nowISO(), criadoPor:Store.me?.id || "", origem:"Importação de documentos", tipoDoc:r.tipo || ""}, blob);
+      await salvarEvid(uid(), {supplierId:s.id, tipo:evTipo(r.tipo), obs:`Importação de documentos · ${rotulo(r.tipo)}${r.como ? " (identificado pelo " + r.como + ")" : ""}`, ...up, mime:blob.type || r.f.type, nome:fixMoji(r.f.name), criadoEm:nowISO(), criadoPor:Store.me?.id || "", origem:"Importação de documentos", tipoDoc:r.tipo || ""}, blob);
       feito.push("arquivo guardado no dossiê"); }catch(e){ feito.push("arquivo não guardado: " + (e.message || "erro")); }
     /* checklist documental */
     const L = DOCS[s.nivel] || [], re = ITEM[r.tipo], i = re ? L.findIndex(x => re.test(x)) : -1, ss = supById(s.id) || s;
