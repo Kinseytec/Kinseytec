@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v2.84 — 2026-11-18 · Valuation: apuração da dívida líquida no lugar de "Outras"
+- Abas: Síntese, Base, FCD, Múltiplos e outras (as outras avaliações passam para dentro de Múltiplos), Dívida líquida, Relatório
+- Dívida líquida apurada pelo balancete: empréstimos de curto e longo prazo, (−) caixa e equivalentes, parcelamentos tributários, partes relacionadas pelo líquido (mútuos no passivo menos mútuos no ativo), provisões para contingências, contingências prováveis da diligência jurídica não provisionadas (sem contar em dobro com a Due Diligence) e, para o consultor marcar, contingências possíveis e fornecedores acima do prazo usual (prazo médio de pagamento acima de 90 dias)
+- Na Síntese, o quadro sintético mostra enterprise value − dívida líquida = equity value; "+ Composição da dívida líquida" abre a apuração
+
 ## v2.83 — 2026-11-18 · Valuation: perpetuidade pelo PIB do setor e beta usado em destaque
 - Abas do Valuation: "Base" logo depois da "Síntese"
 - Crescimento real na perpetuidade: média do PIB projetado do setor para os próximos 5 anos, pelo Focus do Banco Central (agropecuária, indústria ou serviços, conforme o segmento); sem o setor, PIB total; sem Focus, o valor da base de apuração. O consultor pode alterar por empresa em FCD › Premissas

@@ -109,21 +109,26 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
      consultor; ajustes de dívida da Due Diligence entram com o OK no valuation; complementos do consultor
      (contingências, earn-out, dividendos, arrendamentos e outras dívidas) com justificativa. */
   const ITENS_DIV = [["empCP","Empréstimos e financiamentos · curto prazo","Dívida financeira"],["empLP","Empréstimos e financiamentos · longo prazo","Dívida financeira"],["caixa","(−) Caixa e aplicações financeiras","Caixa"],
-    ["parcTrib","Parcelamentos tributários","Equivalente a dívida"],["mutuoPassivo","Mútuos com sócios e partes relacionadas","Equivalente a dívida"],["provisoes","Provisões para contingências registradas","Equivalente a dívida"]];
+    ["parcTrib","Parcelamentos tributários","Equivalente a dívida"],["mutuoPassivo","Mútuos com sócios e partes relacionadas (passivo)","Partes relacionadas"],["provisoes","Provisões para contingências registradas","Contingências"]];
   const TIPOS_COMP = ["Contingência provável não provisionada","Contingência possível (ponderada)","Passivo trabalhista","Passivo tributário","Earn-out ou parcela de aquisição a pagar","Dividendos e JCP declarados","Passivo de arrendamento (CPC 06)","Mútuo ou dívida com sócios","Fornecedores ou tributos vencidos","Outra dívida ou item equivalente"];
   function ponte(s, bp){
     const G = bp.K.G, cfg = s.dd?.vl?.divida || {}, ov = cfg.ov || {}, AJ = D.ajustes(s, bp.per), procs = new Set(AJ.map(a => a.proc).filter(Boolean)), L = [];
     ITENS_DIV.forEach(([g, rot, grupo]) => { const auto = g === "caixa" ? -G.caixa : G[g]; if (!auto) return; if (g === "parcTrib" && procs.has("x_parc")) return;
       const o = ov[g] || {}; L.push({id:"b:" + g, chave:g, rot, grupo, origem:`Balancete ${bp.per}`, auto, v:o.v ?? auto, inc:o.inc ?? true, editado:o.v != null, edit:true}); });
+    /* além do balancete: partes relacionadas no ativo (reduzem), fornecedores acima do prazo e contingências da diligência jurídica */
+    const extra = (chave, rot, grupo, auto, origem, incPadrao = true) => { if (!auto || Math.abs(auto) < 1) return; const o = ov[chave] || {}; L.push({id:"b:" + chave, chave, rot, grupo, origem, auto, v:o.v ?? auto, inc:o.inc ?? incPadrao, editado:o.v != null, edit:true}); };
+    extra("mutuoAtivo", "(−) Mútuos e partes relacionadas (ativo)", "Partes relacionadas", -(G.mutuoAtivo || 0), `Balancete ${bp.per}`);
+    const K0 = bp.K; if (K0.cpv > 0 && K0.pmp > 90) extra("fornAtraso", `Fornecedores acima do prazo usual (prazo médio de pagamento de ${Math.round(K0.pmp)} dias; referência 60)`, "Equivalente a dívida", Math.max(0, (G.fornecedores || 0) - K0.cpv * 60 / 365), "Balancete · prazo médio de pagamento (marque se forem atrasos)", false);
+    if (window.KT_JDD){ try{ const cg = KT_JDD.contingencias(s); if (!AJ.some(a => /conting/i.test(a.titulo || "") && /prov[aá]ve/i.test(a.titulo || "") && a.v?.divida)) extra("jurProv", "Contingências prováveis não provisionadas", "Contingências", Math.max(0, (cg.provavel || 0) - (cg.provisao || 0)), "Diligência jurídica"); /* se a Due Diligence já levou como ajuste, não conta duas vezes */ extra("jurPoss", "Contingências possíveis", "Contingências", cg.possivel || 0, "Diligência jurídica (marque para incluir)", false); }catch(e){} }
     if (cfg.caixaMin){ const v = Math.min(G.caixa, bp.rl * cfg.caixaMin / 100); L.push({id:"cxmin", rot:`Caixa mínimo operacional não deduzido (${fmt(cfg.caixaMin, 1)}% da receita)`, grupo:"Caixa", origem:"Consultor", v, inc:true}); }
     AJ.filter(a => a.v.divida).forEach(a => L.push({id:"dd:" + a.id, rot:a.titulo, grupo:"Ajuste de Due Diligence", origem:D.okVal(a) ? `OK no valuation · ${a.val.por || ""}` : D.okFin(a) ? "aguardando OK no valuation" : "aguardando OK nas Análises financeiras", v:a.v.divida, inc:D.okVal(a), fixo:true}));
     Object.entries(cfg.comp || {}).filter(([, c]) => c).forEach(([id, c]) => L.push({id:"c:" + id, cid:id, rot:c.titulo, grupo:"Complemento do consultor", origem:`${c.tipo}${c.pond != null && +c.pond !== 100 ? ` · ${fmt(+c.pond, 0)}% de ${mi(c.base)}` : ""}`, v:c.valor, inc:c.inc !== false, just:c.just, comp:true}));
     const soma = f => L.filter(x => x.inc && f(x)).reduce((t, x) => t + x.v, 0);
-    return {L, total:soma(() => true), financ:soma(x => x.grupo === "Dívida financeira"), caixa:soma(x => x.grupo === "Caixa"), equiv:soma(x => x.grupo === "Equivalente a dívida"), dd:soma(x => x.grupo === "Ajuste de Due Diligence"), comp:soma(x => x.grupo === "Complemento do consultor"), reportada:bp.K.dl};
+    return {L, total:soma(() => true), financ:soma(x => x.grupo === "Dívida financeira"), caixa:soma(x => x.grupo === "Caixa"), equiv:soma(x => x.grupo === "Equivalente a dívida"), partes:soma(x => x.grupo === "Partes relacionadas"), conting:soma(x => x.grupo === "Contingências"), dd:soma(x => x.grupo === "Ajuste de Due Diligence"), comp:soma(x => x.grupo === "Complemento do consultor"), reportada:bp.K.dl};
   }
   function vDivida(s, R){
     const X = R.X, pt = X.pt, ed = D.ed() ? "" : "disabled", cfg = s.dd?.vl?.divida || {}, mid = (R.rec[0] + R.rec[1]) / 2, jdd = window.KT_JDD ? KT_JDD.contingencias(s) : null;
-    const grupos = ["Dívida financeira","Caixa","Equivalente a dívida","Ajuste de Due Diligence","Complemento do consultor"];
+    const grupos = ["Dívida financeira","Caixa","Equivalente a dívida","Partes relacionadas","Contingências","Ajuste de Due Diligence","Complemento do consultor"];
     return `<div class="card" style="display:flex;flex-direction:column;gap:12px"><div class="head" style="margin:0"><div><h3>Dívida líquida · do enterprise value ao equity value</h3><p class="sub" style="margin:2px 0 0">Calculada automaticamente pelo balancete de ${esc(X.perBase)}. Ajuste valores, exclua itens ou acrescente complementos; vale para o FCD, os múltiplos e as outras avaliações.</p></div></div>
       <div class="dd-kpis">${k("Dívida líquida reportada", mi(pt.reportada), "empréstimos − caixa do balancete")}${k("Dívida líquida ajustada", mi(pt.total), `equivalentes ${mi(pt.equiv)} · DD ${mi(pt.dd)} · complementos ${mi(pt.comp)}`)}${k("Enterprise value (faixa moderada)", `${mi(R.rec[0])} a ${mi(R.rec[1])}`)}${k("Equity value (líquido de dívidas)", `${mi(R.rec[0] - pt.total)} a ${mi(R.rec[1] - pt.total)}`)}</div>
       <div class="tbl"><table><thead><tr><th>Item</th><th>Origem</th><th class="dd-num">Valor</th><th>Considerar</th><th></th></tr></thead><tbody>${grupos.map(g => { const L = pt.L.filter(x => x.grupo === g); return L.length ? `<tr><td colspan="5" class="eyebrow" style="padding-top:12px">${esc(g)}</td></tr>` + L.map(x => `<tr style="${x.inc ? "" : "opacity:.55"}">
@@ -385,7 +390,7 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
 
   /* ---------------- VIEW ---------------- */
   S.valTab = S.valTab || "sintese";
-  const TABS_V = [["sintese","Síntese"],["base","Base"],["fcd","FCD"],["mult","Múltiplos"],["outras","Outras"],["divida","Dívida líquida"],["rel","Relatório"]];
+  const TABS_V = [["sintese","Síntese"],["base","Base"],["fcd","FCD"],["mult","Múltiplos e outras"],["divida","Dívida líquida"],["rel","Relatório"]];
   const k = (l, v, sm) => `<div class="dd-k"><span>${l}</span><b>${v}</b>${sm ? `<small>${sm}</small>` : ""}</div>`;
   const tbl = (head, rows) => `<div class="tbl"><table><thead><tr>${head.map((h, i) => `<th${i ? ' class="dd-num"' : ""}>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
   const tr = cells => `<tr>${cells.map((c, i) => `<td${i ? ' class="dd-num"' : ""}>${c}</td>`).join("")}</tr>`;
@@ -414,8 +419,7 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
     if (X.vazio) corpo = D.semBal(s);
     else if (S.valTab === "sintese") corpo = vSintese(s, R);
     else if (S.valTab === "fcd") corpo = vFcd(s, R);
-    else if (S.valTab === "mult") corpo = vMult(s, R);
-    else if (S.valTab === "outras") corpo = vOutras(s, R);
+    else if (S.valTab === "mult" || S.valTab === "outras") corpo = vMult(s, R) + vOutras(s, R); /* outras avaliações ficam junto dos múltiplos */
     else if (S.valTab === "rel") corpo = vRel(s, R);
     else if (S.valTab === "divida") corpo = vDivida(s, R);
     host.innerHTML = h + tabs + `<div class="dd-split" style="margin-top:14px">${sd.html}<div style="display:flex;flex-direction:column;gap:14px;min-width:0">
