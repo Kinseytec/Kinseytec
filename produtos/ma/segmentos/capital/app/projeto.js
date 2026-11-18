@@ -63,7 +63,11 @@ if (window.KT_DD) (() => {
       try{ rf = await ORG.receita(d); $f("pj-doc").value = fmtCnpj(d); if (!v("pj-nome")) $f("pj-nome").value = rf.razao || ""; if (!v("pj-mun")) $f("pj-mun").value = rf.municipio || ""; if (!v("pj-uf")) $f("pj-uf").value = rf.uf || "";
         const sg = segCnae(rf.cnae, rf.cnaeDesc); if (sg && SEGMENTOS.includes(sg)) $f("pj-seg").value = sg; if (rf.municipio) $f("pj-mun").value = rf.municipio; if (rf.uf) $f("pj-uf").value = rf.uf;
         st.innerHTML = `<b style="color:${rf.situacao === "ATIVA" ? "var(--ok)" : "var(--bad)"}">${esc(rf.situacao)}</b> · ${esc(rf.razao)} · ${esc(rf.cnae)} ${esc(rf.cnaeDesc || "")} · preenchidos: razão social, cidade, UF${sg ? ", segmento " + esc(sg) : ""}`; }
-      catch(e){ st.textContent = cartao ? "Dados do cartão CNPJ aplicados; a consulta à Receita é refeita automaticamente." : "Receita indisponível agora; a consulta é refeita automaticamente ao salvar. Você pode anexar o cartão CNPJ abaixo para preencher já."; } };
+      catch(e){ st.textContent = cartao ? "Dados do cartão CNPJ aplicados; a consulta à Receita é refeita automaticamente." : "Receita indisponível agora; a consulta é refeita automaticamente ao salvar. Você pode anexar o cartão CNPJ abaixo para preencher já."; }
+      if (window.KT_CNPJ){ const r0 = rf || cartao; if (r0?.cnae) st.innerHTML += `<div><b>Tipo de negócio:</b> ${esc(KT_CNPJ.tipoNegocio(r0))}</div>`;
+        if (!id){ const ex = KT_CNPJ.existente("", [v("pj-nome"), rf?.razao, rf?.fantasia].filter(Boolean), id, "N3"); if (ex?.por === "nome"){ juntaP = ex.s; st.innerHTML += `<div>Já existe <b>${esc(ex.s.nome)}</b> sem CNPJ: o projeto completa esse registro, sem duplicar.</div>`; } } } };
+    let juntaP = null, ultP = "";
+    $f("pj-doc").oninput = () => { const d = dig(v("pj-doc")); if (d.length === 14 && d !== ultP){ ultP = d; consulta(); } };
     /* ao abrir: com CNPJ e sem consulta, consulta sozinho; sem CNPJ, sugere o segmento pelo nome */
     setTimeout(() => { if (dig(v("pj-doc")).length === 14 && !s.receita?.razao) consulta(); else if (!v("pj-doc") && window.KT_SEGDE){ const sg = KT_SEGDE(v("pj-nome") + " " + (s.mapa?.segmentoTxt || "")); if (sg && sg !== "Outros" && SEGMENTOS.includes(sg) && /industria|automac|fabric|metal|plast/i.test(v("pj-nome"))) $f("pj-seg").value = sg; $f("pj-rfst").innerHTML = "<b>Sem CNPJ.</b> Informe o CNPJ ou anexe o cartão CNPJ: o cadastro se preenche sozinho."; } }, 80);
     const segCnae = (cnae, txt) => { const c = String(cnae || "").replace(/\D/g, "").padStart(7, "0"), d = +c.slice(0, 2);
@@ -87,7 +91,13 @@ if (window.KT_DD) (() => {
         if (dig(v("pj-doc")).length === 14) consulta(); }
       catch(e){ st.textContent = "Não consegui ler o documento: preencha o CNPJ."; } };
     $f("pj-rf").onclick = consulta; $f("pj-doc").onchange = () => { if (dig(v("pj-doc")).length === 14) consulta(); };
-    $f("fpj").onsubmit = async e => { e.preventDefault(); const nome = v("pj-nome"); if (!nome){ $f("pj-err").textContent = "Informe a razão social ou o nome."; $f("pj-err").hidden = false; return; }
+    $f("fpj").onsubmit = async e => { e.preventDefault(); const d1 = dig(v("pj-doc"));
+      if (d1.length !== 14 || !IMP.docValido(d1)){ $f("pj-err").textContent = "Informe o CNPJ da empresa (obrigatório): 14 números, com ou sem pontos, ou anexe o cartão CNPJ."; $f("pj-err").hidden = false; $f("pj-doc").focus(); return; }
+      const dupl = S.suppliers.find(x => x.id !== id && dig(x.doc) === d1); if (dupl){ $f("pj-err").textContent = `Este CNPJ já está cadastrado: ${dupl.nome}. Abra o cadastro existente.`; $f("pj-err").hidden = false; return; }
+      if (!v("pj-nome") && (rf?.razao || cartao?.razao)) $f("pj-nome").value = rf?.razao || cartao.razao;
+      const nome = v("pj-nome"); if (!nome){ $f("pj-err").textContent = "Informe a razão social ou o nome."; $f("pj-err").hidden = false; return; }
+      if (!id && !juntaP && window.KT_CNPJ){ const ex = KT_CNPJ.existente("", [nome, rf?.razao, rf?.fantasia, cartao?.razao].filter(Boolean), id, "N3"); if (ex?.por === "nome") juntaP = ex.s; }
+      if (juntaP && !id){ id = juntaP.id; }
       const nid = id || "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), d = dig(v("pj-doc")), seg = v("pj-seg");
       let invs = [...$f("pj-inv").selectedOptions].map(o => o.value);
       if (v("pj-ninv")){ const iid = "pi" + Date.now().toString(36); await Store.set("suppliers", iid, {parentId:"", answers:{}, docs:{}, insp:{}, balanco:{}, invest:{}, criadoEm:nowISO(), origem:"Cadastro do projeto " + (v("pj-cod") || nome), nivel:"N1", nome:v("pj-ninv"), tipo:"Investidor estratégico", uf:"", pais:"Brasil", lat:-23.55, lng:-46.63, projeto:{socioOrigem:v("pj-sinv")}}); invs.push(iid); }

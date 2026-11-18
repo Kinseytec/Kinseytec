@@ -44,8 +44,8 @@ if (window.KT_DD) (() => {
     const tit = t => `<div class="fld full"><div class="eyebrow" style="margin-top:6px">${t}</div></div>`;
     const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Base inicial · ${nivel} · ${NIV[nivel]}</div><h2>${id ? esc(s.nome) : "Novo cadastro"}</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
       <form class="sheet-b" id="bi-f" novalidate><div class="form">
-        <div class="fld full"><label for="bi-doc">CNPJ</label><div style="display:flex;gap:8px"><input id="bi-doc" inputmode="numeric" value="${esc(s.doc || "")}" placeholder="00.000.000/0000-00" style="flex:1" autocomplete="off"><button type="button" class="btn sm" id="bi-rf">Consultar</button></div>
-          <span class="hint" id="bi-rfst">Com o CNPJ, o sistema preenche razão social, endereço e atividade pela Receita Federal e inicia as consultas automáticas.</span></div>
+        <div class="fld full"><label for="bi-doc">CNPJ *</label><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="bi-doc" inputmode="numeric" value="${esc(s.doc || "")}" placeholder="só números ou 00.000.000/0000-00" style="flex:1;min-width:180px" autocomplete="off"><button type="button" class="btn sm" id="bi-rf">Consultar</button><button type="button" class="btn sm ghost" id="bi-cart">Importar cartão CNPJ</button></div>
+          <span class="hint" id="bi-rfst">Obrigatório para empresa brasileira. Ao digitar os 14 números, o sistema consulta a Receita Federal, preenche o cadastro e mostra o tipo de negócio pelo CNAE; ao salvar, faz sozinho as consultas de risco (listas oficiais, notícias da empresa e dos sócios, CVM e B3).</span></div>
         ${f("bi-nome", "Razão social ou nome *", s.nome, {full:1})}
         ${nivel === "N3" ? f("bi-cod", "Nome-código (usado antes do NDA)", s.mandato?.codinome, {ph:"Projeto …"}) : ""}
         ${sel("bi-tipo", "Tipo", SUP_TYPES[nivel].map(t => [t, t]), s.tipo || SUP_TYPES[nivel][0])}
@@ -64,19 +64,38 @@ if (window.KT_DD) (() => {
         ${f("bi-obs", "Observações", M.obs, {full:1})}
       </div><div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button type="button" class="btn" data-x>Cancelar</button><button type="submit" class="btn primary">${id ? "Salvar" : "Cadastrar e gerar dossiê"}</button></div></form>`);
     const $f = k => document.getElementById(k), v = k => ($f(k)?.value || "").trim(), nv = k => nn(v(k));
-    let rf = null;
-    const consulta = async () => { const d = dig(v("bi-doc")), st = $f("bi-rfst"); if (d.length !== 14){ st.textContent = "Informe os 14 dígitos do CNPJ."; return; }
-      if (!IMP.docValido(d)){ st.textContent = "CNPJ inválido (dígito verificador)."; return; }
-      const ja = S.suppliers.find(x => x.id !== id && dig(x.doc) === d); if (ja){ st.innerHTML = `Este CNPJ já está cadastrado: <b>${esc(ja.nome)}</b> (${ja.nivel}).`; return; }
+    let rf = null, cart = null, junta = null, jaCad = null, ultima = "";
+    const K = window.KT_CNPJ;
+    const avisoJunta = () => junta ? `<div style="margin-top:4px">Já existe <b>${esc(junta.nome)}</b> (${junta.nivel}) sem CNPJ: o cadastro completa esse registro, sem duplicar.</div>` : "";
+    const procuraJunta = (nomes) => { if (id || !K) return; const e = K.existente("", nomes.filter(Boolean), id, nivel); junta = e && e.por === "nome" ? e.s : null; };
+    const consulta = async () => { const d = dig(v("bi-doc")), st = $f("bi-rfst"); jaCad = null; if (d.length !== 14){ st.textContent = "Informe os 14 números do CNPJ (com ou sem pontos)."; return; }
+      if (!IMP.docValido(d)){ st.textContent = "CNPJ inválido (dígito verificador). Confira os números."; return; }
+      ultima = d; $f("bi-doc").value = fmtCnpj(d);
+      const ja = S.suppliers.find(x => x.id !== id && dig(x.doc) === d); if (ja){ jaCad = ja; st.innerHTML = `Este CNPJ já está cadastrado: <b>${esc(ja.nome)}</b> (${ja.nivel}). <a href="#" id="bi-abre" style="color:var(--glow)">abrir o cadastro existente</a>`; $f("bi-abre").onclick = e => { e.preventDefault(); close(); openSupplier(ja.id, "dados"); }; return; }
       st.textContent = "Consultando a Receita Federal…";
       try{ rf = await ORG.receita(d); $f("bi-doc").value = fmtCnpj(d);
         if (!v("bi-nome")) $f("bi-nome").value = rf.razao || ""; if (!v("bi-mun")) $f("bi-mun").value = rf.municipio || ""; if (!v("bi-uf")) $f("bi-uf").value = rf.uf || "";
+        if (rf.razao && (!id || !v("bi-nome") || /^https?:|econodata/i.test(v("bi-nome")))) $f("bi-nome").value = rf.razao;
         if (!v("bi-seg") && rf.cnae) $f("bi-seg").value = segCnae(rf.cnae);
-        st.innerHTML = `<b style="color:${rf.situacao === "ATIVA" ? "var(--ok)" : "var(--bad)"}">${esc(rf.situacao || "—")}</b> · ${esc(rf.razao)} · ${esc(rf.cnae)} ${esc(rf.cnaeDesc || "")} · ${esc(rf.municipio || "")}/${esc(rf.uf || "")}`; }
-      catch(e){ st.textContent = "Receita indisponível agora. O cadastro pode seguir; a consulta é refeita automaticamente."; } };
+        procuraJunta([v("bi-nome"), rf.razao, rf.fantasia]);
+        st.innerHTML = `<b style="color:${rf.situacao === "ATIVA" ? "var(--ok)" : "var(--bad)"}">${esc(rf.situacao || "—")}</b> · ${esc(rf.razao)}${rf.fantasia ? ` (${esc(rf.fantasia)})` : ""} · ${esc(rf.municipio || "")}/${esc(rf.uf || "")}${K ? `<div style="margin-top:4px"><b>Tipo de negócio:</b> ${esc(K.tipoNegocio(rf))}</div>` : ""}${(rf.socios || []).length ? `<div>Sócios: ${esc(rf.socios.slice(0, 4).map(q => q.nome).join(", "))}</div>` : ""}${avisoJunta()}`; }
+      catch(e){ procuraJunta([v("bi-nome"), cart?.razao, cart?.fantasia]); st.innerHTML = (cart ? "Dados do cartão CNPJ aplicados; a consulta à Receita é refeita automaticamente ao salvar." : "Receita indisponível agora. Pode salvar: a consulta é refeita automaticamente; ou importe o cartão CNPJ.") + avisoJunta(); } };
     $f("bi-rf").onclick = consulta; $f("bi-doc").onchange = () => { if (dig(v("bi-doc")).length === 14) consulta(); };
-    $f("bi-f").onsubmit = async e => { e.preventDefault(); const nome = v("bi-nome"); if (!nome){ toast("Informe a razão social ou o nome"); $f("bi-nome").focus(); return; }
-      const d = dig(v("bi-doc")), seg = v("bi-seg"), nid = id || "b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    $f("bi-doc").oninput = () => { const d = dig(v("bi-doc")); if (d.length === 14 && d !== ultima) consulta(); };
+    $f("bi-cart").onclick = () => { const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".pdf,.txt,image/*";
+      inp.onchange = async () => { const fl = inp.files[0], st = $f("bi-rfst"); if (!fl || !K) return; st.textContent = "Lendo o cartão CNPJ…";
+        try{ const c = await K.lerCartao(fl); if (!dig(c.cnpj)){ st.textContent = "Não achei o CNPJ no arquivo: digite o número."; return; } cart = c;
+          $f("bi-doc").value = fmtCnpj(dig(c.cnpj)); if (c.razao && !v("bi-nome")) $f("bi-nome").value = c.razao; if (c.municipio && !v("bi-mun")) $f("bi-mun").value = c.municipio; if (c.uf && !v("bi-uf")) $f("bi-uf").value = c.uf; if (c.cnae && !v("bi-seg")) $f("bi-seg").value = segCnae(c.cnae);
+          ultima = ""; await consulta(); if (!rf && c.cnae) st.innerHTML += `<div><b>Tipo de negócio (cartão):</b> ${esc(K.tipoNegocio(c))}</div>`; }
+        catch(e){ st.textContent = "Não consegui ler o cartão: digite o CNPJ."; } };
+      inp.click(); };
+    $f("bi-f").onsubmit = async e => { e.preventDefault(); const st = $f("bi-rfst"), d0 = dig(v("bi-doc")), br = !v("bi-pais") || /^bra/i.test(v("bi-pais"));
+      if (br && (d0.length !== 14 || !IMP.docValido(d0))){ toast("Informe o CNPJ da empresa (obrigatório)"); st.innerHTML = `<b style="color:var(--bad)">CNPJ obrigatório.</b> Digite os 14 números (com ou sem pontos) ou importe o cartão CNPJ. Empresa estrangeira: troque o país.`; $f("bi-doc").focus(); return; }
+      if (d0.length === 14 && S.suppliers.some(x => x.id !== id && dig(x.doc) === d0)){ ultima = ""; await consulta(); toast("Este CNPJ já está cadastrado"); return; }
+      if (!v("bi-nome") && (rf?.razao || cart?.razao)) $f("bi-nome").value = rf?.razao || cart.razao;
+      const nome = v("bi-nome"); if (!nome){ toast("Informe a razão social ou o nome"); $f("bi-nome").focus(); return; }
+      if (!id && !junta) procuraJunta([nome, rf?.razao, rf?.fantasia, cart?.razao]);
+      const d = dig(v("bi-doc")), seg = v("bi-seg"), nid = id || junta?.id || "b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
       const o = {nivel, nome, doc:d.length === 14 ? fmtCnpj(d) : v("bi-doc"), tipo:v("bi-tipo"), segmento:seg, perfil:{segmento:seg}, municipio:v("bi-mun"), uf:v("bi-uf").toUpperCase().slice(0, 2), pais:v("bi-pais") || "Brasil",
         mapa:{site:v("bi-site"), contato:v("bi-cont"), telefone:v("bi-tel"), obs:v("bi-obs")}};
       if (nivel !== "N2") o.parentId = v("bi-par");
@@ -85,14 +104,21 @@ if (window.KT_DD) (() => {
         o.tese = {atividades:lst("bi-tatv"), cnaes:lst("bi-tcn"), segmentos:lst("bi-tseg"), ufs:lst("bi-tuf").map(x => x.toUpperCase()), cidades:lst("bi-tcid"), regioes:lst("bi-treg"), cnpjs:lst("bi-tcnpj"), ticketMin:nv("bi-tmin"), ticketMax:nv("bi-tmax"), fatMin:nv("bi-fmin"), fatMax:nv("bi-fmax")};
         o.capac = {aum:nv("bi-aum"), caixa:nv("bi-cx"), ebitda:nv("bi-ceb"), divLiq:nv("bi-cdl"), ticker:v("bi-tk").toUpperCase()}; }
       if (nivel === "N2") o.acordo = {fee:v("bi-fee")};
-      if (rf) o.receita = {...rf, em:nowISO()};
+      if (rf) o.receita = {...rf, em:nowISO()}; else if (cart && K && !s.receita?.razao) o.receita = K.doCartao(cart);
+      if (junta){ /* completa o registro que já existia só com o nome: não apaga o que ele já tinha */
+        const limpa = x => { if (Array.isArray(x)) return x.length ? x : undefined; if (x && typeof x === "object"){ const r = {}; for (const k in x){ const y = limpa(x[k]); if (y !== undefined) r[k] = y; } return Object.keys(r).length ? r : undefined; } return x === "" || x == null ? undefined : x; };
+        const base = {...junta}; delete base.id; const nv0 = limpa(o) || {}; const m = K.completa(nv0, base); m.investidores = [...new Set([...(junta.investidores || []), ...(o.investidores || [])])];
+        m.mapa = {...(m.mapa || {}), aliases:[...new Set([...(junta.mapa?.aliases || []), junta.nome].filter(n => n && n !== nome))]};
+        try{ await Store.set("suppliers", junta.id, m); }catch(err){ toast("Não foi possível salvar: " + (err.message || "erro")); return; }
+        close(); toast(`Cadastro completado: ${junta.nome} agora tem CNPJ (sem duplicar)`); renderAll(); if (K) K.consultarTudo(junta.id); setTimeout(() => openSupplier(junta.id, "dados"), 60); return; }
       const mudouLocal = !id || s.uf !== o.uf || s.municipio !== o.municipio || s.pais !== o.pais;
       if (mudouLocal && window.KT_MAPA?.coords){ const [lat, lng] = KT_MAPA.coords(o); o.lat = lat; o.lng = lng; }
       try{ if (id) await Store.update("suppliers", id, o); else await Store.set("suppliers", nid, {parentId:"", answers:{}, docs:{}, insp:{}, balanco:{}, invest:{}, criadoEm:nowISO(), origem:"Base inicial", ...o}); }
       catch(err){ toast("Não foi possível salvar: " + (err.message || "erro")); return; }
       close(); toast(id ? "Cadastro atualizado" : "Cadastro feito: consultas automáticas iniciadas"); renderAll();
-      if (publicado() && d.length === 14) fn("consultarEmpresa")({id:nid}).catch(() => {});
+      if (d.length === 14){ if (K) K.consultarTudo(nid); else if (publicado()) fn("consultarEmpresa")({id:nid}).catch(() => {}); }
       setTimeout(() => openSupplier(nid, "dados"), 60); };
+    if (id && dig(v("bi-doc")).length !== 14 && (!s.pais || /^bra/i.test(s.pais))) $f("bi-rfst").innerHTML = `<b style="color:var(--warn)">Cadastro sem CNPJ.</b> Informe o CNPJ ou importe o cartão CNPJ: o sistema completa os dados e faz as consultas.`;
   }
 
   /* ================= VALOR DO TARGET E CONDIÇÕES DE COMPRA ================= */
@@ -261,22 +287,28 @@ if (window.KT_DD) (() => {
       $$("[data-bio]", box).forEach(t => t.onclick = () => openSupplier(t.dataset.bio)); };
     $$("[data-bic]", el).forEach(x => x.onclick = () => { S.biCat = x.dataset.bic; $$("[data-bic]", el).forEach(y => y.setAttribute("aria-pressed", String(y === x))); res(); });
     const qi = $("#bi-q", el); qi.oninput = () => { S.biQ = qi.value; res(); }; res();
+    try{ const nd = ed && window.KT_CNPJ ? KT_CNPJ.grupos().length : 0, sc = conta("semcnpj");
+      if (nd || sc){ const bn = document.createElement("div"); bn.className = "banner"; bn.style.cssText = "display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:13px";
+        bn.innerHTML = `<span>${nd ? `<b>${nd}</b> empresa(s) parecem cadastradas duas vezes. ` : ""}${sc ? `<b>${sc}</b> cadastro(s) sem CNPJ: informe o CNPJ para as consultas automáticas.` : ""}</span><span style="display:flex;gap:6px">${nd ? `<button type="button" class="btn sm" id="bi-dup">Unificar duplicados</button>` : ""}${sc ? `<button type="button" class="btn sm ghost" id="bi-sc">Ver sem CNPJ</button>` : ""}</span>`;
+        $("#bi-cons", el).after(bn); const bd = $("#bi-dup", bn); if (bd) bd.onclick = () => KT_CNPJ.telaDuplicados();
+        const bs = $("#bi-sc", bn); if (bs) bs.onclick = () => { S.biCat = "semcnpj"; $$("[data-bic]", el).forEach(y => y.setAttribute("aria-pressed", String(y.dataset.bic === "semcnpj"))); res(); }; } }catch(e){}
     const cd = $("#bi-cad", el); if (cd) cd.onclick = () => { const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Base inicial</div><h2>Cadastro da empresa</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
       <div class="sheet-b" style="display:flex;flex-direction:column;gap:10px"><p class="sub" style="margin:0">Comece pelo CNPJ: o sistema consulta a Receita Federal e completa o cadastro. No cadastro do target você já indica o investidor; as indicações de outros investidores ficam na Prospecção.</p>
         ${[["proj", "Novo projeto · target com mandato", "Cadastro principal: empresa que contratou a Kinsey para vender, com mandato, investidores e due diligence"], ["N3", "Target (empresa vendedora)", "Empresa a vender, com o investidor indicado"], ["N1", "Investidor ou comprador", "Fundo, grupo estratégico ou comprador, com a tese de investimento"], ["N2", "Parceiro ou consultor", "Intermediador, consultor, assessor ou parceiro que indica negócios"]].map(([k, t, d]) => `<button type="button" class="btn" data-bcad="${k}" style="min-height:58px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;white-space:normal"><b>${t}</b><span class="sub" style="margin:0;font-size:12px">${d}</span></button>`).join("")}</div>`);
       $$("[data-bcad]").forEach(b => b.onclick = () => { close(); const k = b.dataset.bcad; if (k === "proj" && window.KT_PROJ) KT_PROJ.novoProjeto(); else cadastro(k === "proj" ? "N3" : k); }); };
     const im = $("#bi-imp", el); if (im) im.onclick = () => { const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Base inicial</div><h2>Importação de dados</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
       <div class="sheet-b" style="display:flex;flex-direction:column;gap:10px">
-        ${[["mapa", "Mapa M&A (Excel)", "Planilha de trabalho com investidores, targets, parceiros e ligações entre eles"], ["modelo", "Modelo da planilha do mapa", "Baixe o modelo para preencher"], ["lista", "Lista de targets (Ramper, Econodata ou planilha)", "CNPJ, razão social, atividade, faturamento, cidade e contato; o sistema consulta cada CNPJ"], ["exp", "Exportar a base para cadências (Ramper)", "Planilha com as empresas e os contatos"]].map(([k, t, d]) => `<button type="button" class="btn" data-bimp="${k}" style="min-height:58px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;white-space:normal"><b>${t}</b><span class="sub" style="margin:0;font-size:12px">${d}</span></button>`).join("")}</div>`);
-      $$("[data-bimp]").forEach(b => b.onclick = () => { close(); const k = b.dataset.bimp; if (k === "mapa") window.KT_MAPA?.importar(); else if (k === "modelo") window.KT_MAPA?.modelo(); else if (k === "lista") window.KT_PROJ?.importarRamper(); else if (k === "exp") window.KT_PROJ?.exportarBase(); }); };
+        ${[["mapa", "Mapa M&A (Excel)", "Planilha de trabalho com investidores, targets, parceiros e ligações entre eles"], ["modelo", "Modelo da planilha do mapa", "Baixe o modelo para preencher"], ["lista", "Lista de targets (Ramper, Econodata ou planilha)", "CNPJ, razão social, atividade, faturamento, cidade e contato; o sistema consulta cada CNPJ"], ["exp", "Exportar a base para cadências (Ramper)", "Planilha com as empresas e os contatos"], ["dup", "Unificar duplicados", "Mesma empresa cadastrada duas vezes (com CNPJ e só com o nome): junta tudo no registro com CNPJ"]].map(([k, t, d]) => `<button type="button" class="btn" data-bimp="${k}" style="min-height:58px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;white-space:normal"><b>${t}</b><span class="sub" style="margin:0;font-size:12px">${d}</span></button>`).join("")}</div>`);
+      $$("[data-bimp]").forEach(b => b.onclick = () => { close(); const k = b.dataset.bimp; if (k === "mapa") window.KT_MAPA?.importar(); else if (k === "modelo") window.KT_MAPA?.modelo(); else if (k === "lista") window.KT_PROJ?.importarRamper(); else if (k === "exp") window.KT_PROJ?.exportarBase(); else if (k === "dup") window.KT_CNPJ?.telaDuplicados(); }); };
     return r; };
   /* consulta: categorias */
   const norm2 = t => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  const CATS = [["todos", "Todos"], ["cliente", "Cliente"], ["investidor", "Investidor"], ["target", "Target"], ["consultor", "Consultor"], ["parceiro", "Parceiro"]];
+  const CATS = [["todos", "Todos"], ["cliente", "Cliente"], ["investidor", "Investidor"], ["target", "Target"], ["consultor", "Consultor"], ["parceiro", "Parceiro"], ["semcnpj", "Sem CNPJ"]];
   const catDe = s => { const c = ["todos"];
     if (s.nivel === "N1") c.push("investidor");
     if (s.nivel === "N3"){ c.push("target"); if (s.mandato?.status || s.projeto || s.pos?.avulso || s.imoveis?.length || s.ativos) c.push("cliente"); }
     if (s.nivel === "N2"){ c.push(/consult|assessor|advog|auditor|contad|escrit/i.test([s.tipo, s.nome, s.acordo?.tipo].join(" ")) ? "consultor" : "parceiro"); }
+    if (dig(s.doc).length !== 14 && (!s.pais || /^bra/i.test(s.pais))) c.push("semcnpj");
     return c; };
   const conta = k => S.suppliers.filter(s => k === "todos" || catDe(s).includes(k)).length;
 

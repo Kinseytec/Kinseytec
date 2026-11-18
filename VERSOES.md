@@ -1,5 +1,12 @@
 # Registro de versões
 
+## v2.70 — 2026-11-18 · CNPJ obrigatório no cadastro e sem duplicados
+- Cadastro da empresa (Base inicial e Novo projeto): CNPJ obrigatório para empresa brasileira, digitado só com números ou com pontos; ao completar os 14 números o sistema consulta a Receita Federal sozinho e preenche razão social, cidade, UF e segmento, e mostra o tipo de negócio pelo CNAE (setor, atividade principal e secundárias) e os sócios
+- Botão "Importar cartão CNPJ" no cadastro: lê o PDF, preenche CNPJ, razão social, cidade, UF e CNAE e consulta a Receita; sem Receita no momento, os dados do cartão ficam gravados e a consulta é refeita depois
+- Sem duplicar: CNPJ já cadastrado abre o cadastro existente; empresa importada antes só com o nome (sem CNPJ) é completada no mesmo registro, mantendo investidores, observações e o nome antigo como apelido
+- Ao salvar, as consultas automáticas começam sem clique (Receita, listas oficiais, CVM, B3, notícias da empresa e dos sócios) e alimentam investigação, risco, jurídico, mandato e as demais áreas
+- Base inicial: aviso de empresas cadastradas duas vezes com "Unificar duplicados" (junta dados, investidores, documentos e ligações no registro com CNPJ) e filtro "Sem CNPJ" na consulta
+
 ## v2.69 — 2026-11-18 · NDA no Jurídico
 - Jurídico: nova aba "NDA". O advogado emite o NDA em Word já preenchido com os dados da empresa consultada (razão social, CNPJ, endereço, representante e sócios da Receita Federal e do cadastro); o que faltar sai marcado no Word. Para investidores, escolhe o NDA geral ou o NDA do mandato (nome-código)
 - NDA padrão: importar o modelo da Kinsey (Word, PDF ou TXT); o sistema reconhece as cláusulas, troca os dados da outra parte por campos automáticos (empresa, CNPJ, endereço, representante e data) e guarda como modelo oficial; até lá vale o modelo provisório
