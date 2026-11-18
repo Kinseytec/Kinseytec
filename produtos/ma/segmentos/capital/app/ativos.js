@@ -156,7 +156,8 @@ if (window.KT_DD) (() => {
   async function laudo(s){
     const C = cfg(s), R = resumo(s), I = inventario(s), X = KT_DOCX, P = [], t = (x, o = {}) => P.push({t:x, ...o}), h = x => P.push({t:x, b:true, keep:true, before:200});
     const emp = s.receita?.razao || s.nome, mk = window.KT_MARCA ? KT_MARCA.kinsey() : true, marca = mk ? "Kinsey BR" : (window.KT_MARCA ? KT_MARCA.curto() : "Assessoria");
-    t("LAUDO DE AVALIAÇÃO DE ATIVOS IMOBILIZADOS", {b:true, jc:"center", sz:26, after:120}); t(emp, {b:true, jc:"center"}); t(`Data-base: ${dBR(C.dataBase)} · Emitido em ${new Date().toLocaleDateString("pt-BR")}`, {jc:"center", after:300});
+    t("LAUDO DE AVALIAÇÃO DE ATIVOS IMOBILIZADOS", {b:true, jc:"center", sz:26, after:120}); t(emp, {b:true, jc:"center"}); t(`Data-base: ${dBR(C.dataBase)} · Emitido em ${new Date().toLocaleDateString("pt-BR")}`, {jc:"center", after:s.ativos?.finalidade ? 60 : 300});
+    if (s.ativos?.finalidade) t(`Finalidade: ${s.ativos.finalidade}${s.ativos.local ? ` · Local dos bens: ${s.ativos.local}` : ""}`, {jc:"center", after:300});
     h("1. Sumário executivo");
     t(`${marca} avaliou os bens do ativo imobilizado de ${emp} na data-base de ${dBR(C.dataBase)}, ${R.A.length ? `com amostra de ${R.A.length} bens que representam ${pc(R.cob.pct, 1)} do ${C.base === "custo" ? "custo de aquisição" : "valor contábil"}` : "conforme o escopo contratado"}${I.loc.length ? ` e inventário físico de ${I.loc.length} bens` : ""}.`);
     if (R.A.length) t(`Valor contábil dos bens avaliados: ${brl(R.T.cont)}. Valor justo apurado: ${brl(R.T.vj)}. Mais-valia: ${brl(R.T.mais)}. Menos-valia: ${brl(R.T.menos)}. Resultado líquido: ${brl(R.mv)}.`, {b:true});

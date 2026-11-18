@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v2.81 — 2026-11-18 · Avaliação de ativos: cliente da Órbita ou trabalho novo
+- Avaliação de ativos: quadro "Trabalho" no topo com a pergunta "Cliente da Órbita?"
+- Sim: usa a empresa em consulta; razão social, CNPJ, endereço e data-base vêm sozinhos do cadastro, da Receita Federal e do valuation (ou do último balancete)
+- Não, trabalho novo: cadastro básico do laudo (CNPJ obrigatório com consulta à Receita, razão social, data-base, finalidade do laudo, local dos bens e contratante); o trabalho fica marcado como avulso e não aparece no globo da Órbita
+- "Dados do laudo" permite revisar data-base, finalidade, local e contratante; finalidade e local entram no laudo em Word
+
 ## v2.80 — 2026-11-18 · Apresentação por último, com todos os relatórios e o mercado
 - Menu: Apresentação passa a ser a última área, depois de Jurídico e Pós-aquisição, porque consolida o trabalho das outras
 - Apresentação: quadro "Todos os relatórios" (prospecção antes e depois do NDA, valuation, due diligence, papéis de trabalho, análises financeiras, avaliação de ativos, laudos de imóveis e jurídico) num só lugar
