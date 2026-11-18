@@ -47,6 +47,7 @@ if (window.KT_DD && window.KT_XLSX) (() => {
     const rf = s.receita || {}, pj = s.projeto || {};
     f.add([H("Cadastro"), H("")]);
     [["Cliente (contratante)", pj.cliente || s.mandato?.cliente || ""], ["Empresa avaliada", rf.razao || s.nome], ["Nome-código", s.mandato?.codinome || ""], ["CNPJ", s.doc || ""], ["Atividade (CNAE)", `${rf.cnae || ""} ${rf.cnaeDesc || ""}`.trim()],
+      ...(window.KT_CNPJ?.ficha ? KT_CNPJ.ficha(s).filter(([k]) => ["Endereço", "Natureza jurídica", "Sócios", "Administração", "Capital social", "Fonte do cadastro"].includes(k)) : []),
       ["Segmento", s.perfil?.segmento || s.segmento || ""], ["Data-base", s.perfil?.dataBase || d.X.bp.b?.dataBase || ""], ["Moeda", "Reais correntes"], ["Sócio responsável", pj.socio || ""], ["Emitido pelo sistema em", new Date().toLocaleDateString("pt-BR")]].forEach(([k, v]) => f.add([k, IT(v)]));
     f.add(["Regime tributário", IT(d.regime)], "regime"); f.add(["Cenário de crescimento usado", IT("Moderado")], "cen");
     f.add([]); f.add([H("Premissas macroeconômicas"), H("Base"), ...d.anos.map(y => HP(`${y}E`))], "hmac");

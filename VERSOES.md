@@ -1,5 +1,15 @@
 # Registro de versões
 
+## v2.94 — 2026-11-18 · Planilha modelo de impairment e revisão dos dados automáticos do cadastro
+- Impairment: "Exportar planilha modelo (Excel)" no padrão das planilhas padronizadas do PPA (CPC 15): Resumo, Premissas, UGCs, Fluxo de caixa, Carrying amount, Teste por UGC, Indícios, Sensibilidade, Conferências e CPC 01, com fórmulas vivas e células azuis para o consultor.
+- Aba UGCs com opções prontas (empresa toda, cada linha de negócio com o % da receita, marca e operações que a usam, filial): o consultor marca Sim nas que são UGC, informa o % da receita e do ágio e o indício.
+- "Importar planilha revisada": premissas, UGCs, indícios, carrying amount e fluxo de caixa alterados pelo consultor passam a valer no sistema, no laudo em PDF e no PowerPoint; conferência sistema × planilha e opção de voltar ao fluxo do sistema.
+- Opções prontas de UGC também na tela (empresa toda, uma por linha de negócio, marca).
+- Cartão CNPJ: leitura do endereço completo (logradouro, número, complemento, bairro, CEP), natureza jurídica, porte, e-mail, telefone e atividades secundárias; na Importação de documentos, o cartão completa o cadastro.
+- Contrato social: qualificação dos sócios e administrador identificados; o administrador passa a ser o representante no mandato, NDA, MOU e SPA, e a qualificação do contrato entra no lugar dos campos em branco.
+- MOU e SPA citam o capital social e o registro na Junta; se o contrato social tem ônus sobre quotas (penhor, alienação fiduciária), o texto prevê a liberação até o fechamento em vez de só "livre de ônus".
+- Ficha cadastral única (razão, CNPJ, natureza, endereço, CNAE, sócios, administração, capital, registro) no workbook da Due Diligence, nas planilhas de valuation, PPA e impairment e no laudo de impairment; CNPJ na capa dos relatórios com o nome da empresa (os anônimos continuam sem identificação).
+
 ## v2.93 — 2026-11-18 · Impairment por unidade geradora de caixa e CAPEX no valuation
 - Valuation, aba FCD: novo quadro "Investimentos · CAPEX" com CAPEX e outros investimentos ano a ano (R$ mi). Ano sem CAPEX informado reinveste a própria depreciação; o CAPEX acima da depreciação passa a ser depreciado. Vale para o moderado, o otimista, o PPA e o impairment.
 - Impairment (Pós-aquisição): "Cliente da Órbita?" como nas outras áreas (trabalho novo com cadastro básico quando "Não").

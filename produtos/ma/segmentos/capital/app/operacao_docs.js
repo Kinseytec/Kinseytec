@@ -32,7 +32,10 @@ if (window.KT_DD && window.KT_DOCX && window.KT_MAND && window.KT_CONTRATO) (() 
     const preco = T.preco * 1e6, dif = T.dif * 1e6, eo = T.eo * 1e6, av = Math.max(0, preco - dif - eo), qtdF = (n) => `${n} (${M.extenso(n).replace(/\bum\b/g, "uma").replace(/\bdois\b/g, "duas")})`;
     const endInv = [ri.endereco || inv?.endereco || "", (ri.municipio || inv?.municipio) ? `${ri.municipio || inv.municipio}${(ri.uf || inv?.uf) ? "/" + (ri.uf || inv.uf) : ""}` : ""].filter(Boolean).join(", ");
     const pctT = p => `${String(p).replace(".", ",")}% (${M.extenso(Math.floor(p))}${p % 1 ? " vírgula " + M.extenso(Math.round(p % 1 * 10)) : ""} por cento)`;
+    const SX = s.jdd?.soc?.ext || {}, onus = (SX.clausulas || []).includes("onus");
     return {...P, DATA:C.DATA, DATABASE:T.database || C.DATABASE,
+      CAPITALDESC:SX.capital ? ` (capital social de R$ ${SX.capital}, conforme o contrato social${SX.registro?.numero ? ` registrado na ${SX.registro.orgao || "Junta Comercial"} sob o nº ${SX.registro.numero}` : ""})` : "",
+      ONUS:onus ? " (o ônus sobre quotas previsto no contrato social, como penhor ou alienação fiduciária, será liberado até a Data de Fechamento, como condição precedente)" : "",
       COMPRADOR:inv ? (ri.razao || inv.nome).trim() : "[nome do investidor]", COMPRADORDOC:inv?.doc || ri.cnpj || "[CNPJ do investidor]", COMPRADOREND:endInv || "[endereço do investidor]",
       PARTICIPACAO:`${pctT(T.pct)} das quotas`, PRECO:preco ? M.reais(preco) : "[preço]",
       AVISTA:preco ? `${M.reais(av)} (“Parcela à Vista”) serão pagos na Data de Fechamento, em moeda corrente, por transferência para as contas indicadas pelos Vendedores.` : "[parcela à vista]",

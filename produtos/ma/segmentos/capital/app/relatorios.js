@@ -52,6 +52,7 @@ if (window.KT_DD) (() => {
   const marcadores = (P, L, sz = 10.5) => L.forEach(t => { const W = P.wrap(T(t), sz, false, P.CW - 18); P.ensure(W.length * (sz + 4) + 6); const y = P.y; P.rect(P.M, y + 4, 6, 6, ACC); W.forEach((l, k) => P.text(P.M + 16, y + sz + k * (sz + 4), l, sz, false, [27,36,51])); P.y = y + W.length * (sz + 4) + 6; });
   /* ---------------- PDF: blocos ---------------- */
   function capa(P, eyebrow, titulo, linhas){
+    try{ const sx = (S.suppliers || []).find(x => x.nome === titulo || (x.receita?.razao && x.receita.razao === titulo)); if (sx?.doc && !linhas.some(([k]) => /cnpj/i.test(k))) linhas = [["CNPJ", sx.doc], ...linhas].slice(0, 6); }catch(e){}
     P.page(); P.rect(0, 0, P.W, 300, NAVY); P.rect(0, 300, P.W, 4, ACC); if (!(P.logoCapa && P.logoCapa(P.M, 30, 170))){ P.text(P.M, 46, "KINSEY BR", 15, true, [255,255,255]); P.text(P.M, 60, "Audit | Consulting | M&A | BPO | ESG", 8, false, [255,255,255]); }
     P.text(P.M, 90, T(eyebrow), 11, true, [127,184,230]);
     P.wrap(T(titulo), 26, true, P.CW).forEach((l, i) => P.text(P.M, 130 + i * 32, l, 26, true, [255,255,255]));

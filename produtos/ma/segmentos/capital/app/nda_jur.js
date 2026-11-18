@@ -18,7 +18,7 @@ if (window.KT_DD && window.KT_DOCX && window.KT_MAND) (() => {
   const temCampos = T => /\{(EMPRESA|DOC)\}/.test(JSON.stringify(T));
   function dados(s){
     const P = M.partes(s), r = s.receita && !s.receita.erro ? s.receita : {};
-    return {EMPRESA:P.EMPRESA, DOC:P.DOC, ENDERECO:P.ENDERECO, REPRESENTANTE:s.nda?.nome || P.REPRESENTANTE, ATIVIDADE:P.ATIVIDADE, CODINOME:s.mandato?.codinome || "[nome-código]",
+    return {EMPRESA:P.EMPRESA, DOC:P.DOC, ENDERECO:P.ENDERECO, REPRESENTANTE:P.REPRESENTANTE, ATIVIDADE:P.ATIVIDADE, CODINOME:s.mandato?.codinome || "[nome-código]",
       KINSEY:window.KT_MARCA && !KT_MARCA.kinsey() ? "[razão social, CNPJ, endereço e representante legal da assessoria]" : (typeof MA_KINSEY !== "undefined" ? MA_KINSEY : "KINSEY BR"),
       DATA:`São Paulo, ${new Date().toLocaleDateString("pt-BR", {day:"numeric", month:"long", year:"numeric"})}`, socios:P._socios || [], situacao:r.situacao || "", fonte:r.em ? `Receita Federal em ${dBR(r.em)}` : "cadastro"};
   }

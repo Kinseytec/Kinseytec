@@ -51,10 +51,19 @@ if (window.KT_DD) (() => {
     const mu = T.match(/MUNIC[IÍ]PIO\s+UF\s*\n\s*([^\n]+?)\s+([A-Z]{2})\s*(\n|$)/i); if (mu){ o.municipio = mu[1].trim(); o.uf = mu[2]; } else { o.municipio = at(/^MUNIC[IÍ]PIO:?/i); o.uf = (at(/^UF:?$/i).match(/^[A-Z]{2}/) || [])[0] || ""; }
     o.situacao = ((T.match(/SITUA[CÇ][AÃ]O CADASTRAL\s*\n?\s*(ATIVA|INAPTA|SUSPENSA|BAIXADA|NULA)/i) || [])[1] || "").toUpperCase();
     const ab = (T.match(/DATA DE ABERTURA\s*\n?\s*(\d{2})\/(\d{2})\/(\d{4})/i) || []); o.abertura = ab[3] ? `${ab[3]}-${ab[2]}-${ab[1]}` : "";
+    /* endereço, natureza jurídica, porte e atividades secundárias (rótulo numa linha e valor na seguinte, como no cartão da Receita) */
+    const rot = /^(N[ÚU]MERO|COMPLEMENTO|CEP|BAIRRO|MUNIC[IÍ]PIO|UF|ENDERE[CÇ]O ELETR|TELEFONE|ENTE FEDERATIVO|SITUA[CÇ][AÃ]O|DATA DA SITUA|MOTIVO|PORTE|C[ÓO]DIGO E DESCRI)/i;
+    const val = re => { const i = L.findIndex(x => re.test(x)); if (i < 0) return ""; const mesma = L[i].replace(re, "").replace(/^[:\s]+/, "").trim(); if (mesma) return mesma; const v = L[i + 1] || ""; return rot.test(v) || /^\*+$/.test(v) ? "" : v; };
+    o.logradouro = val(/^LOGRADOURO:?/i); o.numero = val(/^N[ÚU]MERO:?$/i); o.complemento = val(/^COMPLEMENTO:?/i).replace(/^\*+$/, ""); o.bairro = val(/^BAIRRO\/?DISTRITO:?|^BAIRRO:?/i);
+    o.cep = (T.match(/CEP[\s:]*\n?\s*(\d{2}\.?\d{3}-?\d{3})/i) || [])[1]?.replace(/\D/g, "") || "";
+    const nj = T.match(/NATUREZA JUR[IÍ]DICA[\s:]*\n?\s*(\d{3}-\d)\s*-\s*([^\n]+)/i); if (nj) o.natureza = `${nj[1]} - ${nj[2].trim()}`;
+    o.porte = val(/^PORTE:?/i); o.email = val(/^ENDERE[CÇ]O ELETR[OÔ]NICO:?/i).toLowerCase(); o.telefone = val(/^TELEFONE:?/i);
+    const sec = T.match(/ATIVIDADES ECON[OÔ]MICAS SECUND[AÁ]RIAS[\s:]*\n([\s\S]*?)\n\s*C[ÓO]DIGO E DESCRI/i); if (sec) o.cnaesSec = [...sec[1].matchAll(/(\d{2}\.\d{2}-\d-\d{2})/g)].map(m => dg(m[1]));
     if (!o.razao){ const r0 = L.find(x => /\b(LTDA|S\.?\/?A\.?|EIRELI|ME|EPP)\b/i.test(x) && x.length < 120) || ""; o.razao = r0.replace(/^(nome empresarial|raz[aã]o social)[:\s]*/i, ""); }
     return o;
   }
-  const doCartao = c => ({razao:c.razao || "", fantasia:c.fantasia || "", cnae:c.cnae || "", cnaeDesc:c.cnaeDesc || "", municipio:c.municipio || "", uf:c.uf || "", situacao:c.situacao || "", abertura:c.abertura || "", fonte:"cartão CNPJ importado", em:nowISO()});
+  const doCartao = c => ({razao:c.razao || "", fantasia:c.fantasia || "", cnae:c.cnae || "", cnaeDesc:c.cnaeDesc || "", municipio:c.municipio || "", uf:c.uf || "", situacao:c.situacao || "", abertura:c.abertura || "",
+    endereco:[c.logradouro, c.numero, c.complemento, c.bairro].filter(Boolean).join(", "), cep:c.cep || "", natureza:c.natureza || "", porte:c.porte || "", email:c.email || "", telefone:c.telefone || "", cnaesSec:c.cnaesSec || [], fonte:"cartão CNPJ importado", em:nowISO()});
 
   /* todas as consultas, sem clique */
   async function consultarTudo(id){
@@ -104,5 +113,13 @@ if (window.KT_DD) (() => {
       for (const c of $$("[data-dup]")) if (c.checked){ const g = G[+c.dataset.dup]; await unir(g[0].id, g.slice(1).map(x => x.id)); n++; }
       close(); toast(`${n} empresa(s) unificada(s)`); renderAll(); };
   }
-  window.KT_CNPJ = {mesmoNome, parecidos, existente, segCnae, tipoNegocio, lerCartao, doCartao, consultarTudo, grupos, unir, telaDuplicados, semCnpj, brasileira, completa};
+  /* ficha cadastral: cartão CNPJ ou Receita + contrato social (sócios, administração, capital, registro) */
+  function ficha(s){
+    const r = s.receita && !s.receita.erro ? s.receita : {}, X = s.jdd?.soc?.ext || {}, P = window.KT_MAND ? KT_MAND.partes(s) : {};
+    const soc = X.socios?.length ? X.socios.map(p => `${p.nome}${p.pct ? ` (${(p.pct * 100).toLocaleString("pt-BR", {maximumFractionDigits:1})}%)` : ""}${p.adm ? " · administrador" : ""}`).join("; ") : (r.socios || []).map(q => q.nome + (q.qual ? ` (${q.qual})` : "")).join("; ");
+    return [["Razão social", r.razao || s.nome], ["Nome fantasia", r.fantasia || ""], ["CNPJ", s.doc || r.cnpj || ""], ["Natureza jurídica", r.natureza || ""], ["Endereço", P.ENDERECO && !/^\[/.test(P.ENDERECO) ? P.ENDERECO : [r.municipio || s.municipio, r.uf || s.uf].filter(Boolean).join("/")],
+      ["Atividade principal (CNAE)", `${r.cnae || ""} ${r.cnaeDesc || ""}`.trim()], ["Atividades secundárias", (r.cnaesSec || []).join(", ")], ["Situação cadastral", r.situacao || ""], ["Data de abertura", r.abertura ? r.abertura.split("-").reverse().join("/") : ""], ["Porte", r.porte || ""],
+      ["Sócios", soc], ["Administração", X.administracao || (P.REPRESENTANTE && !/^\[/.test(P.REPRESENTANTE) ? P.REPRESENTANTE : "")], ["Capital social", X.capital ? `R$ ${X.capital}` : ""], ["Registro na Junta", X.registro?.numero ? `${X.registro.orgao || ""} ${X.registro.numero}`.trim() : ""],
+      ["Fonte do cadastro", [r.fonte || (r.em ? "Receita Federal" : ""), s.jdd?.soc?.arquivo ? `contrato social (${s.jdd.soc.arquivo})` : ""].filter(Boolean).join(" + ")]].filter(([, v]) => v); }
+  window.KT_CNPJ = {ficha, mesmoNome, parecidos, existente, segCnae, tipoNegocio, lerCartao, doCartao, consultarTudo, grupos, unir, telaDuplicados, semCnpj, brasileira, completa};
 })();

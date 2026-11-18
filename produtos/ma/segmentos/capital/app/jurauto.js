@@ -23,12 +23,12 @@ if (window.KT_DD && window.KT_JDD) (() => {
     const alt = t1.match(/(\d{1,3})[ªaº]?\s*(?:\(\w+\)\s*)?altera[cç][aã]o (?:e consolida[cç][aã]o )?(?:do )?contrato social/i); if (alt) o.alteracao = +alt[1];
     const datas = [...t1.matchAll(/(\d{1,2}) de (janeiro|fevereiro|mar[cç]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro) de (20\d\d|19\d\d)/gi)]; if (datas.length) o.data = datas[datas.length - 1][0];
     /* sócios: "NOME, brasileiro, ... detentor de X quotas" / "NOME ... X% (por cento)" / QSA do cartão */
-    const re1 = /([A-ZÁÉÍÓÚÂÊÔÃÕÇ][A-ZÁÉÍÓÚÂÊÔÃÕÇ' ]{6,70}?),[ \t]*(?:brasileir|portugu|estrangeir|naturalizad|pessoa jur[ií]dica|sociedade)[^;]{0,400}?(?:titular de|detentor[a]? de|subscreve|possui|com)\s*([\d.]+)\s*(?:\([^)]{0,60}\)\s*)?quotas/g;
-    for (const m of T.replace(/[ \t]+/g, " ").matchAll(re1)) o.socios.push({nome:m[1].trim().replace(/\s+/g, " "), quotas:+m[2].replace(/\./g, "")});
+    const re1 = /([A-ZÁÉÍÓÚÂÊÔÃÕÇ][A-ZÁÉÍÓÚÂÊÔÃÕÇ' ]{6,70}?),[ \t]*((?:brasileir|portugu|estrangeir|naturalizad|pessoa jur[ií]dica|sociedade)[^;]{0,400}?)(?:,\s*)?(?:titular de|detentor[a]? de|subscreve|possui|com)\s*([\d.]+)\s*(?:\([^)]{0,60}\)\s*)?quotas/g;
+    for (const m of T.replace(/[ \t]+/g, " ").matchAll(re1)) o.socios.push({nome:m[1].trim().replace(/\s+/g, " "), qualif:m[2].trim().replace(/[\s,]+$/, ""), quotas:+m[3].replace(/\./g, "")});
     if (!o.socios.length) for (const m of T.matchAll(/([A-ZÁÉÍÓÚÂÊÔÃÕÇ][A-ZÁÉÍÓÚÂÊÔÃÕÇ' ]{6,70}?)\s*[-–:]\s*(?:s[oó]cio|administrador)[^\n]{0,40}/g)) o.socios.push({nome:m[1].trim().replace(/\s+/g, " ")});
     const totQ = o.socios.reduce((a, s) => a + (s.quotas || 0), 0); if (totQ) o.socios.forEach(s => s.pct = s.quotas / totQ);
     if (o.socios.length) o.achou.push(`${o.socios.length} sócio(s)`);
-    const adm = t1.match(/administra[cç][aã]o da sociedade[^.]{0,30}(caber[aá]|ser[aá] exercida|compete)[^.]{0,20}?(a[o]?s?|ao s[oó]cio|aos s[oó]cios|[aà] s[oó]cia)?\s*([^.;]{4,160})/i); if (adm){ o.administracao = adm[3].trim(); o.achou.push("administração"); }
+    const adm = t1.match(/administra[cç][aã]o da sociedade[^.]{0,30}(caber[aá]|ser[aá] exercida|compete)[^.]{0,20}?(a[o]?s?|ao s[oó]cio|aos s[oó]cios|[aà] s[oó]cia)?\s*([^.;]{4,160})/i); if (adm){ o.administracao = adm[3].trim(); o.achou.push("administração"); o.socios.forEach(p => { if (nrm(o.administracao).includes(nrm(p.nome))) p.adm = true; }); }
     const C = (k, re, rot) => { if (re.test(n)){ o.clausulas.push(k); o.achou.push(rot); } };
     C("preferencia", /direito de prefer[eê]ncia|prefer[eê]ncia (na|para a) aquisi/, "direito de preferência");
     C("tag", /tag[\s-]?along|direito de venda conjunta|acompanhar a venda/, "tag along");

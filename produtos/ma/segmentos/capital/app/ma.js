@@ -114,7 +114,8 @@ if (typeof MA_MODELOS !== "undefined") (() => {
   const syncNda = () => { const m = modelo("nda_geral"); NDA_TEXT.splice(0, NDA_TEXT.length, ...m.texto); NDA_VERSION = m.oficial ? "NDA Kinsey Capital · " + m.versao : NDA_VPROV; };
   const _rl = renderLgpd; renderLgpd = function(s, b){ syncNda(); return _rl(s, b); };
   const campos = (s, extra = {}) => { const md = extra.mand || s.mandato || {}, H = window.KT_HON ? KT_HON.campos(s, s.lado === "compra" || s.nivel === "N1" ? "compra" : "venda") : {};
-    return {EMPRESA:s.nome || "[empresa]", DOC:s.doc || "[CNPJ / registro]", REPRESENTANTE:s.nda?.nome || s.responsavel || "[representante]", CODINOME:md.codinome || "[nome-código]",
+    const Pt = window.KT_MAND ? KT_MAND.partes(s) : null;
+    return {EMPRESA:Pt?.EMPRESA || s.nome || "[empresa]", DOC:Pt?.DOC || s.doc || "[CNPJ / registro]", REPRESENTANTE:Pt?.REPRESENTANTE || s.nda?.nome || s.responsavel || "[representante]", CODINOME:md.codinome || "[nome-código]",
       PARTICIPACAO:md.participacao || "[participação]", EXCLUSIVIDADE:md.exclusividade || "[exclusividade]", PRAZO:md.prazo || "[prazo]", RETAINER:md.retainer || H.RETAINER || "[retainer]",
       SUCCESS:md.success || s.acordo?.fee || H.SUCCESS || "[success fee]", TAIL:H.TAIL || "12", DATA:hoje(), ...(window.KT_MAND && s.nivel === "N3" ? KT_MAND.campos(s) : {}), ...(window.KT_OPDOC && s.nivel === "N3" ? KT_OPDOC.campos(s) : {})}; };
   const preenche = (txt, c) => String(txt).replace(/\{([A-Z]+)\}/g, (m, k) => c[k] != null ? c[k] : m);

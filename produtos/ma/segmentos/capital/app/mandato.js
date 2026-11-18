@@ -90,18 +90,20 @@ if (window.KT_DD) (() => {
   /* ---------- dados do cadastro ---------- */
   function socios(s){
     const r = s.receita && !s.receita.erro ? s.receita : {}, J = s.jdd?.soc?.ext?.socios || [], R = (r.socios || []).filter(p => p.nome);
-    const nomes = (J.length ? J : R).map(p => ({nome:String(p.nome).trim(), qual:p.qual || "", pct:p.pct}));
+    const nomes = (J.length ? J : R).map(p => ({nome:String(p.nome).trim(), qual:p.qual || (p.adm ? "Sócio administrador" : ""), qualif:p.qualif || "", adm:!!p.adm, pct:p.pct}));
     return nomes;
   }
   function partes(s){
     const r = s.receita && !s.receita.erro ? s.receita : {}, mun = r.municipio || s.municipio || "", uf = r.uf || s.uf || "";
     const end = [r.endereco || s.endereco || "", mun && `${mun}${uf ? "/" + uf : ""}`, r.cep ? "CEP " + String(r.cep).replace(/^(\d{5})(\d{3})$/, "$1-$2") : ""].filter(Boolean).join(", ");
     const SO = socios(s), quali = "[nacionalidade, estado civil e profissão], inscrito(a) no CPF/MF sob o nº [CPF], residente e domiciliado(a) em [endereço]";
-    const soc = SO.length ? SO.map(p => `${p.nome.toUpperCase()}, ${quali}`) : [`[NOME DO SÓCIO], ${quali}`];
-    const adm = SO.find(p => /administr/i.test(p.qual)) || SO[0];
+    /* qualificação do contrato social quando houver; o que faltar (CPF, endereço) fica entre colchetes para o consultor completar */
+    const qualDe = p => !p.qualif ? quali : p.qualif + (/cpf/i.test(p.qualif) ? "" : ", inscrito(a) no CPF/MF sob o nº [CPF]") + (/resid|domicil/i.test(p.qualif) ? "" : ", residente e domiciliado(a) em [endereço]");
+    const soc = SO.length ? SO.map(p => `${p.nome.toUpperCase()}, ${qualDe(p)}`) : [`[NOME DO SÓCIO], ${quali}`];
+    const adm = SO.find(p => p.adm) || SO.find(p => /administr/i.test(p.qual)) || SO[0];
     return {EMPRESA:(r.razao || s.razao || s.nome || "[razão social]").trim(), DOC:s.doc || r.cnpj || "[CNPJ]", ENDERECO:end || "[endereço completo da sede]",
       ATIVIDADE:r.cnaeDesc ? "tem como atividade principal " + r.cnaeDesc.toLowerCase() : (s.perfil?.segmento || s.segmento) ? "atua no segmento de " + String(s.perfil?.segmento || s.segmento).toLowerCase() : "[descrever a atividade da Empresa]",
-      SOCIOS:soc.length > 1 ? soc.slice(0, -1).join("; ") + "; e " + soc[soc.length - 1] : soc[0], REPRESENTANTE:s.nda?.nome || adm?.nome || "[representante legal]", _socios:SO, _end:!!end};
+      SOCIOS:soc.length > 1 ? soc.slice(0, -1).join("; ") + "; e " + soc[soc.length - 1] : soc[0], REPRESENTANTE:(adm?.adm ? adm.nome : s.nda?.nome || adm?.nome) || "[representante legal]", _socios:SO, _end:!!end};
   }
   function campos(s){
     const R = calc(s), c = R.c, Pt = partes(s), hoje0 = new Date(), db = new Date(hoje0.getFullYear(), hoje0.getMonth(), 0);

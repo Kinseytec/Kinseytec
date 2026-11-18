@@ -26,14 +26,16 @@ if (window.KT_DD && window.KT_VAL && window.KT_POS) (() => {
   const INTANG = ["marca", "carteira", "outrosInt", "agio"]; /* acompanham o % do ágio da UGC; os demais, o % da receita */
   const cfg = s => s?.pos?.imp || {};
   /* fluxos do cenário moderado (com o CAPEX do valuation); dm = choque no EBITDA para o ponto de equilíbrio */
-  function fluxos(X, c, dm = 0){
+  function fluxos(X, c, dm = 0, O = null){
     const t = X.W.t, cx = X.capex;
+    if (O) return O.anos.map((a, i) => { const eb = a.eb * (1 + dm), ir = Math.max(0, a.ir + a.eb * dm * t); return {t:i + 1, y:a.y, rl:a.rl, eb, ir, da:null, capex:a.capex, oinv:a.oinv || 0, dncg:a.dncg || 0, cxInf:true, fcl:eb - ir - a.capex - (a.oinv || 0) - (a.dncg || 0), pre:eb - a.capex - (a.oinv || 0) - (a.dncg || 0)}; });
     return c.anos.map(a => { const da = a.da ?? a.rl * cx, capex = a.capex ?? a.rl * cx, oinv = a.oinv || 0, dncg = a.dncg ?? (a.eb - Math.max(0, a.eb - da) * t - capex - a.fcl);
       const eb = a.eb * (1 + dm), ir = Math.max(0, eb - da) * t; return {...a, eb, ir, da, capex, oinv, dncg, fcl:eb - ir - capex - oinv - dncg, pre:eb - capex - oinv - dncg}; }); }
-  function vu(X, F, w, g){
+  function vu(X, F, w, g, O = null){
     const t = X.W.t, cx = X.capex, u = F[4]; let vp = 0;
     F.forEach(a => { vp += a.fcl / Math.pow(1 + w, a.t - .5); });
-    const irP = Math.max(0, u.eb - u.rl * cx) * (1 + g) * t, fclP = u.eb * (1 + g) - irP - u.rl * cx * (1 + g) - u.rl * X.ncgp * g;
+    const irP = O ? u.ir * (1 + g) : Math.max(0, u.eb - u.rl * cx) * (1 + g) * t;
+    const fclP = O && O.fclP != null ? O.fclP + (u.eb - O.anos[4].eb) * (1 + g) * (1 - t) : u.eb * (1 + g) - irP - u.rl * cx * (1 + g) - u.rl * X.ncgp * g;
     const tv = w > g ? fclP / (w - g) : 0, vtv = tv / Math.pow(1 + w, 4.5);
     return {vp, vtv, v:vp + vtv, fclP, preP:fclP + irP}; }
   /* taxa antes dos impostos: a que, aplicada aos fluxos antes do IR, dá o mesmo valor em uso (item 55) */
@@ -51,7 +53,9 @@ if (window.KT_DD && window.KT_VAL && window.KT_POS) (() => {
     return L.length ? L : [{id:"_todo", nome:q.ugc || "Empresa toda", pct:1, pctAg:null, ind:null, obs:"", unica:true}]; }
   function calc(s){
     const Z = KT_POS.ppa(s); if (!Z) return null; const R = Z.R, X = R.X, q = cfg(s), c = (R.mod || V.resumo(s).mod).c, fonte = fonteDe(s, X);
-    const w = q.taxa != null ? q.taxa / 100 : X.W.wacc, g = q.g != null ? q.g / 100 : c.g, F = fluxos(X, c), VU = vu(X, F, w, g), pre = taxaPre(F, VU.v, g, VU.preP);
+    const O = q.fluxo?.anos?.length === 5 ? q.fluxo : null, Fs = fluxos(X, c), VUs = vu(X, Fs, X.W.wacc, c.g);
+    const w = q.taxa != null ? q.taxa / 100 : X.W.wacc, g = q.g != null ? q.g / 100 : c.g, F = fluxos(X, c, 0, O), VU = vu(X, F, w, g, O), pre = taxaPre(F, VU.v, g, VU.preP);
+    if (O) fonte.t = `Fluxo revisado pelo consultor (planilha ${O.arquivo || "importada"}) · ${fonte.t}`;
     /* valor justo líquido de despesas de venda pelos múltiplos de mercado */
     const C = R.C || V.comparaveis(s), dsc = 1 - (X.Bs.P.desc?.v || 0) / 100, cv = (q.custoVenda ?? 2) / 100;
     const multEb = q.mult != null ? q.mult : C?.eb ? (C.eb.p25 + C.eb.p75) / 2 * dsc : null, vjBruto = multEb ? X.bp.eb * multEb : null, vj = vjBruto != null ? vjBruto * (1 - cv) : null;
@@ -72,13 +76,13 @@ if (window.KT_DD && window.KT_VAL && window.KT_POS) (() => {
     const wAq = q.waccAq != null ? q.waccAq / 100 : null, auto = {desemp:desv != null && desv < -.1, juros:wAq != null && w > wAq + .005};
     const ind = INDICIOS.map(([k, t, tp]) => ({k, t, tp, sim:q.ind?.[k]?.sim ?? !!auto[k], auto:!!auto[k], obs:q.ind?.[k]?.obs || ""})), indEmp = ind.some(x => x.sim);
     /* teste por UGC */
-    const vuF = (p, ww, gg) => vu(X, F, ww, gg).v * p;
+    const vuF = (p, ww, gg) => vu(X, F, ww, gg, O).v * p;
     const U = ugcs(s, q).map(u => { const pa = u.pctAg ?? u.pct, cp = {}; COMP.forEach(([k]) => { cp[k] = comp[k] * (INTANG.includes(k) ? pa : u.pct); });
       const cont = Object.values(cp).reduce((a, x) => a + x, 0), vuU = VU.v * u.pct, vjU = vj != null ? vj * u.pct : null, rec = Math.max(vuU, vjU ?? -Infinity);
       const perda = Math.max(0, cont - rec), folga = rec - cont, pAg = Math.min(perda, cp.agio), resto = perda - pAg, base = cp.marca + cp.carteira + cp.outrosInt + cp.maisValia + cp.imob;
       const aloc = {agio:pAg}; ["marca", "carteira", "outrosInt", "maisValia", "imob"].forEach(k => { aloc[k] = base ? resto * cp[k] / base : 0; });
       const beW = (() => { if (vuU <= cont || u.pct <= 0) return null; let lo = w, hi = .6; if (vuF(u.pct, hi, g) > cont) return null; for (let i = 0; i < 70; i++){ const m = (lo + hi) / 2; if (vuF(u.pct, m, g) > cont) lo = m; else hi = m; } return lo; })();
-      const beM = (() => { if (vuU <= cont || u.pct <= 0) return null; let lo = -.95, hi = 0; for (let i = 0; i < 70; i++){ const m = (lo + hi) / 2; if (vu(X, fluxos(X, c, m), w, g).v * u.pct > cont) hi = m; else lo = m; } return hi; })();
+      const beM = (() => { if (vuU <= cont || u.pct <= 0) return null; let lo = -.95, hi = 0; for (let i = 0; i < 70; i++){ const m = (lo + hi) / 2; if (vu(X, fluxos(X, c, m, O), w, g, O).v * u.pct > cont) hi = m; else lo = m; } return hi; })();
       const indU = u.ind ?? indEmp, obrig = cp.agio > 0 || indU;
       return {...u, pa, cp, cont, vu:vuU, vj:vjU, rec, base:rec === vuU ? "valor em uso" : "valor justo líquido de despesas de venda", perda, folga, aloc, beW, beM, indU, obrig}; });
     const T = {cont:U.reduce((a, u) => a + u.cont, 0), vu:U.reduce((a, u) => a + u.vu, 0), rec:U.reduce((a, u) => a + u.rec, 0), perda:U.reduce((a, u) => a + u.perda, 0)};
@@ -88,7 +92,7 @@ if (window.KT_DD && window.KT_VAL && window.KT_POS) (() => {
     const dw = [-.01, 0, .01, .02], dg = [-.01, -.005, 0, .005], grid = dg.map(d => ({g:g + d, cel:dw.map(e => ({w:w + e, folga:U.reduce((a, u) => a + Math.max(vuF(u.pct, w + e, g + d), u.vj ?? -Infinity) - u.cont, 0)}))}));
     /* calendário: primeiro teste do ágio até o fim do exercício da aquisição (item 84), depois todo ano */
     const prox = dAq ? (n < 1 ? `${dAq.slice(0, 4)}-12-31` : `${+dT.slice(0, 4) + 1}${dT.slice(4)}`) : "";
-    return {Z, R, X, q, w, g, F, VU, pre, C, multEb, vjBruto, vj, cv, comp, am, agio0, cont:T.cont, T, U, somaPct, somaAg, ebReal, ebFonte, ebProj, desv, ind, indEmp, anos, dT, dAq, prox, fonte, grid, wAq, ugcNome:q.ugc || s.mandato?.codinome || s.nome};
+    return {Z, R, X, q, O, Fs, VUs, c, w, g, F, VU, pre, C, multEb, vjBruto, vj, cv, comp, am, agio0, cont:T.cont, T, U, somaPct, somaAg, ebReal, ebFonte, ebProj, desv, ind, indEmp, anos, dT, dAq, prox, fonte, grid, wAq, ugcNome:q.ugc || s.mandato?.codinome || s.nome};
   }
   const statusU = u => u.perda > 0 ? ["r-alto", "Impairment: sim"] : u.folga < u.cont * .1 ? ["r-medio", "Impairment: não · folga pequena"] : ["r-baixo", "Impairment: não"];
   function html(s){
@@ -100,7 +104,7 @@ if (window.KT_DD && window.KT_VAL && window.KT_POS) (() => {
     return `<div class="card imp" style="display:flex;flex-direction:column;gap:10px;font-size:13px"><style>.imp table{font-size:12.5px}.imp td,.imp th{padding:6px 8px}.imp summary{cursor:pointer;font-size:13px;font-weight:600}.imp .dd-num{white-space:nowrap}</style>
       <div class="head" style="margin:0"><div><div class="eyebrow">Impairment · CPC 01 (R1)</div><h3 style="font-size:15px;margin:0">${esc(s.mandato?.codinome || s.nome)} · teste de recuperabilidade</h3>
         <p class="sub" style="margin:2px 0 0;font-size:12px">Data-base do teste ${dBR(I.dT)}${I.dAq ? ` · aquisição ${dBR(I.dAq)}` : ""} · WACC da data do teste ${pcx(I.w)}${I.prox ? ` · próximo teste do ágio até ${dBR(I.prox)}` : ""}</p></div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn sm primary" id="imp-pdf">Laudo de impairment (PDF)</button><button type="button" class="btn sm" id="imp-ppt">PowerPoint</button><button type="button" class="btn sm ghost" id="imp-xl">Memória (Excel)</button></div></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn sm primary" id="imp-pdf">Laudo de impairment (PDF)</button><button type="button" class="btn sm" id="imp-ppt">PowerPoint</button><button type="button" class="btn sm ghost" id="imp-xl">Exportar planilha modelo (Excel)</button>${D.ed() ? `<label class="btn sm ghost">Importar planilha revisada<input type="file" id="imp-imp" accept=".xlsx,.xlsm" hidden></label>` : ""}</div></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="pill ${st[0]}" style="font-size:11px">${st[1]}</span><span class="pill ${indT ? "r-medio" : "r-baixo"}" style="font-size:11px">Indício: ${indT ? "sim" : "não"}</span><span class="sub" style="font-size:11.5px">fonte: ${esc(I.fonte.t)}</span></div>
       <div class="tbl"><table><tbody>
         <tr><td><b>Fluxo de caixa descontado (valor em uso)</b></td><td class="dd-num"><b>${mi(T.vu)}</b></td></tr>
@@ -116,6 +120,7 @@ if (window.KT_DD && window.KT_VAL && window.KT_POS) (() => {
       ${T.perda > 0 ? `<div><b style="font-size:13px">Alocação da perda (item 104) e contabilização</b><div class="tbl" style="margin-top:6px"><table><tbody>
         ${["agio", "marca", "carteira", "outrosInt", "maisValia", "imob"].map(kk => { const v = I.U.reduce((a, u) => a + u.aloc[kk], 0); return v ? `<tr><td>${COMP.find(c => c[0] === kk)[1]}${kk === "agio" ? " · não reversível (item 124)" : ""}</td><td class="dd-num">${mi(v)}</td></tr>` : ""; }).join("")}</tbody></table></div>
         <p class="sub" style="margin:6px 0 0;font-size:12px"><b style="color:var(--fog)">D</b> Despesa com perda por impairment (resultado) ${mi(T.perda)} · <b style="color:var(--fog)">C</b> Perda estimada por redução ao valor recuperável (conta redutora do ativo) ${mi(T.perda)}${T.agioCtrl !== I.U.reduce((a, u) => a + u.aloc.agio, 0) ? ` · ágio da controladora ${mi(T.agioCtrl)}` : ""}. Fiscal: a perda não é dedutível no período (Lei 12.973, art. 32): adição no LALUR e na base da CSLL, dedutível na alienação ou baixa; IR e CS diferidos ativos de ${mi(T.perda * I.Z.t)} se houver expectativa de realização.</p></div>` : ""}
+      ${conferencia(s, I)}
       <details id="imp-ind"${S.impInd ? " open" : ""}><summary>Indícios de desvalorização (item 12) · ${I.ind.filter(x => x.sim).length} marcado(s)</summary><div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
         ${I.desv != null ? `<p class="sub" style="margin:0;font-size:12px">EBITDA realizado ${mi(I.ebReal)} (${esc(I.ebFonte)}) × projetado ${mi(I.ebProj)}: <b style="color:${I.desv < -.1 ? "var(--bad)" : "var(--fog)"}">${I.desv >= 0 ? "+" : ""}${pcx(I.desv)}</b></p>` : `<p class="sub" style="margin:0;font-size:12px">Informe o EBITDA realizado (ou importe o balancete posterior à aquisição) para comparar com o projetado.</p>`}
         <div class="tbl"><table><tbody>${I.ind.map(x => `<tr><td style="width:28px"><input type="checkbox" data-iind="${x.k}" ${x.sim ? "checked" : ""} aria-label="${esc(x.t)}" ${ed}></td><td>${esc(x.t)} <span class="sub" style="font-size:11px">· ${x.tp}${x.auto ? " · apurado pelo sistema" : ""}</span><input data-iobs="${x.k}" value="${esc(x.obs)}" placeholder="observação" style="margin-top:4px;width:100%;height:30px;font-size:12px" ${ed}></td></tr>`).join("")}</tbody></table></div>
@@ -123,7 +128,8 @@ if (window.KT_DD && window.KT_VAL && window.KT_POS) (() => {
       <details id="imp-ugc"${S.impUgc ? " open" : ""}><summary>Unidades geradoras de caixa</summary><div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
         <p class="sub" style="margin:0;font-size:12px">Sem UGC cadastrada, a UGC é a própria empresa (100% do fluxo de caixa). Com mais de uma unidade (ex.: São Paulo e Rio de Janeiro, ou uma linha de negócio), informe o % da receita de cada uma: o sistema leva esse % do fluxo de caixa e do valor contábil. O % do ágio e dos intangíveis pode ser diferente (vazio = % da receita).</p>
         ${varias ? `<div class="tbl"><table><thead><tr><th>UGC</th><th>% receita</th><th>% ágio e intangíveis</th><th>Indício</th><th></th></tr></thead><tbody>${I.U.map(u => `<tr><td><input data-un="${u.id}" value="${esc(u.nome)}" style="height:30px;font-size:12.5px;width:100%" ${ed}></td><td><input data-up="${u.id}" inputmode="decimal" value="${fmt(u.pct * 100, 1)}" style="height:30px;width:70px;text-align:right" ${ed}></td><td><input data-ua="${u.id}" inputmode="decimal" value="${u.pctAg != null ? fmt(u.pctAg * 100, 1) : ""}" placeholder="${fmt(u.pct * 100, 1)}" style="height:30px;width:70px;text-align:right" ${ed}></td><td><input type="checkbox" data-ui="${u.id}" ${u.indU ? "checked" : ""} aria-label="Indício na UGC ${esc(u.nome)}" ${ed}></td><td style="text-align:right">${ed ? "" : `<button type="button" class="btn sm ghost" data-urm="${u.id}">Remover</button>`}</td></tr>`).join("")}</tbody></table></div>` : ""}
-        ${ed ? "" : `<div class="form"><div class="fld"><label for="iu-n">Nova UGC</label><input id="iu-n" placeholder="ex.: Unidade Rio de Janeiro"></div><div class="fld"><label for="iu-p">% da receita</label><input id="iu-p" inputmode="decimal" placeholder="40"></div></div><button type="button" class="btn sm" id="iu-add" style="align-self:flex-start">Incluir UGC</button>`}</div></details>
+        ${ed ? "" : `<div style="display:flex;gap:6px;flex-wrap:wrap"><span class="sub" style="font-size:12px;align-self:center">Opções prontas:</span><button type="button" class="btn sm ghost" data-uop="todo">Empresa toda (1 UGC)</button>${Object.keys(I.X.bp.lin || {}).length > 1 ? `<button type="button" class="btn sm ghost" data-uop="linhas">Uma UGC por linha de negócio (${Object.keys(I.X.bp.lin).length})</button>` : ""}<button type="button" class="btn sm ghost" data-uop="marca">Marca e demais operações</button></div>
+        <div class="form"><div class="fld"><label for="iu-n">Nova UGC</label><input id="iu-n" placeholder="ex.: Unidade Rio de Janeiro"></div><div class="fld"><label for="iu-p">% da receita</label><input id="iu-p" inputmode="decimal" placeholder="40"></div></div><button type="button" class="btn sm" id="iu-add" style="align-self:flex-start">Incluir UGC</button>`}</div></details>
       <details id="imp-vu"><summary>Fluxo de caixa descontado · valor em uso</summary><div class="tbl" style="margin-top:8px"><table><thead><tr><th>Ano</th><th class="dd-num">Receita</th><th class="dd-num">EBITDA</th><th class="dd-num">CAPEX e invest.</th><th class="dd-num">FCL pós-IR</th><th class="dd-num">Valor presente</th></tr></thead><tbody>
         ${I.F.map(a => `<tr><td>${a.y}</td><td class="dd-num">${mi(a.rl)}</td><td class="dd-num">${mi(a.eb)}</td><td class="dd-num">${mi(a.capex + a.oinv)}${a.cxInf ? "" : ` <span class="sub" style="font-size:10px">reinv.</span>`}</td><td class="dd-num">${mi(a.fcl)}</td><td class="dd-num">${mi(a.fcl / Math.pow(1 + I.w, a.t - .5))}</td></tr>`).join("")}
         <tr><td>Perpetuidade</td><td colspan="3" class="sub" style="font-size:11.5px">g ${pcx(I.g)} · FCL ${mi(I.VU.fclP)}</td><td></td><td class="dd-num">${mi(I.VU.vtv)}</td></tr>
@@ -150,6 +156,10 @@ if (window.KT_DD && window.KT_VAL && window.KT_POS) (() => {
     $$("[data-ua]", host).forEach(i => i.onchange = () => up({ugcs:{[i.dataset.ua]:{pctAgio:i.value.trim() === "" ? null : nn(i.value)}}}));
     $$("[data-ui]", host).forEach(i => i.onchange = () => up({ugcs:{[i.dataset.ui]:{ind:i.checked}}}));
     $$("[data-urm]", host).forEach(b => b.onclick = () => up({ugcs:{[b.dataset.urm]:null}}));
+    $$("[data-uop]", host).forEach(b => b.onclick = () => { const I = calc(s); if (!I) return; S.impUgc = true; const nulo = {}; Object.keys(I.q.ugcs || {}).forEach(k => { nulo[k] = null; });
+      const t = Date.now().toString(36), op = b.dataset.uop, lin = I.X.bp.lin || {}, tot = Object.values(lin).reduce((a, x) => a + (x || 0), 0);
+      const novo = op === "todo" ? {} : op === "linhas" ? Object.fromEntries(Object.entries(lin).map(([l, v], i) => [`l${i}${t}`, {nome:l, pct:tot ? Math.round(v / tot * 1000) / 10 : 0}])) : {["m" + t]:{nome:"Marca e operações que a usam", pct:100, pctAgio:100}};
+      up({ugcs:{...nulo, ...novo}}).then(() => toast(op === "todo" ? "UGC: empresa toda" : "UGCs criadas: revise os %")); });
     const ad = $("#iu-add", host); if (ad) ad.onclick = () => { const nm = $("#iu-n").value.trim(), p = nn($("#iu-p").value); if (!nm || p == null){ toast("Informe o nome da UGC e o % da receita"); return; }
       S.impUgc = true; const atual = calc(s), novo = {["u" + Date.now().toString(36)]:{nome:nm, pct:p}};
       /* a primeira UGC nova divide a empresa: o restante fica numa UGC "Demais operações" */
@@ -159,6 +169,8 @@ if (window.KT_DD && window.KT_VAL && window.KT_POS) (() => {
       up({data:$("#im-dt").value || null, dataAq:$("#im-da").value || null, taxa:g("#im-w"), waccAq:g("#im-wa"), g:g("#im-g"), mult:g("#im-m"), custoVenda:g("#im-cv"), ebReal:g("#im-eb"), comp, agioTotal:$("#im-at").checked}).then(() => toast("Premissas do impairment salvas")); };
     const run = (id, fn) => { const b = $("#" + id, host); if (b) b.onclick = async () => { const t0 = b.textContent; b.disabled = true; b.textContent = "Gerando…"; try{ await fn(s); }catch(e){ console.error(e); toast("Não foi possível gerar o arquivo."); } b.disabled = false; b.textContent = t0; }; };
     run("imp-pdf", pdf); run("imp-ppt", ppt); run("imp-xl", xlsx);
+    const fi = $("#imp-imp", host); if (fi) fi.onchange = async () => { const fl = fi.files[0]; if (!fl) return; try{ const r = await importar(s, fl); toast(`Planilha revisada importada: ${r.lidos.join(", ")}`); }catch(e){ console.error(e); toast(e.message || "Não foi possível ler a planilha."); } fi.value = ""; };
+    const vf = $("#imp-volta", host); if (vf) vf.onclick = () => up({fluxo:null}).then(() => toast("Fluxo do sistema restaurado"));
   }
   const conclusao = I => I.T.perda > 0 ? `O carrying amount (${mi(I.T.cont)}) supera o valor recuperável (${mi(I.T.rec)}). Há perda por impairment de ${mi(I.T.perda)}, alocada primeiro ao ágio e depois, pro rata, aos demais ativos da UGC; a perda do ágio não é revertida.` : `O valor recuperável (${mi(I.T.rec)}) supera o carrying amount (${mi(I.T.cont)}) em ${mi(I.T.folga)}: não há perda por impairment a reconhecer.`;
   async function pdf(s){
@@ -167,6 +179,7 @@ if (window.KT_DD && window.KT_VAL && window.KT_POS) (() => {
     sec("Conclusão");
     R.kpisPdf(P, [["Valor em uso (FCD)", mi(T.vu), `WACC ${pcx(I.w)}`], ["Carrying amount", mi(T.cont), "valor contábil"], [T.perda > 0 ? "Impairment a reduzir" : "Valor excedente", mi(T.perda > 0 ? T.perda : T.folga), T.perda > 0 ? "perda no resultado" : "sem impairment"], ["Indício de impairment", I.indEmp || I.U.some(u => u.indU) ? "Sim" : "Não", "item 12"]]);
     R.par(P, conclusao(I)); R.par(P, `Fonte das informações: ${I.fonte.t}.`, {size:8.5});
+    if (window.KT_CNPJ?.ficha){ sec("Identificação da empresa"); R.tab(P, ["Campo", "Informação"], KT_CNPJ.ficha(s).filter(([k]) => !["Fonte do cadastro"].includes(k)), [.3, .7]); }
     sec("Objetivo e critérios");
     R.par(P, "O CPC 01 (R1), equivalente à IAS 36, assegura que os ativos não fiquem registrados por valor superior ao recuperável. O valor recuperável é o maior entre o valor justo líquido de despesas de venda e o valor em uso. Se o valor contábil for menor ou igual ao recuperável, nenhuma ação é necessária; se for maior, reconhece-se a perda e reduz-se o valor contábil até o recuperável.");
     R.par(P, "O teste é anual, com ou sem indício, para o ágio de combinação de negócios, os intangíveis de vida útil indefinida e os intangíveis ainda não em uso; para os demais ativos (imobilizado, CPC 27, e intangíveis com vida definida), sempre que houver indício interno ou externo de desvalorização.");
@@ -204,16 +217,164 @@ if (window.KT_DD && window.KT_VAL && window.KT_POS) (() => {
     sh = frame("Indícios e sensibilidade"); linhas(sh, [...I.ind.filter(x => x.sim).map(x => "Indício: " + x.t), ...(I.ind.some(x => x.sim) ? [] : ["Nenhum indício marcado; o ágio é testado anualmente (item 90)."]), ...I.U.map(u => `${u.nome}: ${u.beW != null ? `excedente zera com WACC de ${pcx(u.beW)}` : u.perda > 0 ? "já há perda no WACC atual" : "excedente não zera com taxas até 60%"}${u.beM != null ? ` ou EBITDA ${pcx(u.beM)} abaixo do projetado` : ""}`)], 1.4, 14); slides.push({sh});
     await rptSave(ktPptx(slides, `Impairment · ${nome}`), R.arq(s, "laudo_impairment_CPC01", "pptx"), "application/vnd.openxmlformats-officedocument.presentationml.presentation");
   }
-  async function xlsx(s){
-    const I = calc(s), T = I.T, H = v => ({v, s:"h"}), Tt = v => ({v, s:"t"}), Pp = v => ({v, s:"p"}), B = v => ({v, s:"b"}), cab = t => [[Tt(`${t} · ${s.mandato?.codinome || s.nome}`)], [`Valores em R$ · data-base do teste ${dBR(I.dT)} · CPC 01 (R1) · fonte: ${I.fonte.t}`], []];
-    const abas = [
-      {nome:"Resumo", larguras:[56, 20], linhas:[...cab("Teste de impairment"), [H("Item"), H("R$")], ["Valor em uso (FCD)", T.vu], ["Valor recuperável", T.rec], ...COMP.map(([kk, l]) => [l, I.U.reduce((a, u) => a + u.cp[kk], 0)]), [B("Carrying amount"), B(T.cont)], [B(T.perda > 0 ? "Impairment a reduzir" : "Valor excedente"), T.perda > 0 ? {v:-T.perda, s:"r"} : B(T.folga)], ["Indício de impairment", I.indEmp ? {v:"Sim", s:"y"} : "Não"], [], ["WACC pós-IR", Pp(I.w)], ["Taxa antes dos impostos", Pp(I.pre ?? 0)], ["Crescimento na perpetuidade", Pp(I.g)]]},
-      {nome:"UGCs", larguras:[30, 12, 12, 18, 18, 18, 18, 10], linhas:[...cab("Teste por unidade geradora de caixa"), [H("UGC"), H("% receita"), H("% ágio"), H("Valor em uso"), H("Valor justo líquido"), H("Carrying amount"), H("Excedente / perda"), H("Indício")], ...I.U.map(u => [u.nome, Pp(u.pct), Pp(u.pa), u.vu, u.vj ?? "—", u.cont, u.perda > 0 ? {v:-u.perda, s:"r"} : u.folga, u.indU ? "Sim" : "Não"])]},
-      {nome:"Valor em uso", larguras:[14, 18, 18, 18, 18, 18, 18], linhas:[...cab("Fluxo de caixa descontado"), [H("Ano"), H("Receita"), H("EBITDA"), H("CAPEX e invest."), H("FCL pós-IR"), H("FCL antes do IR"), H("Valor presente")], ...I.F.map(a => [a.y, a.rl, a.eb, a.capex + a.oinv, a.fcl, a.pre, a.fcl / Math.pow(1 + I.w, a.t - .5)]), ["Perpetuidade", "", "", "", I.VU.fclP, I.VU.preP, I.VU.vtv], [B("Total"), "", "", "", "", "", B(I.VU.v)]]},
-      {nome:"Alocação", larguras:[52, 18], linhas:[...cab("Alocação da perda (item 104)"), [H("Ativo"), H("Perda")], ...["agio", "marca", "carteira", "outrosInt", "maisValia", "imob"].map(kk => [COMP.find(c => c[0] === kk)[1], I.U.reduce((a, u) => a + u.aloc[kk], 0)]), [B("Total"), B(T.perda)]]},
-      {nome:"Sensibilidade", larguras:[16, 16, 16, 16, 16], linhas:[...cab("Excedente por WACC e crescimento"), [H("g \\ WACC"), ...I.grid[0].cel.map(c => H(pcx(c.w)))], ...I.grid.map(l => [pcx(l.g), ...l.cel.map(c => c.folga < 0 ? {v:c.folga, s:"r"} : c.folga)])]},
-      {nome:"Indícios", larguras:[70, 10, 10, 40], linhas:[...cab("Indícios de desvalorização (item 12)"), [H("Indício"), H("Origem"), H("Situação"), H("Observação")], ...I.ind.map(x => [x.t, x.tp, x.sim ? {v:"Sim", s:"y"} : "Não", x.obs])]}];
-    await rptSave(KT_XLSX.gerar(abas), KT_REL.arq(s, "impairment_CPC01", "xlsx"), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+  /* ---------------- planilha modelo (padrão Kinsey BR, como a do PPA · CPC 15) ---------------- */
+  const colL = i => { let t = ""; i++; while (i){ const m = (i - 1) % 26; t = String.fromCharCode(65 + m) + t; i = Math.floor((i - 1) / 26); } return t; };
+  function Folha(nome, larguras){ const f = {nome, linhas:[], idx:{}, larguras, congela:[4, 1]};
+    f.add = (cells, key) => { f.linhas.push(cells); const r = f.linhas.length; if (key) f.idx[key] = r; return r; };
+    f.r = k => f.idx[k]; f.x = (k, c, abs) => `'${nome}'!${abs ? "$" : ""}${c}${abs ? "$" : ""}${f.idx[k]}`; return f; }
+  const Ti = v => ({v, s:"t"}), He = v => ({v, s:"h"}), In = v => ({v:v == null || !isFinite(v) ? 0 : Math.round(v * 100) / 100, s:"i"}), IP = v => ({v:v == null || !isFinite(v) ? 0 : +(+v).toFixed(6), s:"ip"}), IT = v => ({v:String(v ?? ""), s:"it"});
+  const Fo = (f, v, st) => ({f, v:v != null && isFinite(v) ? v : undefined, s:st || "n"}), FoP = (f, v) => Fo(f, v, "fp"), Gt = (f, v) => Fo(f, v, "g");
+  const ROT = {dataT:"Data-base do teste (aaaa-mm-dd)", dataAq:"Data da aquisição (aaaa-mm-dd)", wacc:"WACC pós-IR na data do teste", waccAq:"WACC na data da aquisição", g:"Crescimento na perpetuidade (nominal)", ir:"Alíquota de IR e CS",
+    mult:"Múltiplo EV/EBITDA para o valor justo (×)", cv:"Despesas de venda (% do valor justo)", eb:"EBITDA base (valor justo)", pct:"Participação adquirida", agioT:"Ágio já reconhecido a 100%? (Sim/Não)"};
+  const FL = {rl:"Receita líquida", eb:"EBITDA", ir:"(−) IR e CS sobre o lucro operacional", capex:"(−) CAPEX", oinv:"(−) Outros investimentos", dncg:"(−) Variação do capital de giro"};
+  function modelo(s){
+    const I = calc(s); if (!I) throw new Error("Sem balancetes para montar a planilha."); const q = I.q, nome = s.mandato?.codinome || s.nome, rf = s.receita && !s.receita.erro ? s.receita : {};
+    const cab = (f, t) => { f.add([Ti(`${t} · ${nome}`)]); f.add([`Planilha padronizada Kinsey BR · CPC 01 (R1) · células em azul são entradas do consultor; as demais são fórmulas · valores em R$ · fonte: ${I.fonte.t}`]); f.add([]); };
+    /* Premissas */
+    const Pm = Folha("Premissas", [52, 20, 50]); cab(Pm, "Premissas do teste de impairment"); Pm.add([He("Premissa"), He("Valor"), He("Fonte")]);
+    Pm.add(["Empresa", IT(s.nome), "cadastro inicial"]); (window.KT_CNPJ?.ficha ? KT_CNPJ.ficha(s).filter(([k]) => ["Razão social", "CNPJ", "Endereço", "Atividade principal (CNAE)", "Sócios", "Capital social"].includes(k)) : [["CNPJ", s.doc || ""], ["Razão social", rf.razao || s.nome]]).forEach(([k, v]) => Pm.add([k, IT(v), "cadastro inicial"])); Pm.add(["Segmento", IT(s.perfil?.segmento || s.segmento || ""), "cadastro"]);
+    Pm.add([ROT.dataT, IT(I.dT), "consultor"], "dataT"); Pm.add([ROT.dataAq, IT(I.dAq || ""), "PPA / SPA"], "dataAq");
+    Pm.add([ROT.wacc, IP(I.w), q.taxa != null ? "informado" : "WACC do sistema (CAPM) na data do teste"], "wacc"); Pm.add([ROT.waccAq, IP(I.wAq ?? 0), "para o indício de alta de juros"], "waccAq");
+    Pm.add([ROT.g, IP(I.g), "PIB do setor + inflação (base de valuation)"], "g"); Pm.add([ROT.ir, IP(I.X.W.t), "regime tributário"], "ir");
+    Pm.add([ROT.mult, In(I.multEb || 0), I.C?.eb ? `comparáveis de mercado (${I.C.eb.n} cias.) com desconto de liquidez` : "sem comparáveis: informe"], "mult"); Pm.add([ROT.cv, IP(I.cv), "padrão 2%"], "cv");
+    Pm.add([ROT.eb, In(I.X.bp.eb), `balancete de ${I.X.perBase}${I.fonte.k === "wb" ? " (workbook da DD)" : ""}`], "eb"); Pm.add([ROT.pct, IP(I.Z.pct), "mandato / SPA"], "pct"); Pm.add([ROT.agioT, IT(q.agioTotal ? "Sim" : "Não"), "item C4 do CPC 01"], "agioT");
+    /* Fluxo de caixa */
+    const Fc = Folha("Fluxo de caixa", [46, 16, 16, 16, 16, 16, 16]); cab(Fc, "Valor em uso · fluxo de caixa descontado"); const C5 = [1, 2, 3, 4, 5].map(i => colL(i));
+    Fc.add([He("Item"), ...I.F.map(a => He(String(a.y)))], "ano");
+    Object.entries(FL).forEach(([k, l]) => Fc.add([l, ...I.F.map(a => In(k === "oinv" ? a.oinv || 0 : a[k]))], k));
+    Fc.add([{v:"Fluxo de caixa livre (pós-IR)", s:"b"}, ...I.F.map((a, i) => Gt(`${C5[i]}${Fc.r("eb")}-${C5[i]}${Fc.r("ir")}-${C5[i]}${Fc.r("capex")}-${C5[i]}${Fc.r("oinv")}-${C5[i]}${Fc.r("dncg")}`, a.fcl))], "fcl");
+    Fc.add(["Período (meio do ano)", ...I.F.map((a, i) => Fo(`${i}+0.5`, i + .5, "d"))], "t");
+    Fc.add(["Fator de desconto", ...I.F.map((a, i) => Fo(`1/(1+${Pm.x("wacc", "B", 1)})^${C5[i]}${Fc.r("t")}`, 1 / Math.pow(1 + I.w, i + .5), "d"))], "fd");
+    Fc.add(["Valor presente", ...I.F.map((a, i) => Fo(`${C5[i]}${Fc.r("fcl")}*${C5[i]}${Fc.r("fd")}`, a.fcl / Math.pow(1 + I.w, i + .5)))], "vp"); Fc.add([]);
+    Fc.add(["FCL da perpetuidade (ano 6)", In(I.VU.fclP)], "fclP");
+    Fc.add(["Valor terminal (Gordon)", Fo(`IFERROR(B${Fc.r("fclP")}/(${Pm.x("wacc", "B", 1)}-${Pm.x("g", "B", 1)}),0)`, I.VU.vtv * Math.pow(1 + I.w, 4.5))], "tv");
+    Fc.add(["Valor presente da perpetuidade", Fo(`B${Fc.r("tv")}/(1+${Pm.x("wacc", "B", 1)})^4.5`, I.VU.vtv)], "vtv");
+    Fc.add(["Soma do valor presente dos 5 anos", Fo(`SUM(B${Fc.r("vp")}:F${Fc.r("vp")})`, I.VU.vp)], "svp");
+    Fc.add([{v:"Valor em uso (100% da empresa)", s:"b"}, Gt(`B${Fc.r("svp")}+B${Fc.r("vtv")}`, I.VU.v)], "vu");
+    Fc.add(["Perpetuidade / valor em uso", FoP(`IFERROR(B${Fc.r("vtv")}/B${Fc.r("vu")},0)`, I.VU.vtv / I.VU.v)], "pp");
+    Fc.add([{v:"Valor justo líquido de despesas de venda (100%)", s:"b"}, Gt(`${Pm.x("eb", "B", 1)}*${Pm.x("mult", "B", 1)}*(1-${Pm.x("cv", "B", 1)})`, I.vj ?? 0)], "vj");
+    Fc.add(["Valor em uso calculado pelo sistema (conferência)", In(I.VUs.v)], "vus");
+    /* Carrying amount */
+    const Ca = Folha("Carrying amount", [60, 20, 44]); cab(Ca, "Carrying amount · valor contábil (100%)"); Ca.add([He("Componente"), He("R$"), He("Origem")]);
+    const ORIG = {marca:`PPA, líquido de ${mi(I.am.marca)} amortizados`, carteira:`PPA, líquido de ${mi(I.am.carteira)} amortizados`, outrosInt:`PPA, líquido de ${mi(I.am.outrosInt)} amortizados`, maisValia:"PPA (imobilizado e imóveis)", imob:`balancete de ${I.X.perBase}`, giro:"PPA / balancete", agio:"PPA · ágio da controladora"};
+    COMP.forEach(([k, l]) => Ca.add([l, In(k === "agio" ? I.agio0 : I.comp[k]), ORIG[k]], k));
+    Ca.add(["Ágio ajustado a 100% da UGC (item C4)", Fo(`IF(${Pm.x("agioT", "B", 1)}="Sim",B${Ca.r("agio")},IFERROR(B${Ca.r("agio")}/${Pm.x("pct", "B", 1)},B${Ca.r("agio")}))`, I.comp.agio), "fórmula"], "agio100");
+    Ca.add([{v:"Intangíveis e ágio (seguem o % do ágio da UGC)", s:"b"}, Gt(`B${Ca.r("marca")}+B${Ca.r("carteira")}+B${Ca.r("outrosInt")}+B${Ca.r("agio100")}`, I.comp.marca + I.comp.carteira + I.comp.outrosInt + I.comp.agio)], "intg");
+    Ca.add([{v:"Ativos operacionais (seguem o % da receita)", s:"b"}, Gt(`B${Ca.r("maisValia")}+B${Ca.r("imob")}+B${Ca.r("giro")}`, I.comp.maisValia + I.comp.imob + I.comp.giro)], "oper");
+    Ca.add([{v:"Total do carrying amount (100%)", s:"b"}, Gt(`B${Ca.r("intg")}+B${Ca.r("oper")}`, I.cont / (I.somaPct || 1))], "tot");
+    /* UGCs: opções prontas; o consultor marca Sim nas que são UGC */
+    const Ug = Folha("UGCs", [44, 18, 16, 22, 16, 50]); cab(Ug, "Unidades geradoras de caixa · marque Sim nas que são UGC"); Ug.add([He("Unidade"), He("É UGC? (Sim/Não)"), He("% da receita"), He("% do ágio e intangíveis (vazio = % receita)"), He("Indício? (Sim/Não)"), He("Observação")], "h");
+    const lin = I.X.bp.lin || {}, totL = Object.values(lin).reduce((a, x) => a + (x || 0), 0), op = [];
+    I.U.forEach(u => op.push([u.nome, "Sim", u.pct, u.pctAg, u.indU ? "Sim" : "Não", u.obs || (u.unica ? "UGC atual: a empresa toda" : "UGC atual")]));
+    if (!I.U[0].unica) op.push(["Empresa toda", "Não", 1, null, "Não", "opção: uma UGC só"]);
+    if (Object.keys(lin).length > 1) Object.entries(lin).forEach(([l, v]) => { if (!I.U.some(u => u.nome === l)) op.push([l, "Não", totL ? v / totL : 0, null, "Não", "opção: linha de negócio (participação na receita do balancete)"]); });
+    op.push(["Marca e operações que a usam", "Não", 1, 1, "Não", "opção: teste da marca com o fluxo que ela gera"]); op.push(["Filial ou unidade (renomeie)", "Não", 0, null, "Não", "opção: informe o % da receita"]);
+    const u0 = Ug.linhas.length + 1; op.forEach(o => Ug.add([IT(o[0]), IT(o[1]), IP(o[2]), o[3] == null ? IT("") : IP(o[3]), IT(o[4]), IT(o[5])])); for (let k = 0; k < 3; k++) Ug.add([IT(""), IT("Não"), IP(0), IT(""), IT("Não"), IT("")]); const u1 = Ug.linhas.length;
+    Ug.add([]); Ug.add([{v:"Soma do % da receita das UGCs marcadas", s:"b"}, "", FoP(`SUMIF(B${u0}:B${u1},"Sim",C${u0}:C${u1})`, I.somaPct)], "soma");
+    /* Teste por UGC */
+    const Te = Folha("Teste por UGC", [36, 10, 12, 12, 17, 17, 17, 17, 17, 12, 16, 16, 16]); cab(Te, "Teste por unidade geradora de caixa");
+    Te.add([He("UGC"), He("É UGC?"), He("% receita"), He("% ágio"), He("Valor em uso"), He("Valor justo líquido"), He("Valor recuperável"), He("Carrying amount"), He("Excedente (−) perda"), He("Impairment?"), He("Perda"), He("Perda no ágio"), He("Perda nos demais")], "h");
+    const t0 = Te.linhas.length + 1;
+    for (let r = u0; r <= u1; r++){ const n = Te.linhas.length + 1, U = `'UGCs'!`, o = op[r - u0], sim = o?.[1] === "Sim", pr = sim ? o[2] : 0, pa = sim ? (o[3] ?? o[2]) : 0, uu = sim ? I.U.find(x => x.nome === o[0]) : null;
+      Te.add([Fo(`${U}A${r}`, undefined, "t"), Fo(`${U}B${r}`, undefined, "t"), FoP(`IF(B${n}="Sim",${U}C${r},0)`, pr), FoP(`IF(B${n}="Sim",IF(${U}D${r}="",${U}C${r},${U}D${r}),0)`, pa),
+        Fo(`${Fc.x("vu", "B", 1)}*C${n}`, uu?.vu ?? 0), Fo(`${Fc.x("vj", "B", 1)}*C${n}`, uu?.vj ?? 0), Fo(`MAX(E${n},F${n})`, uu?.rec ?? 0), Fo(`${Ca.x("intg", "B", 1)}*D${n}+${Ca.x("oper", "B", 1)}*C${n}`, uu?.cont ?? 0),
+        Fo(`G${n}-H${n}`, uu ? uu.rec - uu.cont : 0), Fo(`IF(B${n}<>"Sim","",IF(I${n}<0,"Sim","Não"))`, undefined, "t"), Fo(`IF(B${n}="Sim",MAX(0,-I${n}),0)`, uu?.perda ?? 0),
+        Fo(`MIN(K${n},${Ca.x("agio100", "B", 1)}*D${n})`, uu?.aloc.agio ?? 0), Fo(`K${n}-L${n}`, uu ? uu.perda - uu.aloc.agio : 0)]); }
+    const t1 = Te.linhas.length, sm = c => `SUM(${c}${t0}:${c}${t1})`;
+    Te.add([{v:"Total", s:"b"}, "", FoP(sm("C"), I.somaPct), "", Gt(sm("E"), I.T.vu), Gt(sm("F"), (I.vj ?? 0) * I.somaPct), Gt(sm("G"), I.T.rec), Gt(sm("H"), I.T.cont), Gt(sm("I"), I.T.rec - I.T.cont), "", Gt(sm("K"), I.T.perda), Gt(sm("L"), I.U.reduce((a, u) => a + u.aloc.agio, 0)), Gt(sm("M"), I.U.reduce((a, u) => a + u.perda - u.aloc.agio, 0))], "tot");
+    Te.congela = [5, 1];
+    /* Indícios */
+    const In_ = Folha("Indícios", [80, 12, 18, 50]); cab(In_, "Indícios de desvalorização (item 12)"); In_.add([He("Indício"), He("Origem"), He("Situação (Sim/Não)"), He("Observação")]);
+    const i0 = In_.linhas.length + 1; I.ind.forEach(x => In_.add([x.t, x.tp, IT(x.sim ? "Sim" : "Não"), IT(x.obs || (x.k === "desemp" && I.desv != null ? `EBITDA realizado ${mi(I.ebReal)} × projetado ${mi(I.ebProj)} (${pcx(I.desv)})` : ""))])); const i1 = In_.linhas.length;
+    /* Resumo */
+    const Rs = Folha("Resumo", [60, 20, 40]); cab(Rs, "Resumo do teste de impairment"); Rs.add([He("Item"), He("R$"), He("Observação")]);
+    Rs.add(["Fluxo de caixa descontado · valor em uso (UGCs)", Fo(Te.x("tot", "E"), I.T.vu), "Fluxo de caixa"], "vu");
+    Rs.add(["Valor justo líquido de despesas de venda (UGCs)", Fo(Te.x("tot", "F"), (I.vj ?? 0) * I.somaPct), "múltiplos de mercado"], "vj");
+    Rs.add(["Valor recuperável (o maior, por UGC)", Fo(Te.x("tot", "G"), I.T.rec), ""], "rec");
+    Rs.add(["Carrying amount (UGCs)", Fo(Te.x("tot", "H"), I.T.cont), "Carrying amount"], "cont");
+    Rs.add([{v:"Valor excedente", s:"b"}, Gt(`SUMIF('Teste por UGC'!I${t0}:I${t1},">0")`, I.T.folga), "sem impairment"], "exc");
+    Rs.add([{v:"Impairment a reduzir", s:"b"}, Gt(Te.x("tot", "K"), I.T.perda), "débito na DRE, crédito na conta redutora do ativo"], "perda");
+    Rs.add(["Impairment? (Sim/Não)", Fo(`IF(B${Rs.r("perda")}>0,"Sim","Não")`, undefined, "t")], "imp");
+    Rs.add(["Indício de impairment? (Sim/Não)", Fo(`IF(COUNTIF('Indícios'!C${i0}:C${i1},"Sim")+COUNTIFS('UGCs'!B${u0}:B${u1},"Sim",'UGCs'!E${u0}:E${u1},"Sim")>0,"Sim","Não")`, undefined, "t")], "ind");
+    Rs.add([]); Rs.add([He("Alocação da perda (item 104)"), He("R$"), He("")]);
+    Rs.add(["Ágio (não reversível)", Fo(Te.x("tot", "L"))], "aAg");
+    [["marca", "Marca"], ["carteira", "Relacionamento com clientes"], ["outrosInt", "Outros intangíveis"], ["maisValia", "Mais-valia de ativos"], ["imob", "Imobilizado"]].forEach(([k, l]) => Rs.add([l + " (pro rata)", Fo(`IFERROR(${Te.x("tot", "M")}*${Ca.x(k, "B", 1)}/(${Ca.x("marca", "B", 1)}+${Ca.x("carteira", "B", 1)}+${Ca.x("outrosInt", "B", 1)}+${Ca.x("maisValia", "B", 1)}+${Ca.x("imob", "B", 1)}),0)`)]));
+    Rs.add(["IR e CS diferidos ativos sobre a perda (se houver expectativa de realização)", Fo(`B${Rs.r("perda")}*${Pm.x("ir", "B", 1)}`, I.T.perda * I.X.W.t), "Lei 12.973, art. 32: perda indedutível até a baixa"]);
+    /* Sensibilidade (sistema) e conferências */
+    const Se = Folha("Sensibilidade", [22, 16, 16, 16, 16]); cab(Se, "Excedente (−) perda por WACC e crescimento · calculado pelo sistema"); Se.add([He("g \\ WACC"), ...I.grid[0].cel.map(c => He(pcx(c.w)))]);
+    I.grid.forEach(l => Se.add([pcx(l.g), ...l.cel.map(c => c.folga < 0 ? {v:Math.round(c.folga), s:"r"} : Math.round(c.folga))]));
+    const Ck = Folha("Conferências", [70, 16, 18]); cab(Ck, "Conferências"); Ck.add([He("Conferência"), He("Resultado"), He("Valor")]);
+    [["Soma do % da receita das UGCs marcadas = 100%", `ABS(${Ug.x("soma", "C")}-1)<0.001`, Ug.x("soma", "C"), "fp"], ["Crescimento na perpetuidade menor que o WACC", `${Pm.x("g", "B")}<${Pm.x("wacc", "B")}`, Pm.x("g", "B"), "fp"],
+      ["Perpetuidade até 85% do valor em uso", `${Fc.x("pp", "B")}<=0.85`, Fc.x("pp", "B"), "fp"], ["Valor em uso próximo do sistema (até 10%)", `ABS(${Fc.x("vu", "B")}-${Fc.x("vus", "B")})<=ABS(${Fc.x("vus", "B")})*0.1`, `${Fc.x("vu", "B")}-${Fc.x("vus", "B")}`, "n"],
+      ["Pelo menos uma UGC marcada", `COUNTIF('UGCs'!B${u0}:B${u1},"Sim")>0`, `COUNTIF('UGCs'!B${u0}:B${u1},"Sim")`, "n"], ["WACC até 3 p.p. do WACC do sistema", `ABS(${Pm.x("wacc", "B")}-${+I.X.W.wacc.toFixed(6)})<=0.03`, Pm.x("wacc", "B"), "fp"]]
+      .forEach(([t, cond, val, st]) => Ck.add([t, Fo(`IF(${cond},"OK","Verificar")`, undefined, "t"), Fo(val, undefined, st)]));
+    const No = Folha("CPC 01", [110]); cab(No, "Referências do CPC 01 (R1) / IAS 36"); [
+      "Valor recuperável = o maior entre o valor justo líquido de despesas de venda e o valor em uso (item 18).",
+      "Valor contábil ≤ recuperável: nenhuma ação. Valor contábil > recuperável: perda por impairment, reduzindo o valor contábil até o recuperável (item 59).",
+      "Teste anual, com ou sem indício: ágio de combinação de negócios, intangíveis de vida útil indefinida e intangíveis ainda não em uso (itens 10 e 90).",
+      "Demais ativos (imobilizado · CPC 27, intangíveis com vida útil definida): teste quando houver indício interno ou externo (item 12).",
+      "Valor em uso: fluxos do ativo no estado atual, sem reestruturações não comprometidas nem melhorias (item 44); no máximo 5 anos de projeção, salvo justificativa (item 33).",
+      "Taxa de desconto antes dos impostos (item 55): o sistema calcula a equivalente à taxa pós-IR.",
+      "UGC: o menor grupo identificável de ativos que gera entradas de caixa independentes (item 6). O ágio é alocado às UGCs que se beneficiam da combinação (item 80).",
+      "Alocação da perda: primeiro ao ágio da UGC, depois pro rata aos demais ativos, sem ficar abaixo do maior entre o valor justo líquido, o valor em uso e zero (itens 104 e 105).",
+      "Perda do ágio não é revertida (item 124). Não controladores: o ágio é ajustado a 100% antes do teste (item C4).",
+      "Contabilização: débito em despesa com perda por impairment (DRE) e crédito em conta redutora do ativo (balanço patrimonial).",
+      "Fiscal (Lei 12.973, art. 32): perda indedutível no período; dedutível na alienação ou baixa. Controle no LALUR e IR/CS diferidos quando houver expectativa de realização."].forEach(t => No.add([t]));
+    No.congela = [3, 0];
+    return {abas:[Rs, Pm, Ug, Fc, Ca, Te, In_, Se, Ck, No], I};
   }
-  window.KT_IMP = {calc, html, bind, pdf, ppt, xlsx, INDICIOS, COMP};
+  async function xlsx(s){ const {abas} = modelo(s);
+    await rptSave(KT_XLSX.gerar(abas), KT_REL.arq(s, "impairment_planilha_padronizada", "xlsx"), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"); }
+  /* ---------------- importação da planilha revisada pelo consultor ---------------- */
+  const nb = v => { if (v == null || v === "") return null; const x = +String(v).replace(/\s/g, ""); return isFinite(x) ? x : null; };
+  const dataDe = v => { const x = nb(v); if (x != null && x > 20000 && x < 80000){ const d = new Date(Math.round((x - 25569) * 864e5)); return d.toISOString().slice(0, 10); } const m = String(v || "").match(/(\d{4})-(\d{2})-(\d{2})/) || String(v || "").match(/(\d{2})\/(\d{2})\/(\d{4})/); return !m ? null : m[1].length === 4 ? `${m[1]}-${m[2]}-${m[3]}` : `${m[3]}-${m[2]}-${m[1]}`; };
+  async function importar(s, file){
+    const P = await KT_DDWB.planilhas(await file.arrayBuffer()), aba = n => P[Object.keys(P).find(k => k.trim().toLowerCase() === n.toLowerCase())] || null;
+    const Pm = aba("Premissas"), Fc = aba("Fluxo de caixa"), Ca = aba("Carrying amount"), Ug = aba("UGCs"), In_ = aba("Indícios"), Rs = aba("Resumo");
+    if (!Pm || !Fc || !Ug) throw new Error("Esta não é a planilha modelo de impairment do KinseyTec (faltam as abas Premissas, Fluxo de caixa ou UGCs).");
+    const row = (L, rot) => (L || []).find(r => String(r?.[0] || "").trim().toLowerCase() === rot.toLowerCase()), val = (L, rot, c = 1) => row(L, rot)?.[c];
+    const I = calc(s), up = {}, lidos = [];
+    /* premissas */
+    const pp = k => nb(val(Pm, ROT[k])); const dT = dataDe(val(Pm, ROT.dataT)), dA = dataDe(val(Pm, ROT.dataAq));
+    if (dT) up.data = dT; if (dA) up.dataAq = dA;
+    const w = pp("wacc"), wa = pp("waccAq"), g = pp("g"), mu = pp("mult"), cv = pp("cv");
+    if (w != null && Math.abs(w - I.X.W.wacc) > 1e-5) up.taxa = +(w * 100).toFixed(4); if (wa) up.waccAq = +(wa * 100).toFixed(4);
+    if (g != null && Math.abs(g - I.c.g) > 1e-5) up.g = +(g * 100).toFixed(4); if (mu != null && (!I.multEb || Math.abs(mu - I.multEb) > .005)) up.mult = mu; if (cv != null) up.custoVenda = +(cv * 100).toFixed(4);
+    up.agioTotal = /^s/i.test(String(val(Pm, ROT.agioT) || "")); lidos.push("premissas");
+    /* fluxo de caixa: se o consultor alterou, passa a valer o fluxo dele */
+    const anosRow = Fc.find(r => String(r?.[0] || "").trim() === "Item") || []; const anos = [1, 2, 3, 4, 5].map(c => +anosRow[c] || I.F[c - 1].y);
+    const fl = Object.fromEntries(Object.entries(FL).map(([k, l]) => [k, [1, 2, 3, 4, 5].map(c => nb(row(Fc, l)?.[c]))]));
+    const fclP = nb(val(Fc, "FCL da perpetuidade (ano 6)"));
+    if (fl.eb.every(v => v != null)){
+      const A = anos.map((y, i) => ({y, rl:fl.rl[i] || 0, eb:fl.eb[i], ir:fl.ir[i] || 0, capex:fl.capex[i] || 0, oinv:fl.oinv[i] || 0, dncg:fl.dncg[i] || 0}));
+      const dif = A.some((a, i) => ["rl", "eb", "ir", "capex", "oinv", "dncg"].some(k => Math.abs(a[k] - (k === "oinv" ? I.Fs[i].oinv || 0 : I.Fs[i][k])) > Math.max(1000, Math.abs(I.Fs[i][k] || 0) * .005))) || (fclP != null && Math.abs(fclP - I.VUs.fclP) > Math.max(1000, Math.abs(I.VUs.fclP) * .005));
+      up.fluxo = dif ? {anos:A, fclP, arquivo:file.name, em:nowISO()} : null; lidos.push(dif ? "fluxo revisado" : "fluxo sem alteração");
+    }
+    /* carrying amount: só o que o consultor mudou */
+    if (Ca){ const comp = {}; COMP.forEach(([k, l]) => { const v = nb(val(Ca, l)), exp = k === "agio" ? I.agio0 : I.comp[k];
+        comp[k] = v != null && Math.abs(v - exp) > Math.max(1000, Math.abs(exp) * .001) ? +(v / 1e6).toFixed(6) : (I.q.comp?.[k] ?? null); });
+      up.comp = comp; lidos.push("carrying amount"); }
+    /* UGCs marcadas com Sim */
+    const hU = Ug.findIndex(r => /é ugc/i.test(String(r?.[1] || ""))); const novas = {};
+    Ug.slice(hU + 1).forEach((r, i) => { const nm = String(r?.[0] || "").trim(); if (!nm || !/^s/i.test(String(r?.[1] || ""))) return; const pr = nb(r[2]) ?? 0, pa = nb(r[3]);
+      novas[`x${i}${Date.now().toString(36)}`] = {nome:nm, pct:+(pr * 100).toFixed(4), pctAgio:pa == null ? null : +(pa * 100).toFixed(4), ind:/^s/i.test(String(r?.[4] || "")), obs:String(r?.[5] || "").replace(/^UGC atual.*$/, "").trim()}; });
+    if (!Object.keys(novas).length) throw new Error("Nenhuma unidade marcada como UGC (Sim) na aba UGCs.");
+    const nulo = {}; Object.keys(I.q.ugcs || {}).forEach(k => { nulo[k] = null; }); const L = Object.values(novas);
+    up.ugcs = L.length === 1 && L[0].pct >= 99.9 && (L[0].pctAgio == null || L[0].pctAgio >= 99.9) ? nulo : {...nulo, ...novas}; if (L.length === 1) up.ugc = L[0].nome; lidos.push(`${L.length} UGC(s)`);
+    /* indícios */
+    if (In_){ const ind = {}; INDICIOS.forEach(([k, t]) => { const r = row(In_, t); if (r) ind[k] = {sim:/^s/i.test(String(r[2] || "")), obs:String(r[3] || "").trim()}; }); up.ind = ind; lidos.push("indícios"); }
+    /* resultados do consultor, para a conferência */
+    const res = Rs ? {vu:nb(val(Rs, "Fluxo de caixa descontado · valor em uso (UGCs)")), cont:nb(val(Rs, "Carrying amount (UGCs)")), perda:nb(val(Rs, "Impairment a reduzir")), exc:nb(val(Rs, "Valor excedente"))} : {};
+    await D.up(s, {pos:{imp:up, impConsultor:{arquivo:file.name, em:nowISO(), por:Store.me?.email || "", resultados:res}}});
+    return {lidos};
+  }
+  function conferencia(s, I){
+    const reg = s.pos?.impConsultor; if (!reg) return ""; const r = reg.resultados || {};
+    const L = [["Valor em uso (UGCs)", I.T.vu, r.vu], ["Carrying amount (UGCs)", I.T.cont, r.cont], ["Impairment a reduzir", I.T.perda, r.perda], ["Valor excedente", I.T.folga, r.exc]];
+    const tr = ([n, a, b]) => { const df = b != null && a ? (b - a) / Math.abs(a) : null; return `<tr><td>${esc(n)}</td><td class="dd-num">${mi(a)}</td><td class="dd-num">${b != null ? mi(b) : "—"}</td><td class="dd-num" style="color:${df != null && Math.abs(df) > .02 ? "var(--warn)" : "inherit"}">${df != null ? pcx(df) : "—"}</td></tr>`; };
+    return `<div style="display:flex;flex-direction:column;gap:6px"><b style="font-size:13px">Planilha revisada pelo consultor</b><p class="sub" style="margin:0;font-size:12px">${esc(reg.arquivo)} · importada em ${new Date(reg.em).toLocaleDateString("pt-BR")}${reg.por ? " · " + esc(reg.por) : ""}. As premissas, as UGCs, os indícios e o fluxo alterados na planilha já valem no sistema e nos relatórios.${I.O ? ` <button type="button" class="btn sm ghost" id="imp-volta">Voltar ao fluxo do sistema</button>` : ""}</p>
+      <div class="tbl"><table><thead><tr><th>Item</th><th class="dd-num">Sistema</th><th class="dd-num">Planilha</th><th class="dd-num">Diferença</th></tr></thead><tbody>${L.map(tr).join("")}</tbody></table></div>
+      <p class="sub" style="margin:0;font-size:11.5px">Os valores da planilha são os gravados pelo Excel ao salvar; diferença pequena vem de arredondamento.</p></div>`;
+  }
+  window.KT_IMP = {calc, html, bind, pdf, ppt, xlsx, modelo, importar, INDICIOS, COMP};
 })();
