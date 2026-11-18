@@ -1,5 +1,8 @@
 # Registro de versões
 
+## v2.90 — 2026-11-18 · Busca de empresa por nome ou CNPJ
+- Due Diligence, Jurídico (questionário, NDA, mandatos, SPA e MOU) e Imóveis: no lugar da lista com todas as empresas, um campo para digitar parte do nome, do nome-código ou do CNPJ; o sistema mostra até 8 empresas e a escolhida aparece logo abaixo ("Selecionada: … · CNPJ")
+
 ## v2.89 — 2026-11-18 · Pré-diligência resumida e pontos de mercado e concorrência
 - Due Diligence: os pontos da pré-diligência aparecem resumidos (total por nível e por área) e a lista completa abre em "Ver pontos de diligência"; os relatórios (prévio e completo, PDF e PowerPoint) ficam logo acima
 - Novos pontos de "Mercado e concorrência": atividade exposta a importados, principalmente da China e da Ásia (têxteis, vestuário, calçados, químicos, plásticos, cerâmica, aço, metal, eletrônicos, máquinas, autopeças, móveis, brinquedos, pelo CNAE principal e secundários), medida antidumping ou concorrência chinesa citadas em notícias e materiais, preço de commodities, exposição ao câmbio e comércio atacadista
