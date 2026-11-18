@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v2.91 — 2026-11-18 · Dívida líquida em síntese
+- Valuation, aba "Dívida líquida": mostra só a dívida líquida (sem o quadro do trabalho e sem os avisos de justificativa), com letras menores.
+- No alto, a fonte: "Não revisado em diligência · fonte: balancete" ou "Revisado na diligência · fonte: workbook da Due Diligence" quando o workbook do auditor foi importado.
+- Síntese por grupo (dívida financeira, caixa, equivalentes, partes relacionadas, contingências, ajustes da DD, complementos), dívida líquida em destaque e a conta enterprise value − dívida líquida = equity value.
+- "Verificar a dívida analítica" abre os itens um a um, o caixa mínimo, a ponte e o complemento de dívida.
+
 ## v2.90 — 2026-11-18 · Busca de empresa por nome ou CNPJ
 - Due Diligence, Jurídico (questionário, NDA, mandatos, SPA e MOU) e Imóveis: no lugar da lista com todas as empresas, um campo para digitar parte do nome, do nome-código ou do CNPJ; o sistema mostra até 8 empresas e a escolhida aparece logo abaixo ("Selecionada: … · CNPJ")
 

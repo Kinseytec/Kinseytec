@@ -87,7 +87,7 @@ if (window.KT_DD) (() => {
     if (a === "ativos" && s && !s.ativos?.dataBase && dataBaseAuto(s, a) && Store.me?.canWrite !== false) D.up(s, {ativos:{dataBase:dataBaseAuto(s, a)}}).catch(() => {});
   }
   if (EXT_VIEWS.ativos){ const _v = EXT_VIEWS.ativos; EXT_VIEWS.ativos = function(){ const r = _v.apply(this, arguments); const host = $("#ativos"); if (host) montar(host, host.querySelector(".dd-split > div:last-child"), "ativos", D.alvoSel()); return r; }; }
-  if (EXT_VIEWS.valuation){ const _v = EXT_VIEWS.valuation; EXT_VIEWS.valuation = function(){ const r = _v.apply(this, arguments); const host = $("#valuation"); if (host && S.valTab !== "base") montar(host, host.querySelector(".dd-split > div:last-child"), "valuation", D.alvoSel()); return r; }; }
+  if (EXT_VIEWS.valuation){ const _v = EXT_VIEWS.valuation; EXT_VIEWS.valuation = function(){ const r = _v.apply(this, arguments); const host = $("#valuation"); if (host && S.valTab !== "base" && S.valTab !== "divida") montar(host, host.querySelector(".dd-split > div:last-child"), "valuation", D.alvoSel()); return r; }; }
   if (typeof renderAuditoria === "function"){ const _r = renderAuditoria; renderAuditoria = function(){ const r = _r.apply(this, arguments); const host = $("#auditoria"); if (!host || !["geral", "ra"].includes(S.ddTab)) return r;
       const tabs = host.querySelector(".dd-tabs"); if (tabs) montar(host, tabs.parentElement, "dd", D.alvoSel(), tabs.nextElementSibling); return r; }; }
   if (EXT_VIEWS.pos){ const _v = EXT_VIEWS.pos; EXT_VIEWS.pos = function(){ const r = _v.apply(this, arguments); const host = $("#pos"); if (host && S.posTab !== "mod") montar(host, host.querySelector(".dd-split > div:last-child"), "ppa", D.alvoSel()); return r; }; }
