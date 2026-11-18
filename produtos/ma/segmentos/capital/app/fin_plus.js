@@ -57,6 +57,33 @@ if (window.KT_DD && window.KT_DOCS) (() => {
   }
   if (EXT_VIEWS.financas){ const _f = EXT_VIEWS.financas; EXT_VIEWS.financas = function(){ const r = _f.apply(this, arguments); const host = $("#financas"), s = D.alvoSel(); if (!host || !s || !D.temBal(s) || $("#fx-card", host)) return r;
       try{ const w = document.createElement("div"); w.innerHTML = cardHtml(s); const first = host.querySelector(".dd-split > div:last-child > .card"); if (first) first.after(w.firstElementChild); }catch(e){ console.error(e); } return r; }; }
+  /* ---------- Valuation: EV → dívida líquida → equity no topo, com a composição da dívida e os relatórios ---------- */
+  function topoVal(s){
+    const V = KT_VAL, R = V.resumo(s), X = R.X; if (!X || X.vazio || !R.rec) return "";
+    const pt = X.pt, ok = V.podeEmitir ? V.podeEmitir(R.A) : true, nb = (R.A || []).filter(a => a.nivel === "bloqueio" || a.nivel === "justificar" && !a.ok).length;
+    const k = (l, v, sm) => `<div class="dd-k"><span>${l}</span><b>${v}</b>${sm ? `<small>${sm}</small>` : ""}</div>`;
+    const grupos = {}; pt.L.forEach(x => (grupos[x.grupo] ||= []).push(x));
+    return `<div class="card" id="vx-topo" style="display:flex;flex-direction:column;gap:10px"><div class="head" style="margin:0"><div><div class="eyebrow">Valor da empresa · base ${esc(X.perBase || "")}</div><h3 style="margin:0">Enterprise value, dívida líquida e equity value</h3></div></div>
+      <div class="dd-kpis">${k("Enterprise value", `${mi(R.rec[0])} a ${mi(R.rec[1])}`, "FCD e múltiplos de mercado (faixa moderada)")}${k("(−) Dívida líquida", mi(pt.total), `balancete ${mi(pt.reportada)}${Math.abs(pt.total - pt.reportada) > 1 ? " + equivalentes e ajustes" : ""}`)}${k("= Equity value", `${mi(R.rec[0] - pt.total)} a ${mi(R.rec[1] - pt.total)}`, "valor para os sócios")}</div>
+      <details><summary style="cursor:pointer;font-size:13px"><b>+</b> Composição da dívida líquida (${pt.L.filter(x => x.inc).length} item(ns))</summary>
+        <div class="tbl" style="margin-top:6px"><table><tbody>${Object.entries(grupos).map(([g, L]) => `<tr><td colspan="2" class="eyebrow" style="padding-top:8px">${esc(g)}</td></tr>${L.map(x => `<tr style="${x.inc ? "" : "opacity:.5"}"><td style="font-size:12.5px">${esc(x.rot)}<div class="sub" style="margin:0;font-size:11px">${esc(x.origem || "")}${x.inc ? "" : " · fora do cálculo"}</div></td><td class="dd-num">${mi(x.v)}</td></tr>`).join("")}`).join("")}
+          <tr><td><b>Dívida líquida ajustada</b></td><td class="dd-num"><b>${mi(pt.total)}</b></td></tr></tbody></table></div>
+        <p class="sub" style="margin:4px 0 0;font-size:12px">Caixa e aplicações entram com sinal negativo. Para incluir, excluir ou ajustar itens (parcelamentos, mútuos, provisões, caixa mínimo), use a aba "Dívida líquida".</p></details>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button type="button" class="btn primary" data-vxr="pdf" ${ok ? "" : "disabled"}>Relatório de valuation (PDF)</button><button type="button" class="btn" data-vxr="pptx" ${ok ? "" : "disabled"}>Relatório de valuation (PowerPoint)</button>${ok ? "" : `<button type="button" class="btn sm ghost" data-vxr="pend">${nb} ponto(s) a resolver antes de emitir</button>`}</div></div>`;
+  }
+  function semBalVal(s){
+    return `<div class="card" id="vx-topo" style="display:flex;flex-direction:column;gap:8px"><h3 style="margin:0">Relatório de valuation</h3><p class="sub" style="margin:0">O valuation completo (fluxo de caixa descontado, múltiplos de mercado, dívida líquida pelo balancete e equity value) e o relatório em PDF e PowerPoint saem sozinhos assim que os balanços de ${esc(s.nome)} estiverem no sistema.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">${Store.me?.canWrite !== false ? `<button type="button" class="btn primary" data-vxr="imp">Importar balanços</button>` : ""}<button type="button" class="btn" disabled>Relatório (PDF)</button><button type="button" class="btn" disabled>Relatório (PowerPoint)</button></div></div>`;
+  }
+  if (EXT_VIEWS.valuation){ const _vv = EXT_VIEWS.valuation; EXT_VIEWS.valuation = function(){ const r = _vv.apply(this, arguments); const host = $("#valuation"), s = D.alvoSel();
+      if (!host || !s || S.valTab === "base" || $("#vx-topo", host)) return r;
+      try{ const col = host.querySelector(".dd-split > div:last-child"); if (!col) return r; const temB = D.temBal(s), html = temB ? (S.valTab === "divida" || S.valTab === "rel" ? "" : topoVal(s)) : semBalVal(s); if (!html) return r;
+        const w = document.createElement("div"); w.innerHTML = html; const el = w.firstElementChild, first = col.firstElementChild; if (temB && first) first.after(el); else col.prepend(el);
+        $$("[data-vxr]", el).forEach(b => b.onclick = async () => { const k = b.dataset.vxr;
+          if (k === "imp") return window.KT_DOCS?.importar(s.id); if (k === "pend"){ S.valTab = "sintese"; renderView(); return; }
+          const R = KT_VAL.resumo(s), emite = async md => { await KT_REL.valuation(s, k, md); await D.up(s, {dd:{vl:{emissoes:{["e" + Date.now().toString(36)]:{em:nowISO(), fmt:k, por:Store.me?.email || "", faixa:`${mi(R.rec[0])} a ${mi(R.rec[1])}`}}}}}); };
+          try{ if (k === "pdf" && window.KT_GRAF) KT_GRAF.modo("Valuation · " + s.nome, emite); else await emite("completo"); }catch(e){ console.error(e); toast("Não foi possível gerar o relatório."); } }); }catch(e){ console.error(e); }
+      return r; }; }
   /* seções para os PDFs (relatório de análises e apresentação depois do NDA) */
   function secoesPdf(P, s, sec, o = {}){
     const R = window.KT_REL, L = pontos(s).filter(x => !o.semAjustes || x.area !== "Ajuste de EBITDA"), Q = ppa(s);

@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v2.78 — 2026-11-18 · Valuation: EV, dívida líquida e equity no topo, com os relatórios à vista
+- Valuation: quadro no topo com enterprise value (FCD e múltiplos de mercado), (−) dívida líquida pelo balancete e = equity value; "+ Composição da dívida líquida" abre os itens (empréstimos de curto e longo prazo, caixa e aplicações, parcelamentos, mútuos, ajustes da Due Diligence e complementos do consultor), com o que está dentro ou fora do cálculo
+- Botões "Relatório de valuation (PDF)" e "(PowerPoint)" no topo de todas as abas; se houver pontos a justificar, o sistema mostra quantos e leva até eles
+- Sem balanços: o Valuation explica que o valuation completo e o relatório saem sozinhos com os balanços e traz o botão "Importar balanços"; documentos já guardados no dossiê são lidos automaticamente
+
 ## v2.77 — 2026-11-18 · Pré-diligência e diligência completa, com relatórios em PDF e PowerPoint
 - Due Diligence: quadro "Balanços, balancetes e relatórios" no topo. Mostra os balanços já importados no cadastro (com "Alterar o balanço importado"), os balancetes do ano e se o workbook do auditor já foi importado
 - "Importar balancetes do ano": o consultor informa o ano e seleciona todos os balancetes de uma vez (Excel, CSV ou PDF); o sistema identifica o mês de cada arquivo (conteúdo, nome ou ordem), reconhece se são acumulados e monta a revisão analítica
