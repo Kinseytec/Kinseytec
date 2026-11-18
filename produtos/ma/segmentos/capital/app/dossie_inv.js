@@ -128,7 +128,7 @@ if (window.KT_DD && window.KT_VAL) (() => {
     return L.slice(0, 30).join("\n");
   }
   /* ---------------- central de relatórios do target ---------------- */
-  function relatorios(s){
+  function relatorios(s, host){
     s = supById(s.id) || s; const R = window.KT_REL, D2 = D, per = (D2.periodos ? D2.periodos(s) : Object.keys(s.dd?.bal || {}).sort().reverse())[0] || "", bal = !!per;
     const atv = window.KT_ATV ? KT_ATV.bens(s).length : 0, imv = s.imoveis || [], jdd = !!window.KT_JDD, cod = codinome(s);
     const G = [
@@ -138,17 +138,20 @@ if (window.KT_DD && window.KT_VAL) (() => {
       ["Due diligence", [["dd-pdf", "Relatório (PDF)", bal], ["dd-pt", "Papéis de trabalho (PDF)", bal], ["an-pdf", "Análises financeiras (PDF)", bal]], bal ? `data-base ${per.split("-").reverse().join("/")}` : "importe os balancetes"],
       ["Avaliação de ativos", [["atv-doc", "Laudo (Word)", atv > 0], ["atv-xls", "Planilha (Excel)", atv > 0], ...imv.map((m, i) => [`imv-${i}`, `Laudo do imóvel ${i + 1}${m.matricula ? " · matrícula " + m.matricula : ""} (Word)`, true])], atv ? `${atv} bem(ns)` : "importe o cadastro de bens em Avaliação de ativos"],
       ["Diligência jurídica", [["jur-pdf", "Relatório jurídico (PDF)", jdd]], ""]];
-    const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Relatórios · ${esc(s.nivel)}</div><h2>${esc(s.mandato?.codinome ? s.mandato.codinome + " · " : "")}${esc(s.nome)}</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
-      <div class="sheet-b" style="display:flex;flex-direction:column;gap:12px">${G.map(([t, L, nota]) => `<div class="card" style="display:flex;flex-direction:column;gap:8px"><div><h3 style="margin:0;font-size:15px">${esc(t)}</h3>${nota ? `<p class="sub" style="margin:2px 0 0;font-size:12px">${esc(nota)}</p>` : ""}</div>
+    const cards = `${G.map(([t, L, nota]) => `<div class="card" style="display:flex;flex-direction:column;gap:8px"><div><h3 style="margin:0;font-size:15px">${esc(t)}</h3>${nota ? `<p class="sub" style="margin:2px 0 0;font-size:12px">${esc(nota)}</p>` : ""}</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">${L.map(([k, l, ok]) => `<button type="button" class="btn sm ${/pre-pdf|pos-pdf|val-pdf|dd-pdf|atv-doc|jur-pdf/.test(k) ? "primary" : ""}" data-rl="${k}" ${ok ? "" : "disabled"}>${esc(l)}</button>`).join("")}</div></div>`).join("")}
-        <p class="sub" style="margin:0;font-size:12px">Antes do NDA nenhum relatório traz nome, CNPJ, site ou sócios da empresa, nem no nome do arquivo.</p></div>`);
+        <p class="sub" style="margin:0;font-size:12px">Antes do NDA nenhum relatório traz nome, CNPJ, site ou sócios da empresa, nem no nome do arquivo.</p>`;
+    let root = host;
+    if (host) host.innerHTML = cards;
+    else { sheet(`<div class="sheet-h"><div><div class="eyebrow">Relatórios · ${esc(s.nivel)}</div><h2>${esc(s.mandato?.codinome ? s.mandato.codinome + " · " : "")}${esc(s.nome)}</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
+      <div class="sheet-b" id="rl-sheet" style="display:flex;flex-direction:column;gap:12px">${cards}</div>`); root = $("#rl-sheet"); }
     const run = {
       "pre-pdf": () => R.teaser(s, "pre", "pdf", "completo"), "pre-one": () => R.teaser(s, "pre", "pdf", "resumo"), "pre-ppt": () => R.teaser(s, "pre", "pptx"),
       "pos-pdf": () => R.teaser(s, "pos", "pdf", "completo"), "pos-one": () => R.teaser(s, "pos", "pdf", "resumo"), "pos-ppt": () => R.teaser(s, "pos", "pptx"),
       "val-pdf": () => R.valuation(s, "pdf"), "val-ppt": () => R.valuation(s, "pptx"),
       "dd-pdf": () => R.ddPdf(s, per), "dd-pt": () => R.papeisPdf(s, per), "an-pdf": () => R.analises(s, "completo"),
       "atv-doc": () => KT_ATV.laudo(s), "atv-xls": () => KT_ATV.excel(s), "jur-pdf": () => KT_JDD.relatorio(s, "completo")};
-    $$("[data-rl]").forEach(b => b.onclick = async () => { const k = b.dataset.rl, f = run[k] || (/^imv-/.test(k) && window.KT_IMOV ? () => KT_IMOV.laudo(s, imv[+k.slice(4)]) : null); if (!f) return;
+    $$("[data-rl]", root).forEach(b => b.onclick = async () => { const k = b.dataset.rl, f = run[k] || (/^imv-/.test(k) && window.KT_IMOV ? () => KT_IMOV.laudo(s, imv[+k.slice(4)]) : null); if (!f) return;
       const t0 = b.textContent; b.disabled = true; b.textContent = "Gerando…"; try{ await f(); }catch(e){ console.error(e); toast("Não foi possível gerar: " + (e.message || "erro")); } b.disabled = false; b.textContent = t0; });
   }
   /* botão Relatórios no quadro da Órbita, ao lado de Abrir dossiê e Resumo rápido */
@@ -162,6 +165,30 @@ if (window.KT_DD && window.KT_VAL) (() => {
       const fora = x => /^coopera/i.test(nrm(x.crit)) && /nda|lgpd|question/i.test(nrm(x.txt)), R = r.reasons.filter(x => !fora(x)); if (R.length === r.reasons.length) return r;
       const score = R.reduce((t, x) => t + (x.pts || 0), 0), auto = r.auto === "pend" || r.auto === "na" ? r.auto : score >= 6 ? "alto" : score >= 3 ? "medio" : "baixo";
       return {...r, reasons:R, score, auto, level:r.manual ? r.level : auto}; }; }
+  /* ---------- Apresentação: consolidação de todos os relatórios e o mercado da empresa ---------- */
+  function mercadoHtml(s){
+    const M = {...(typeof VAL_BASE !== "undefined" ? VAL_BASE.mercado : {}), ...(S.mercado?.atual || {})}, seg = s.perfil?.segmento || s.segmento || "", rf = s.receita && !s.receita.erro ? s.receita : {};
+    let C = null, W = null, T = null; try{ C = KT_VAL.comparaveis(s); }catch(e){} try{ W = KT_VAL.wacc(s, KT_VAL.base(), s.dd?.vl || {}); }catch(e){} try{ T = KT_VAL.transacoes(s); }catch(e){}
+    const Z = window.KT_TEASER ? KT_TEASER.conteudo(s, "pos") : {mercado:[], noticias:[]}, N = numeros(s);
+    const k = (l, v, sm) => `<div class="dd-k"><span>${l}</span><b>${v}</b>${sm ? `<small>${sm}</small>` : ""}</div>`, x2 = v => v == null ? "—" : `${fmt(v, 1)}×`;
+    const neg = [...(s.ext?.noticias || [])].slice(0, 5), not = [...(Z.noticias || [])].slice(0, 5);
+    return `<div class="card" id="ap-merc" style="display:flex;flex-direction:column;gap:10px"><div><div class="eyebrow">Mercado e setor</div><h3 style="margin:0">${esc(seg || "Segmento")}${rf.cnaeDesc ? ` · ${esc(rf.cnaeDesc)}` : ""}</h3></div>
+      <div class="dd-kpis">${k("EV/EBITDA do setor", C?.eb ? `${x2(C.eb.p25)} a ${x2(C.eb.p75)}` : "—", C?.eb ? `mediana ${x2(C.eb.med)} · ${C.eb.n} companhias abertas` : "comparáveis na versão publicada")}${k("Margem EBITDA do setor", C?.mg ? `${fmt(C.mg.med * 100, 1)}%` : "—", N.rl && N.eb ? `empresa: ${fmt(N.eb / N.rl * 100, 1)}%` : "")}${k("Transações no setor", T?.eb ? x2(T.eb.med) : "—", T?.eb ? `${T.eb.n} aquisições (EV/EBITDA)` : "")}${k("Beta do setor", W ? fmt(W.bu, 2) : "—", W ? `WACC ${fmt(W.wacc * 100, 2)}%` : "")}</div>
+      <div class="dd-kpis">${k("Selic", M.selic != null ? `${fmt(M.selic, 2)}%` : "—", "Banco Central")}${k("IPCA 12 meses", M.ipca12 != null ? `${fmt(M.ipca12, 2)}%` : "—", "")}${k("Dólar", M.ptax != null ? `R$ ${fmt(M.ptax, 2)}` : "—", "PTAX")}${M.ibov ? k("Ibovespa", fmt(M.ibov, 0), "pontos") : ""}</div>
+      ${(Z.mercado || []).length ? `<ul style="margin:0;padding-left:18px;font-size:13px;display:flex;flex-direction:column;gap:3px">${Z.mercado.slice(0, 6).map(t => `<li>${esc(t)}</li>`).join("")}</ul>` : ""}
+      ${not.length ? `<div class="eyebrow">Notícias do segmento</div><div style="display:flex;flex-direction:column;gap:4px">${not.map(n => `<a href="${esc(n.url || "#")}" target="_blank" rel="noopener" style="font-size:13px;color:var(--fog);text-decoration:none">${esc(n.titulo)} <span class="sub" style="font-size:11px">· ${esc(n.fonte || "")} ${esc(n.data || "")}</span></a>`).join("")}</div>` : ""}
+      ${neg.length ? `<div class="eyebrow">Notícias da empresa</div><div style="display:flex;flex-direction:column;gap:4px">${neg.map(n => `<a href="${esc(n.url || "#")}" target="_blank" rel="noopener" style="font-size:13px;color:var(--fog);text-decoration:none">${esc(n.titulo)} <span class="sub" style="font-size:11px">· ${esc(n.fonte || "")} ${esc(n.data || "")}</span></a>`).join("")}</div>` : ""}
+      <p class="sub" style="margin:0;font-size:12px">A pesquisa de mercado e setor que a equipe escreve em "Conteúdo e pesquisa" entra no teaser e na apresentação depois do NDA.</p></div>`;
+  }
+  if (EXT_VIEWS.apresentacao){ const _ap = EXT_VIEWS.apresentacao; EXT_VIEWS.apresentacao = function(){ const r = _ap.apply(this, arguments); const host = $("#apresentacao"), s = D.alvoSel(); if (!host || !s || $("#ap-rel", host)) return r;
+      try{ const ref = host.querySelector(".dd-split > div:last-child") || host; const box = document.createElement("div"); box.style.cssText = "display:flex;flex-direction:column;gap:14px";
+        box.innerHTML = `<div class="card" id="ap-rel" style="display:flex;flex-direction:column;gap:10px"><div><div class="eyebrow">Consolidação</div><h3 style="margin:0">Todos os relatórios de ${esc(s.mandato?.codinome || s.nome)}</h3><p class="sub" style="margin:2px 0 0;font-size:12.5px">Prospecção antes e depois do NDA, valuation, due diligence, análises financeiras, avaliação de ativos e jurídico, num só lugar.</p></div><div id="ap-rel-b" style="display:flex;flex-direction:column;gap:10px"></div></div>${mercadoHtml(s)}`;
+        ref.prepend(box); relatorios(s, $("#ap-rel-b", box)); }catch(e){ console.error(e); }
+      return r; }; }
+  /* Apresentação fica por último no menu: consolida o trabalho das outras áreas */
+  const ultimo = () => { const b = document.querySelector('nav.tabs [data-go="apresentacao"]'); if (b && b.parentElement.lastElementChild !== b) b.parentElement.appendChild(b); };
+  setTimeout(ultimo, 0); setTimeout(ultimo, 1500);
+  { const _ra = renderAll; renderAll = function(){ const r = _ra.apply(this, arguments); ultimo(); return r; }; }
   window.KT_RESUMO_WA = s => s && s.nivel === "N3" ? resumoWa(s) : null;
   window.KT_DOSSIE = {identificadores, anonimizador, numeros, card, resumoWa, relatorios};
 })();

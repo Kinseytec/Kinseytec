@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v2.80 — 2026-11-18 · Apresentação por último, com todos os relatórios e o mercado
+- Menu: Apresentação passa a ser a última área, depois de Jurídico e Pós-aquisição, porque consolida o trabalho das outras
+- Apresentação: quadro "Todos os relatórios" (prospecção antes e depois do NDA, valuation, due diligence, papéis de trabalho, análises financeiras, avaliação de ativos, laudos de imóveis e jurídico) num só lugar
+- Novo quadro "Mercado e setor" da empresa consultada: EV/EBITDA das companhias abertas do setor (faixa e mediana), margem EBITDA do setor contra a da empresa, múltiplos de transações, beta do setor e WACC, Selic, IPCA, dólar e Ibovespa, leitura de mercado, notícias do segmento e notícias da empresa
+
 ## v2.79 — 2026-11-18 · Crescimento no fluxo de caixa: moderado justificado e otimista com motivos e estudo de viabilidade
 - Valuation · FCD: quadro "Crescimento" com o histórico (nominal e real, total e por linha), o último ano e o crescimento projetado nos cenários moderado e otimista, com a diferença sobre o histórico
 - Moderado: segue o histórico; o consultor pode informar outro crescimento por linha, mas acima do histórico em mais que a tolerância da base de apuração (3 p.p.) a emissão exige a explicação do motivo
