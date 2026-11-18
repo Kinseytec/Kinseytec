@@ -1,5 +1,12 @@
 # Registro de versões
 
+## v2.83 — 2026-11-18 · Valuation: perpetuidade pelo PIB do setor e beta usado em destaque
+- Abas do Valuation: "Base" logo depois da "Síntese"
+- Crescimento real na perpetuidade: média do PIB projetado do setor para os próximos 5 anos, pelo Focus do Banco Central (agropecuária, indústria ou serviços, conforme o segmento); sem o setor, PIB total; sem Focus, o valor da base de apuração. O consultor pode alterar por empresa em FCD › Premissas
+- Base: tabela do PIB projetado (total e por setor, com a média) e a perpetuidade usada na empresa em consulta; o servidor passa a buscar o PIB no Focus todo dia
+- Base: quadro em destaque com o beta usado no WACC da empresa em consulta (setor, beta desalavancado, dívida/patrimônio, beta realavancado, custo do capital próprio e WACC) e a linha do segmento marcada "usado no WACC" na tabela de betas
+- Planilha de valuation usa a mesma perpetuidade
+
 ## v2.82 — 2026-11-18 · Importação de documentos: busca da empresa, tipo de documento e identificação manual
 - Empresa: em vez da lista com todas as empresas, busca pelo nome ou pelo CNPJ (em branco, o sistema acha a empresa pelo CNPJ de cada documento)
 - "Como importar": vários documentos (o sistema identifica cada um) ou um tipo de documento (contrato social, balanço, CND, posição financeira etc.: todos os arquivos entram com o tipo escolhido)

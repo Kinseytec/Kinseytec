@@ -76,6 +76,16 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
     const comp = Object.values(grupos).filter(g => g.length > 1).map(g => g.sort((a, b) => a.ano - b.ano));
     return {P, anuais, comp};
   }
+  /* crescimento real na perpetuidade: média do PIB projetado do setor no Focus (próximos 5 anos); consultor pode alterar */
+  const SETOR_PIB = seg => /agro/i.test(seg || "") ? ["agro", "PIB da agropecuária"] : /industr|aliment|energia|constru/i.test(seg || "") ? ["ind", "PIB da indústria"] : ["serv", "PIB de serviços"];
+  function gPerp(seg, Bs, vl){
+    if (vl?.gReal != null && vl.gReal !== "") return {v:+vl.gReal, fonte:"informado pelo consultor", auto:false};
+    const pib = Bs.focus?.pib || (typeof VAL_BASE !== "undefined" && VAL_BASE.focus?.pib) || {}, y0 = new Date().getFullYear(), [k, nome] = SETOR_PIB(seg);
+    const media = m => { const ys = Object.keys(m || {}).filter(y => +y >= y0).sort().slice(0, 5); return ys.length ? {v:ys.reduce((t, y) => t + m[y], 0) / ys.length, anos:`${ys[0]}–${ys[ys.length - 1]}`} : null; };
+    const a = media(pib[k]); if (a) return {v:a.v, fonte:`${nome} projetado · média ${a.anos} (Focus ${Bs.focus.data || ""})`, auto:true, setor:nome};
+    const t = media(pib.total); if (t) return {v:t.v, fonte:`PIB total projetado · média ${t.anos} (Focus ${Bs.focus.data || ""})`, auto:true, setor:"PIB total"};
+    return {v:Bs.P.gReal.v, fonte:"base de apuração Kinsey (sem PIB projetado)", auto:true};
+  }
   function cagrReal(Bs, serie){ /* serie [{ano, v}] em ordem */
     if (serie.length < 2 || !(serie[0].v > 0)) return null; const a = serie[0], z = serie[serie.length - 1], anos = z.ano - a.ano; if (anos < 1) return null;
     let inf = 1; for (let y = a.ano + 1; y <= z.ano; y++) inf *= 1 + (Bs.ipca[y] ?? Bs.P.infBR.v) / 100;
@@ -158,7 +168,7 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
     return {Bs, H, vl, bp, perBase, histL, total, mgHist, mgMax, W, capex, ncgp, dl, pt, nomes, y0:bp.ano};
   }
   function cenario(X, tipo, dw = 0){
-    const {Bs, bp, vl, histL, W} = X, fRL = div(bp.rl, bp.rb) || 1, g = (1 + Bs.P.gReal.v / 100) * (1 + Bs.P.infBR.v / 100) - 1, w = W.wacc + dw;
+    const {Bs, bp, vl, histL, W} = X, fRL = div(bp.rl, bp.rb) || 1, g = (1 + gPerp(W.seg, Bs, vl).v / 100) * (1 + Bs.P.infBR.v / 100) - 1, w = W.wacc + dw;
     let rec = {...bp.lin}; if (!Object.keys(rec).length) rec = {Receita:bp.rb};
     const mg = tipo === "mod" ? X.mgHist : (vl.margemOt != null ? vl.margemOt / 100 : div(bp.eb, bp.rl));
     const anos = []; let rlAnt = bp.rl, vp = 0;
@@ -283,7 +293,7 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
     const Bs = base(), vl = s.dd?.vl || {}, W = wacc(s, Bs, vl), C = comparaveis(s), seg = s.perfil?.segmento || s.segmento || "Outros";
     const fat = window.KT_POL ? KT_POL.fatMi(s) : (s.fin?.receita ?? null); if (fat == null) return {Bs, W, C, vl, seg, vazio:true};
     const mg = vl.mgPrev != null ? vl.mgPrev / 100 : (C.mg?.med || REF_MG[seg] || .12), fonteMg = vl.mgPrev != null ? "informada pelo consultor" : C.mg ? `mediana de ${C.mg.n} comparáveis` : `referência Kinsey para ${seg}`;
-    const capex = .03, ncgp = .10, g = (1 + Bs.P.gReal.v / 100) * (1 + Bs.P.infBR.v / 100) - 1, w = W.wacc, y0 = new Date().getFullYear() - 1;
+    const capex = .03, ncgp = .10, g = (1 + gPerp(seg, Bs, vl).v / 100) * (1 + Bs.P.infBR.v / 100) - 1, w = W.wacc, y0 = new Date().getFullYear() - 1;
     let rl = fat * 1e6, rlAnt = rl, vp = 0; const anos = [];
     for (let t = 1; t <= 5; t++){ rl *= 1 + ipcaAno(Bs, y0 + t); const eb = rl * mg, ir = Math.max(0, eb - rl * capex) * W.t, fcl = eb - ir - rl * capex - (rl - rlAnt) * ncgp; vp += fcl / Math.pow(1 + w, t - .5); anos.push({y:y0 + t, rl, eb, fcl}); rlAnt = rl; }
     const u = anos[4], fclP = u.eb * (1 + g) - Math.max(0, u.eb - u.rl * capex) * (1 + g) * W.t - u.rl * capex * (1 + g) - u.rl * ncgp * g;
@@ -375,7 +385,7 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
 
   /* ---------------- VIEW ---------------- */
   S.valTab = S.valTab || "sintese";
-  const TABS_V = [["sintese","Síntese"],["fcd","FCD"],["mult","Múltiplos"],["outras","Outras"],["divida","Dívida líquida"],["base","Base"],["rel","Relatório"]];
+  const TABS_V = [["sintese","Síntese"],["base","Base"],["fcd","FCD"],["mult","Múltiplos"],["outras","Outras"],["divida","Dívida líquida"],["rel","Relatório"]];
   const k = (l, v, sm) => `<div class="dd-k"><span>${l}</span><b>${v}</b>${sm ? `<small>${sm}</small>` : ""}</div>`;
   const tbl = (head, rows) => `<div class="tbl"><table><thead><tr>${head.map((h, i) => `<th${i ? ' class="dd-num"' : ""}>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
   const tr = cells => `<tr>${cells.map((c, i) => `<td${i ? ' class="dd-num"' : ""}>${c}</td>`).join("")}</tr>`;
@@ -455,6 +465,7 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
       <form class="card" id="fprem" style="display:flex;flex-direction:column;gap:10px" novalidate><h3>Premissas do consultor (cenário otimista)</h3>
         <p class="sub" style="margin:0">Crescimento real por linha na tabela acima. Cenário moderado: crescimento real histórico de cada linha e margem média histórica.</p><div class="form">
         <div class="fld"><label for="pr-mg">Margem EBITDA otimista (%)</label><input id="pr-mg" inputmode="decimal" value="${vl.margemOt != null ? fmt(vl.margemOt, 1) : ""}" placeholder="${fmt(div(X.bp.eb, X.bp.rl) * 100, 1)}" ${ed2}></div>
+        <div class="fld"><label for="pr-gp">Crescimento real na perpetuidade (%)</label><input id="pr-gp" inputmode="decimal" value="${vl.gReal != null && vl.gReal !== "" ? fmt(+vl.gReal, 2) : ""}" placeholder="${fmt(gPerp(W.seg, Bs, {}).v, 2)} (${esc(gPerp(W.seg, Bs, {}).setor || "base")})" ${ed2}></div>
         <div class="fld"><label for="pr-cx">Capex (% da receita)</label><input id="pr-cx" inputmode="decimal" value="${fmt(X.capex * 100, 1)}" ${ed2}></div><div class="fld"><label for="pr-nc">Capital de giro (% da receita)</label><input id="pr-nc" inputmode="decimal" value="${fmt(X.ncgp * 100, 1)}" ${ed2}></div>
 </div><p class="sub" style="margin:0;font-size:12px">WACC: automático pelo CAPM; ajustes só em "Ajustar com justificativa" (limite de ±3 p.p.).</p>
         <h3 style="font-size:14px">Novos negócios e mercados (só no otimista, com justificativa)</h3><p class="sub" style="margin:0">Informações dos sócios ou da administração sobre novos negócios já em funcionamento ou com estudos que comprovem. Margem acima do histórico (${pc(X.mgMax)}) exige justificativa.</p>
@@ -464,13 +475,13 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
       <div class="card" style="display:flex;flex-direction:column;gap:10px"><h3>WACC pelo CAPM</h3>${tbl(["Componente", "Valor", "Fonte / cálculo"], wr.map(r => `<tr><td>${r[0]}</td><td class="dd-num">${r[1]}</td><td style="font-size:12px">${esc(r[2] || "")}</td></tr>`))}</div>
       <div class="card" style="display:flex;flex-direction:column;gap:10px"><h3>Projeções</h3>${proj(mod, "Moderado")}${proj(ot, "Otimista")}
         ${tbl(["Resultado", "Moderado", "Otimista"], [tr(["Valor presente dos fluxos", mi(mod.ev - mod.vtv), mi(ot.ev - ot.vtv)]), tr(["Valor presente da perpetuidade", mi(mod.vtv), mi(ot.vtv)]), tr(["<b>Enterprise value</b>", `<b>${mi(mod.ev)}</b>`, `<b>${mi(ot.ev)}</b>`]), tr(["(−) Dívida líquida ajustada", mi(X.dl), mi(X.dl)]), tr(["<b>Equity value</b>", `<b>${mi(mod.eq)}</b>`, `<b>${mi(ot.eq)}</b>`]), tr(["EV / EBITDA implícito", xx(mod.mult), xx(ot.mult)]), tr(["Perpetuidade / EV", pc(div(mod.vtv, mod.ev), 0), pc(div(ot.vtv, ot.ev), 0)])])}
-        <p class="sub" style="margin:0">Perpetuidade com crescimento nominal de ${pc(mod.g)} (real ${fmt(Bs.P.gReal.v, 1)}% + IPCA de longo prazo). IPCA de cada ano pelo Focus de ${esc(Bs.focus.data || "")}.</p></div>`;
+        <p class="sub" style="margin:0">Perpetuidade com crescimento nominal de ${pc(mod.g)}: real de ${fmt(gPerp(W.seg, Bs, vl).v, 2)}% (${esc(gPerp(W.seg, Bs, vl).fonte)}) + IPCA de longo prazo. IPCA de cada ano pelo Focus de ${esc(Bs.focus.data || "")}.</p></div>`;
   }
   function bindFcd(host, s, R){
     if (window.KT_CRESC) KT_CRESC.bind(host, s); const est = $("#nb-est", host); if (est) est.onchange = () => est.files[0] && KT_CRESC.importarEstudo(s, est.files[0]);
     const f = $("#fprem", host); if (!f) return; const vlp = s.dd?.vl || {};
     f.onsubmit = e => { e.preventDefault(); const prem = {}; $$("[data-prem]", host).forEach(i => { const x = n(i.value); prem[i.dataset.prem] = {real:x}; });
-      const g = id => n($("#" + id).value); up(s, {dd:{vl:{prem, margemOt:g("pr-mg"), capex:g("pr-cx"), ncgp:g("pr-nc")}}}).then(() => toast("Premissas salvas")); };
+      const g = id => n($("#" + id).value); up(s, {dd:{vl:{prem, margemOt:g("pr-mg"), capex:g("pr-cx"), ncgp:g("pr-nc"), gReal:$("#pr-gp") && $("#pr-gp").value.trim() !== "" ? g("pr-gp") : null}}}).then(() => toast("Premissas salvas")); };
     const a = $("#nb-add", host); if (a) a.onclick = () => { const nome = $("#nb-n").value.trim(), r1 = n($("#nb-r").value); if (!nome || !r1){ toast("Informe o nome e a receita do novo negócio."); return; }
       up(s, {dd:{vl:{novos:{["n" + Date.now().toString(36)]:{tipo:$("#nb-t") ? $("#nb-t").value : "Novo negócio", nome, inicio:cl(n($("#nb-i").value) || 1, 1, 5), rec1:r1, cresc:n($("#nb-c").value) || 0, margem:n($("#nb-m").value) || 0, fonte:$("#nb-f").value, comprova:$("#nb-p").value.trim()}}}}}).then(() => toast("Novo negócio incluído: justifique para emitir")); };
     $$("[data-rmnb]", host).forEach(b => b.onclick = () => up(s, {dd:{vl:{novos:{[b.dataset.rmnb]:null}}}}));
@@ -539,6 +550,9 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
         <div class="dd-kpis">${k("Selic meta", fmt(M.selic, 2) + "%")}${k("CDI", fmt(M.cdi, 2) + "%")}${k("IPCA 12 meses", fmt(M.ipca12, 2) + "%", esc(M.ipca12ref || ""))}${k("Dólar PTAX", "R$ " + fmt(M.ptax, 4))}${M.ust10 ? k("US Treasury 10 anos", fmt(M.ust10, 2) + "%") : ""}</div>
         ${alert.map(a => `<div class="banner"><b>Mudança de mercado.</b> ${esc(a)}</div>`).join("")}
         ${tbl(["Focus · " + esc(Bs.focus.data || ""), ...Object.keys(Bs.focus.selic || {})], [tr(["Selic (fim de ano)", ...Object.values(Bs.focus.selic || {}).map(v => fmt(v, 2) + "%")]), tr(["IPCA", ...Object.values(Bs.focus.ipca || {}).map(v => fmt(v, 2) + "%")])])}
+        ${(() => { const pib = Bs.focus.pib || (typeof VAL_BASE !== "undefined" && VAL_BASE.focus?.pib) || {}, ks = [["total", "PIB total"], ["agro", "Agropecuária"], ["ind", "Indústria"], ["serv", "Serviços"]].filter(([k]) => pib[k]), anos = [...new Set(ks.flatMap(([k]) => Object.keys(pib[k])))].sort(); if (!ks.length) return "";
+          const s0 = D.alvoSel(), gp = s0 ? gPerp(s0.perfil?.segmento || s0.segmento, Bs, s0.dd?.vl || {}) : null;
+          return tbl(["PIB projetado (Focus)", ...anos, "Média"], ks.map(([k, l]) => { const v = anos.map(y => pib[k][y]); const m = v.filter(x => x != null); return tr([l, ...v.map(x => x == null ? "—" : fmt(x, 2) + "%"), `<b>${m.length ? fmt(m.reduce((t, x) => t + x, 0) / m.length, 2) + "%" : "—"}</b>`]); })) + (gp ? `<p class="sub" style="margin:0;font-size:12.5px">Perpetuidade de ${esc(s0.mandato?.codinome || s0.nome)}: crescimento real de <b>${fmt(gp.v, 2)}%</b> · ${esc(gp.fonte)}. Altere por empresa em FCD › Premissas.</p>` : ""); })()}
         ${tbl(["IPCA anual (BCB)", ...Object.keys(Bs.ipca)], [tr(["Variação", ...Object.values(Bs.ipca).map(v => fmt(v, 2) + "%")])])}
         <h3 style="font-size:14px">Notícias que podem afetar as taxas</h3>${Bs.noticias.length ? `<ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px">${Bs.noticias.slice(0, 8).map(x => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.titulo)}</a> <span class="sub" style="font-size:11.5px">· ${esc(x.fonte || "")} ${esc(x.data || "")}</span></li>`).join("")}</ul>` : `<p class="sub" style="margin:0">As notícias de juros, inflação e câmbio chegam pela função "mercado" do Firebase publicado.</p>`}</div>
       <form class="card" id="fbase" style="display:flex;flex-direction:column;gap:10px" novalidate><h3>Base de apuração Kinsey · metodologia e fontes</h3><p class="sub" style="margin:0">Parâmetros usados no WACC e no FCD de todos os valuations. Registre a fonte e a data de cada atualização.</p>
@@ -546,8 +560,9 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
           <td><input data-bp="${p.id}" data-k="v" inputmode="decimal" value="${fmt(p.v, 2)}" style="width:80px;text-align:right" aria-label="${esc(p.rot)}" ${ed() ? "" : "disabled"}> <span class="sub" style="font-size:11px">${esc(p.u)}</span></td>
           <td><input data-bp="${p.id}" data-k="fonte" value="${esc(p.fonte)}" style="min-width:200px" aria-label="Fonte de ${esc(p.rot)}" ${ed() ? "" : "disabled"}></td><td><input data-bp="${p.id}" data-k="data" value="${esc(p.data)}" style="width:96px" aria-label="Data de ${esc(p.rot)}" ${ed() ? "" : "disabled"}></td>
           <td><input data-bp="${p.id}" data-k="met" value="${esc(p.met)}" style="min-width:200px" aria-label="Metodologia de ${esc(p.rot)}" ${ed() ? "" : "disabled"}></td></tr>`).join("")}</tbody></table></div>
+        ${(() => { const s0 = D.alvoSel(); if (!s0) return ""; const W0 = wacc(s0, Bs, s0.dd?.vl || {}); return `<div class="banner" style="border-color:rgba(242,193,78,.55);display:flex;flex-direction:column;gap:2px"><b>Beta usado no WACC de ${esc(s0.mandato?.codinome || s0.nome)}: ${fmt(W0.bl, 2)}</b><span style="font-size:13px">Setor ${esc(W0.seg)}: beta desalavancado ${fmt(W0.bu, 2)}, realavancado pela dívida/patrimônio de ${fmt(W0.de, 2)} → ${fmt(W0.bl, 2)} no custo do capital próprio (${pc(W0.ke)}). WACC ${pc(W0.wacc)}.</span></div>`; })()}
         <h3 style="font-size:14px">Betas desalavancados e estrutura de capital por segmento</h3>
-        <div class="tbl"><table><thead><tr><th>Segmento</th><th class="dd-num">Beta desalavancado</th><th class="dd-num">Dívida / patrimônio</th></tr></thead><tbody>${Object.entries(Bs.betas).map(([sg, [b, de]]) => `<tr><td>${esc(sg)}</td><td><input data-bt="${esc(sg)}" data-i="0" value="${fmt(b, 2)}" inputmode="decimal" style="width:80px;text-align:right" ${ed() ? "" : "disabled"} aria-label="Beta de ${esc(sg)}"></td><td><input data-bt="${esc(sg)}" data-i="1" value="${fmt(de, 2)}" inputmode="decimal" style="width:80px;text-align:right" ${ed() ? "" : "disabled"} aria-label="D/E de ${esc(sg)}"></td></tr>`).join("")}</tbody></table></div>
+        <div class="tbl"><table><thead><tr><th>Segmento</th><th class="dd-num">Beta desalavancado</th><th class="dd-num">Dívida / patrimônio</th></tr></thead><tbody>${Object.entries(Bs.betas).map(([sg, [b, de]]) => `<tr style="${sg === (D.alvoSel()?.perfil?.segmento || D.alvoSel()?.segmento || "") ? "background:rgba(242,193,78,.16);font-weight:700" : ""}"><td>${esc(sg)}${sg === (D.alvoSel()?.perfil?.segmento || D.alvoSel()?.segmento || "") ? ` <span class="pill r-medio" style="font-size:10px">usado no WACC</span>` : ""}</td><td><input data-bt="${esc(sg)}" data-i="0" value="${fmt(b, 2)}" inputmode="decimal" style="width:80px;text-align:right" ${ed() ? "" : "disabled"} aria-label="Beta de ${esc(sg)}"></td><td><input data-bt="${esc(sg)}" data-i="1" value="${fmt(de, 2)}" inputmode="decimal" style="width:80px;text-align:right" ${ed() ? "" : "disabled"} aria-label="D/E de ${esc(sg)}"></td></tr>`).join("")}</tbody></table></div>
         ${ed() ? `<button type="submit" class="btn sm primary" style="align-self:flex-start">Salvar base de apuração</button>` : ""}</form></div>`;
   }
   function bindBase(host){
@@ -571,5 +586,5 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
       const emite = async md => { await KT_REL.valuation(s, b.dataset.vrel, md); up(s, {dd:{vl:{emissoes:{["e" + Date.now().toString(36)]:{em:nowISO(), fmt:b.dataset.vrel, por:Store.me?.email || "", faixa:`${mi(R.rec[0])} a ${mi(R.rec[1])}`}}}}}); };
       try{ if (b.dataset.vrel === "pdf" && window.KT_GRAF) KT_GRAF.modo("Valuation · " + s.nome, emite); else await emite("completo"); }catch(e){ console.error(e); toast("Não foi possível gerar o relatório."); } });
   }
-  window.KT_VAL = {refC, prev, grupos, revisarWacc, cmpEbitda, resumo, contexto, historico, cenario, wacc, comparaveis, transacoes, alertas, podeEmitir, base, perfilFalta, editarPerfil, linhasDe};
+  window.KT_VAL = {gPerp, refC, prev, grupos, revisarWacc, cmpEbitda, resumo, contexto, historico, cenario, wacc, comparaveis, transacoes, alertas, podeEmitir, base, perfilFalta, editarPerfil, linhasDe};
 })();

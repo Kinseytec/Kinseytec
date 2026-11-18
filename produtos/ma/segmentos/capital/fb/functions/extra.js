@@ -31,7 +31,14 @@ module.exports = ({db, logger, onSchedule, F}) => {
     const u = "https://olinda.bcb.gov.br/olinda/servico/Expectativas/versao/v1/odata/ExpectativasMercadoAnuais?$top=60&$filter=(Indicador%20eq%20'IPCA'%20or%20Indicador%20eq%20'Selic')%20and%20baseCalculo%20eq%200&$orderby=Data%20desc&$format=json";
     const L = (await json(u)).value, data = L[0]?.Data, o = {data, ipca:{}, selic:{}};
     L.filter(x => x.Data === data).forEach(x => { const k = x.Indicador === "IPCA" ? "ipca" : "selic"; o[k][x.DataReferencia] = Math.round(x.Mediana * 100) / 100; });
-    Object.keys(o.ipca).sort().slice(5).forEach(k => delete o.ipca[k]); Object.keys(o.selic).sort().slice(5).forEach(k => delete o.selic[k]); return o;
+    Object.keys(o.ipca).sort().slice(5).forEach(k => delete o.ipca[k]); Object.keys(o.selic).sort().slice(5).forEach(k => delete o.selic[k]);
+    /* PIB projetado: total e por setor (agropecuária, indústria, serviços), mediana da última data de cada indicador */
+    try{ const up = "https://olinda.bcb.gov.br/olinda/servico/Expectativas/versao/v1/odata/ExpectativasMercadoAnuais?$top=400&$filter=startswith(Indicador,'PIB')%20and%20baseCalculo%20eq%200&$orderby=Data%20desc&$format=json";
+      const P = (await json(up)).value || [], ult = {}; o.pib = {};
+      P.forEach(x => { const n = String(x.Indicador || "").toLowerCase(), k = /agro/.test(n) ? "agro" : /ind/.test(n) ? "ind" : /serv/.test(n) ? "serv" : /total/.test(n) ? "total" : null; if (!k) return;
+        ult[k] ||= x.Data; if (x.Data !== ult[k]) return; (o.pib[k] ||= {})[x.DataReferencia] = Math.round(x.Mediana * 100) / 100; });
+      Object.values(o.pib).forEach(m => Object.keys(m).sort().slice(5).forEach(y => delete m[y])); }catch(e){}
+    return o;
   }
   async function treasury10(){
     const d = new Date(), ym = d.getFullYear() + String(d.getMonth() + 1).padStart(2, "0");

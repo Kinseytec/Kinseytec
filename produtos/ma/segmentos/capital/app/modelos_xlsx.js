@@ -57,7 +57,7 @@ if (window.KT_DD && window.KT_XLSX) (() => {
     f.add(["Moderado (histórico)", "", ...d.anos.map(() => IP(d.gMod))], "gmod");
     f.add(["Otimista (premissas justificadas)", "", ...d.anos.map(() => IP(d.gOt))], "got");
     f.add(["Crescimento real usado", "", ...d.anos.map((_, i) => FP(`IF(${f.ref("cen", "B", 1)}="Otimista",${YC(i)}${f.r("got")},${YC(i)}${f.r("gmod")})`))], "g");
-    f.add(["Crescimento real na perpetuidade", IP(d.P.gReal.v / 100)], "greal");
+    f.add(["Crescimento real na perpetuidade", IP((window.KT_VAL?.gPerp ? KT_VAL.gPerp(s.perfil?.segmento || s.segmento, KT_VAL.base(), s.dd?.vl || {}).v : d.P.gReal.v) / 100)], "greal");
     f.add(["Crescimento nominal na perpetuidade", FP(`(1+B${f.r("greal")})*(1+${YC(N - 1)}${f.r("ipca")})-1`)], "gnom");
     f.add([]); f.add([H("Premissas operacionais (% e dias)"), H("Valor")]);
     f.add(["Deduções (% da receita bruta)", IP(d.ded)], "ded"); f.add(["Custos (% da receita líquida)", IP(d.custo)], "custo"); f.add(["Despesas operacionais normalizadas (% da receita líquida, com os ajustes de DD)", IP(d.despP)], "desp");

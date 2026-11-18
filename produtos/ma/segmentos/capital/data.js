@@ -235,13 +235,15 @@ const VAL_BASE = {
   ["ir","IRPJ e CSLL (lucro real)",34,"%","Lei 9.249/1995 e Lei 7.689/1988","2026-11","Alíquota combinada de 25% + 9%"],
   ["size","Prêmio de tamanho (receita até R$ 300 mi)",3.0,"%","Kroll Cost of Capital · valor inicial a confirmar","2026-11","Prêmio adicional para empresas de menor porte"],
   ["desc","Desconto de liquidez de empresa fechada sobre múltiplos de bolsa",25,"%","Kinsey · prática de mercado","2026-11","Aplicado aos múltiplos de companhias abertas"],
-  ["gReal","Crescimento real na perpetuidade",1.0,"% a.a.","Kinsey","2026-11","Crescimento acima da inflação após o 5º ano"],
+  ["gReal","Crescimento real na perpetuidade (reserva: só quando não há PIB projetado)",1.0,"% a.a.","Kinsey","2026-11","Padrão: média do PIB projetado do setor no Focus (5 anos); sem o setor, PIB total; sem Focus, este valor"],
   ["desvio","Tolerância de crescimento acima do histórico sem justificativa",3,"p.p.","Kinsey","2026-11","Acima disso o consultor justifica com orçamento, estudo técnico ou novo negócio"]
  ],
  /* beta desalavancado e dívida/patrimônio setoriais (mercados emergentes) · valores iniciais a confirmar */
  betas:{Alimentos:[.62,.25], Agro:[.70,.45], Tecnologia:[1.15,.08], Saúde:[.80,.30], Educação:[.85,.25], Industrial:[.90,.35], Energia:[.55,.90], Logística:[.85,.60], Varejo:[.85,.40], Construção:[.95,.50], Serviços:[.85,.30], Outros:[.90,.40]},
  ipca:{2020:4.52, 2021:10.06, 2022:5.79, 2023:4.62, 2024:4.83, 2025:4.26},
- focus:{data:"2026-11-06", ipca:{2026:5.22, 2027:4.90, 2028:4.00, 2029:4.00, 2030:3.94}, selic:{2026:13.75, 2027:12.50, 2028:11.00, 2029:10.25, 2030:10.00}},
+ focus:{data:"2026-11-06", ipca:{2026:5.22, 2027:4.90, 2028:4.00, 2029:4.00, 2030:3.94}, selic:{2026:13.75, 2027:12.50, 2028:11.00, 2029:10.25, 2030:10.00},
+  /* PIB real projetado (% a.a.) · valores iniciais a confirmar; na versão publicada o Focus do Banco Central atualiza */
+  pib:{total:{2026:2.0, 2027:1.8, 2028:2.0, 2029:2.0, 2030:2.0}, agro:{2026:2.0, 2027:2.5, 2028:2.5, 2029:2.5, 2030:2.5}, ind:{2026:1.5, 2027:1.6, 2028:1.8, 2029:1.8, 2030:1.8}, serv:{2026:2.1, 2027:1.9, 2028:2.0, 2029:2.0, 2030:2.0}}},
  mercado:{em:"2026-11-14", fonte:"Banco Central do Brasil (SGS)", selic:13.75, ipca12:4.63, ipca12ref:"outubro/2026", cdi:13.65, ptax:5.6518}
 };
 /* segmentos semelhantes para os múltiplos */
