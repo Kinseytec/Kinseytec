@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v2.97 — 2026-11-18 · Jurídico: validação dos documentos e parecer final do advogado
+- "Contratos e pareceres" vira "Validação dos documentos": o sistema lê cada documento (leitura automática ao abrir) e aponta fragilidades e cláusulas desfavoráveis ou ausentes; o advogado só escolhe Validar, Validar com ressalva ou Não validar, com observação opcional, sem parecer nem OAB por documento. Saem do M&A o checklist de cláusulas e a cotação do cacau.
+- Nova aba "Parecer do advogado": base consolidada com todos os pontos da diligência, por nível de risco: questionário jurídico, processos e contingências, contratos da empresa (mudança de controle, exclusividade), documentos validados e não validados, contrato social (ônus, preferência), pré-diligência, procedimentos automáticos, workbook e recomendações para o SPA.
+- O advogado escolhe a conclusão (favorável, com ressalvas ou desfavorável), revisa as considerações sugeridas e emite o parecer final em PDF: minuta sem credenciais ou parecer assinado com nome e OAB (validados). O parecer também aparece em Relatórios.
+
 ## v2.96 — 2026-11-18 · Análise automática ao importar documentos, SPED (ECD e ECF) e gestão dos documentos
 - Ao importar, o sistema analisa cada empresa na hora e mostra o quadro "Análise automática dos documentos": análises financeiras, Due Diligence (pré-diligência, procedimentos e revisão analítica), valuation, PPA, impairment (quando houver aquisição) e jurídico, com atalho para cada área. O mesmo quadro aparece no dossiê.
 - Base inicial: novo botão "Analisar documentos importados", logo abaixo da Importação de documentos: busca a empresa, lista os documentos do dossiê com "Ler documento" e "Excluir" (o período que veio do documento é refeito com os demais), "Importar novo documento" e "Analisar de novo".

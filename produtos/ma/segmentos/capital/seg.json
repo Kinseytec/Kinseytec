@@ -134,11 +134,11 @@
   ],
   [
    "Aprovação remota de contratos",
-   "Contratos e pareceres das operações"
+   "Validação dos documentos das operações"
   ],
   [
    "Contratos entre traders e fornecedores enviados pelo campo. O Jurídico revisa as cláusulas e emite o parecer daqui mesmo.",
-   "LOI, SPA, acordos de investimento e de sócios e mandatos. O Jurídico revisa as cláusulas e emite o parecer daqui mesmo."
+   "LOI, SPA, acordos de investimento e de sócios e mandatos. O sistema lê cada documento e aponta as fragilidades; o advogado só valida, valida com ressalva ou não valida. O parecer final fica na aba Parecer do advogado."
   ],
   [
    "[\"Compra e venda de cacau\",\"Fornecimento contínuo\",\"Armazenagem\",\"Parceria / meação\",\"Prestação de serviço\",\"Outro\"]",

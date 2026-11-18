@@ -137,7 +137,7 @@ if (window.KT_DD && window.KT_VAL) (() => {
       ["Valuation", [["val-pdf", "Relatório (PDF)", bal], ["val-ppt", "Apresentação (PowerPoint)", bal]], bal ? "" : "importe os balancetes na Due Diligence"],
       ["Due diligence", [["dd-pdf", "Relatório (PDF)", bal], ["dd-pt", "Papéis de trabalho (PDF)", bal], ["an-pdf", "Análises financeiras (PDF)", bal]], bal ? `data-base ${per.split("-").reverse().join("/")}` : "importe os balancetes"],
       ["Avaliação de ativos", [["atv-doc", "Laudo (Word)", atv > 0], ["atv-xls", "Planilha (Excel)", atv > 0], ...imv.map((m, i) => [`imv-${i}`, `Laudo do imóvel ${i + 1}${m.matricula ? " · matrícula " + m.matricula : ""} (Word)`, true])], atv ? `${atv} bem(ns)` : "importe o cadastro de bens em Avaliação de ativos"],
-      ["Diligência jurídica", [["jur-pdf", "Relatório jurídico (PDF)", jdd]], ""],
+      ["Diligência jurídica", [["jur-pdf", "Relatório jurídico (PDF)", jdd], ["jpar-pdf", "Parecer do advogado (PDF)", !!window.KT_JPAR]], s.jdd?.parecer?.adv?.nome ? `parecer assinado · ${s.jdd.parecer.adv.oab}` : "minuta até o advogado emitir com a OAB"],
       ["Pós-aquisição", [["ppa-pdf", "PPA (PDF)", bal && !!window.KT_POS], ["imp-pdf", "Laudo de impairment (PDF)", bal && !!window.KT_IMP], ["imp-ppt", "Impairment (PowerPoint)", bal && !!window.KT_IMP]], bal ? "PPA e teste de impairment (CPC 01)" : "importe os balancetes"]];
     const cards = `${G.map(([t, L, nota]) => `<div class="card" style="display:flex;flex-direction:column;gap:8px"><div><h3 style="margin:0;font-size:15px">${esc(t)}</h3>${nota ? `<p class="sub" style="margin:2px 0 0;font-size:12px">${esc(nota)}</p>` : ""}</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">${L.map(([k, l, ok]) => `<button type="button" class="btn sm ${/pre-pdf|pos-pdf|val-pdf|dd-pdf|atv-doc|jur-pdf|imp-pdf/.test(k) ? "primary" : ""}" data-rl="${k}" ${ok ? "" : "disabled"}>${esc(l)}</button>`).join("")}</div></div>`).join("")}
@@ -151,7 +151,7 @@ if (window.KT_DD && window.KT_VAL) (() => {
       "pos-pdf": () => R.teaser(s, "pos", "pdf", "completo"), "pos-one": () => R.teaser(s, "pos", "pdf", "resumo"), "pos-ppt": () => R.teaser(s, "pos", "pptx"),
       "val-pdf": () => R.valuation(s, "pdf"), "val-ppt": () => R.valuation(s, "pptx"),
       "dd-pdf": () => R.ddPdf(s, per), "dd-pt": () => R.papeisPdf(s, per), "an-pdf": () => R.analises(s, "completo"),
-      "atv-doc": () => KT_ATV.laudo(s), "atv-xls": () => KT_ATV.excel(s), "jur-pdf": () => KT_JDD.relatorio(s, "completo"), "ppa-pdf": () => KT_POS.ppaPdf(s), "imp-pdf": () => KT_IMP.pdf(s), "imp-ppt": () => KT_IMP.ppt(s)};
+      "atv-doc": () => KT_ATV.laudo(s), "atv-xls": () => KT_ATV.excel(s), "jur-pdf": () => KT_JDD.relatorio(s, "completo"), "jpar-pdf": () => KT_JPAR.pdf(s), "ppa-pdf": () => KT_POS.ppaPdf(s), "imp-pdf": () => KT_IMP.pdf(s), "imp-ppt": () => KT_IMP.ppt(s)};
     $$("[data-rl]", root).forEach(b => b.onclick = async () => { const k = b.dataset.rl, f = run[k] || (/^imv-/.test(k) && window.KT_IMOV ? () => KT_IMOV.laudo(s, imv[+k.slice(4)]) : null); if (!f) return;
       const t0 = b.textContent; b.disabled = true; b.textContent = "Gerando…"; try{ await f(); }catch(e){ console.error(e); toast("Não foi possível gerar: " + (e.message || "erro")); } b.disabled = false; b.textContent = t0; });
   }
