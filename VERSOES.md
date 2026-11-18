@@ -1,5 +1,14 @@
 # Registro de versões
 
+## v2.93 — 2026-11-18 · Impairment por unidade geradora de caixa e CAPEX no valuation
+- Valuation, aba FCD: novo quadro "Investimentos · CAPEX" com CAPEX e outros investimentos ano a ano (R$ mi). Ano sem CAPEX informado reinveste a própria depreciação; o CAPEX acima da depreciação passa a ser depreciado. Vale para o moderado, o otimista, o PPA e o impairment.
+- Impairment (Pós-aquisição): "Cliente da Órbita?" como nas outras áreas (trabalho novo com cadastro básico quando "Não").
+- Resumo no topo: fluxo de caixa descontado (valor em uso), valor justo líquido, carrying amount com a composição (marca, carteira de clientes, outros intangíveis, mais-valia de ativos, imobilizado, capital de giro e ágio) e o resultado: impairment sim ou não, valor excedente ou valor a reduzir, e indício sim ou não.
+- Fonte por prioridade: workbook da Due Diligence, fluxo do PPA, valuation pelos balancetes. Data-base do teste própria, WACC da data do teste e WACC da aquisição (indício de juros).
+- Unidades geradoras de caixa: a própria empresa ou várias unidades com o % da receita (ex.: Rio de Janeiro 40%), que leva esse % do fluxo de caixa e do valor contábil; % do ágio e dos intangíveis opcional; indício por UGC.
+- Perda alocada ao ágio e depois pro rata; contabilização (débito na DRE, crédito na conta redutora do ativo) e efeito fiscal (Lei 12.973).
+- Laudo de impairment em PDF e PowerPoint e memória em Excel; o laudo também aparece em "Relatórios" (Órbita e Apresentação), junto com o PPA.
+
 ## v2.92 — 2026-11-18 · Impairment (CPC 01) no Pós-aquisição
 - Nova aba "Impairment · CPC 01" no Pós-aquisição: teste de recuperabilidade da unidade geradora de caixa adquirida, com o ágio testado todo ano.
 - Valor recuperável = o maior entre o valor em uso (FCD moderado do valuation, 5 anos + perpetuidade, sem expansões) e o valor justo líquido de despesas de venda (múltiplos de mercado − despesas de venda).

@@ -13,7 +13,8 @@ if (window.KT_DD) (() => {
     ativos:{nome:"Avaliação de ativos", tag:"avaliacao", fin:["Combinação de negócios · PPA (CPC 15)", "Revisão de vida útil e valor residual (CPC 27)", "Valor justo para fins contábeis (CPC 46)", "Teste de recuperabilidade (CPC 01)", "Seguro", "Garantia ou financiamento", "Fins fiscais ou societários", "Outra"]},
     valuation:{nome:"Valuation", tag:"valuation", fin:["Venda da empresa ou de participação (M&A)", "Compra de empresa (investidor)", "Entrada ou saída de sócio", "Laudo para fins contábeis ou fiscais", "Planejamento e gestão", "Outra"]},
     dd:{nome:"Due Diligence", tag:"dd", fin:["Due diligence para investidor (compra)", "Due diligence do vendedor (vendor DD)", "Due diligence para financiamento", "Outra"]},
-    ppa:{nome:"PPA", tag:"ppa", fin:["Combinação de negócios · PPA (CPC 15)", "Ágio para fins fiscais (Lei 12.973)", "PPA avulso (só a alocação do preço)", "Teste de recuperabilidade do ágio (CPC 01)", "Outra"]}};
+    ppa:{nome:"PPA", tag:"ppa", fin:["Combinação de negócios · PPA (CPC 15)", "Ágio para fins fiscais (Lei 12.973)", "PPA avulso (só a alocação do preço)", "Teste de recuperabilidade do ágio (CPC 01)", "Outra"]},
+    impairment:{nome:"Impairment", tag:"impairment", fin:["Teste anual do ágio (CPC 01)", "Teste por indício de desvalorização", "Impairment de marca ou intangível", "Impairment de unidade de negócio", "Outra"]}};
   const info = (s, a) => a === "ativos" ? (s?.ativos || {}) : (s?.trabalhos?.[a] || {});
   const dataBaseAuto = (s, a) => info(s, a).dataBase || s.perfil?.dataBase || s.ativos?.dataBase || (D.periodos(s) || []).map(p => s.dd.bal[p].dataBase).filter(Boolean)[0] || "";
   const avulso = s => !!s?.trabalho;
@@ -90,7 +91,7 @@ if (window.KT_DD) (() => {
   if (EXT_VIEWS.valuation){ const _v = EXT_VIEWS.valuation; EXT_VIEWS.valuation = function(){ const r = _v.apply(this, arguments); const host = $("#valuation"); if (host && S.valTab !== "base" && S.valTab !== "divida") montar(host, host.querySelector(".dd-split > div:last-child"), "valuation", D.alvoSel()); return r; }; }
   if (typeof renderAuditoria === "function"){ const _r = renderAuditoria; renderAuditoria = function(){ const r = _r.apply(this, arguments); const host = $("#auditoria"); if (!host || !["geral", "ra"].includes(S.ddTab)) return r;
       const tabs = host.querySelector(".dd-tabs"); if (tabs) montar(host, tabs.parentElement, "dd", D.alvoSel(), tabs.nextElementSibling); return r; }; }
-  if (EXT_VIEWS.pos){ const _v = EXT_VIEWS.pos; EXT_VIEWS.pos = function(){ const r = _v.apply(this, arguments); const host = $("#pos"); if (host && S.posTab !== "mod") montar(host, host.querySelector(".dd-split > div:last-child"), "ppa", D.alvoSel()); return r; }; }
+  if (EXT_VIEWS.pos){ const _v = EXT_VIEWS.pos; EXT_VIEWS.pos = function(){ const r = _v.apply(this, arguments); const host = $("#pos"); if (host && S.posTab !== "mod") montar(host, host.querySelector(".dd-split > div:last-child"), S.posTab === "imp" ? "impairment" : "ppa", D.alvoSel()); return r; }; }
   /* trabalhos avulsos não aparecem no globo da Órbita (não são empresas do M&A) */
   { const _f = window.ORB_FILTRO; window.ORB_FILTRO = s => !s?.trabalho && (!_f || _f(s)); }
   window.KT_ATVT = {form, card, AREAS};

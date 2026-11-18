@@ -192,13 +192,16 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
     const {Bs, bp, vl, histL, W} = X, fRL = div(bp.rl, bp.rb) || 1, g = (1 + gPerp(W.seg, Bs, vl).v / 100) * (1 + Bs.P.infBR.v / 100) - 1, w = W.wacc + dw;
     let rec = {...bp.lin}; if (!Object.keys(rec).length) rec = {Receita:bp.rb};
     const mg = tipo === "mod" ? X.mgHist : (vl.margemOt != null ? vl.margemOt / 100 : div(bp.eb, bp.rl));
-    const anos = []; let rlAnt = bp.rl, vp = 0;
+    const anos = []; let rlAnt = bp.rl, vp = 0, daExtra = 0;
     for (let t = 1; t <= 5; t++){ const y = X.y0 + t, inf = ipcaAno(Bs, y); let rb = 0;
       Object.keys(rec).forEach(l => { const gr = tipo === "mod" ? (vl.premMod?.[l]?.real != null ? vl.premMod[l].real / 100 : cl(histL[l]?.real ?? 0, -.1, .15)) : Math.max(vl.prem?.[l]?.real != null ? vl.prem[l].real / 100 : cl(histL[l]?.real ?? 0, -.1, .15), vl.premMod?.[l]?.real != null ? vl.premMod[l].real / 100 : -1); /* o otimista nunca fica abaixo do moderado */ rec[l] = rec[l] * (1 + gr) * (1 + inf); rb += rec[l]; });
       let rl = rb * fRL, eb = rl * mg, novos = 0;
       if (tipo === "ot") Object.values(vl.novos || {}).filter(Boolean).forEach(nv => { const ini = +nv.inicio || 1; if (t < ini) return; let r = (+nv.rec1 || 0) * 1e6; for (let k = ini; k < t; k++) r *= (1 + (+nv.cresc || 0) / 100); let idx = 1; for (let k = 1; k <= t; k++) idx *= 1 + ipcaAno(Bs, X.y0 + k); r *= idx; novos += r; eb += r * (+nv.margem || 0) / 100; });
-      rl += novos; const da = rl * X.capex, ebit = eb - da, ir = Math.max(0, ebit) * W.t, dncg = (rl - rlAnt) * X.ncgp, fcl = eb - ir - rl * X.capex - dncg;
-      vp += fcl / Math.pow(1 + w, t - .5); anos.push({t, y, rl, eb, mg:div(eb, rl), fcl, novos, cres:div(rl, rlAnt) - 1}); rlAnt = rl; }
+      rl += novos; /* CAPEX: o informado no ano (R$ mi) ou o reinvestimento da própria depreciação; o que passar da depreciação deprecia em 10 anos */
+      const daB = rl * X.capex, cxI = vl.capexAno?.[y], capex = cxI != null && cxI !== "" && isFinite(cxI) ? +cxI * 1e6 : daB, oinv = (+vl.invAno?.[y] || 0) * 1e6;
+      const da = daB + daExtra, ebit = eb - da, ir = Math.max(0, ebit) * W.t, dncg = (rl - rlAnt) * X.ncgp, fcl = eb - ir - capex - oinv - dncg;
+      daExtra += (capex - daB) / 10;
+      vp += fcl / Math.pow(1 + w, t - .5); anos.push({t, y, rl, eb, mg:div(eb, rl), fcl, novos, cres:div(rl, rlAnt) - 1, da, ir, capex, oinv, dncg, cxInf:cxI != null && cxI !== ""}); rlAnt = rl; }
     /* perpetuidade (Gordon) com o capital de giro crescendo à taxa g e desconto no meio do período, como nos modelos Kinsey */
     const u = anos[4], fclP = u.eb * (1 + g) - Math.max(0, u.eb - u.rl * X.capex) * (1 + g) * W.t - u.rl * X.capex * (1 + g) - u.rl * X.ncgp * g;
     const tv = w > g ? fclP / (w - g) : 0, vtv = tv / Math.pow(1 + w, 4.5), ev = vp + vtv;
@@ -478,7 +481,7 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
       ["Prêmio de mercado (ERP)", pc(P.erp.v / 100), P.erp.fonte], ["Risco-país", pc(P.crp.v / 100), P.crp.fonte], ["Prêmio de tamanho", pc(W.size / 100), P.size.fonte], ["Custo do capital próprio (USD)", pc(W.keUSD), "CAPM"],
       ["Custo do capital próprio (R$)", pc(W.ke), `inflação ${fmt(P.infBR.v, 1)}% Brasil / ${fmt(P.infUS.v, 1)}% EUA`], ["Custo da dívida (antes do IR)", pc(W.kd), `Selic média Focus ${fmt(W.selicLP, 2)}% + spread ${fmt(P.spread.v, 1)} p.p.`], ["Custo da dívida (após IR)", pc(W.kdLiq), `IR/CS ${fmt(P.ir.v, 0)}%`],
       ["Estrutura de capital", `${pc(W.we, 0)} / ${pc(W.wd, 0)}`, "capital próprio / dívida"], ["<b>WACC</b>", `<b>${pc(W.wacc)}</b>`, W.ajustado ? `ajustado pelo consultor (automático ${pc(W.waccAuto)})` : "automático"]];
-    return fcdTopo(s, R) + (window.KT_CRESC ? KT_CRESC.card(s, R) : "") + `<div class="card" style="display:flex;flex-direction:column;gap:10px"><h3>Histórico</h3>${histT}<h3 style="margin-top:6px">Por linha de negócio (receita bruta)</h3>${linT}
+    return fcdTopo(s, R) + (window.KT_CRESC ? KT_CRESC.card(s, R) + KT_CRESC.capexCard(s, R) : "") + `<div class="card" style="display:flex;flex-direction:column;gap:10px"><h3>Histórico</h3>${histT}<h3 style="margin-top:6px">Por linha de negócio (receita bruta)</h3>${linT}
         <p class="sub" style="margin:0">Crescimento real descontado o IPCA de cada ano (Banco Central). Contas de receita ligadas às linhas pelo nome; ajuste em "Contas de receita" abaixo.</p>
         <details><summary class="sub">Contas de receita por linha de negócio</summary>${tbl(["Conta", "Linha"], [...new Set(H.P.flatMap(p => D.C(p.b).filter(c => c[3] === "recBruta").map(c => c[1])))].map(d => `<tr><td>${esc(d)}</td><td><select data-map="${esc(d)}" aria-label="Linha de ${esc(d)}" ${ed2}>${[...new Set([...linhasDe(s), "Outras receitas"])].map(l => `<option ${l === linhaConta(s, d) ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></td></tr>`))}</details></div>
       <div class="card" style="display:flex;flex-direction:column;gap:10px"><h3>Períodos comparativos</h3>${comp}</div>
@@ -486,7 +489,7 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
         <p class="sub" style="margin:0">Crescimento real por linha na tabela acima. Cenário moderado: crescimento real histórico de cada linha e margem média histórica.</p><div class="form">
         <div class="fld"><label for="pr-mg">Margem EBITDA otimista (%)</label><input id="pr-mg" inputmode="decimal" value="${vl.margemOt != null ? fmt(vl.margemOt, 1) : ""}" placeholder="${fmt(div(X.bp.eb, X.bp.rl) * 100, 1)}" ${ed2}></div>
         <div class="fld"><label for="pr-gp">Crescimento real na perpetuidade (%)</label><input id="pr-gp" inputmode="decimal" value="${vl.gReal != null && vl.gReal !== "" ? fmt(+vl.gReal, 2) : ""}" placeholder="${fmt(gPerp(W.seg, Bs, {}).v, 2)} (${esc(gPerp(W.seg, Bs, {}).setor || "base")})" ${ed2}></div>
-        <div class="fld"><label for="pr-cx">Capex (% da receita)</label><input id="pr-cx" inputmode="decimal" value="${fmt(X.capex * 100, 1)}" ${ed2}></div><div class="fld"><label for="pr-nc">Capital de giro (% da receita)</label><input id="pr-nc" inputmode="decimal" value="${fmt(X.ncgp * 100, 1)}" ${ed2}></div>
+        <div class="fld"><label for="pr-cx">Depreciação · reinvestimento (% da receita)</label><input id="pr-cx" inputmode="decimal" value="${fmt(X.capex * 100, 1)}" ${ed2}></div><div class="fld"><label for="pr-nc">Capital de giro (% da receita)</label><input id="pr-nc" inputmode="decimal" value="${fmt(X.ncgp * 100, 1)}" ${ed2}></div>
 </div><p class="sub" style="margin:0;font-size:12px">WACC: automático pelo CAPM; ajustes só em "Ajustar com justificativa" (limite de ±3 p.p.).</p>
         <h3 style="font-size:14px">Novos negócios e mercados (só no otimista, com justificativa)</h3><p class="sub" style="margin:0">Informações dos sócios ou da administração sobre novos negócios já em funcionamento ou com estudos que comprovem. Margem acima do histórico (${pc(X.mgMax)}) exige justificativa.</p>
         ${Object.entries(vl.novos || {}).filter(([, v]) => v).map(([id, v]) => `<div class="sub" style="margin:0"><b>${esc(v.tipo || "Novo negócio")}:</b> ${esc(v.nome)}${v.fonte ? ` · fonte: ${esc(v.fonte)}` : ""}${v.comprova ? ` · ${esc(v.comprova)}` : ""} · receita no ano ${esc(v.inicio)}: R$ ${fmt(+v.rec1, 1)} mi · crescimento real ${fmt(+v.cresc, 1)}% · margem ${fmt(+v.margem, 1)}% ${ed() ? `<button type="button" class="btn sm ghost" data-rmnb="${id}">Remover</button>` : ""}</div>`).join("") || `<p class="sub" style="margin:0">Nenhum.</p>`}
@@ -498,7 +501,7 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
         <p class="sub" style="margin:0">Perpetuidade com crescimento nominal de ${pc(mod.g)}: real de ${fmt(gPerp(W.seg, Bs, vl).v, 2)}% (${esc(gPerp(W.seg, Bs, vl).fonte)}) + IPCA de longo prazo. IPCA de cada ano pelo Focus de ${esc(Bs.focus.data || "")}.</p></div>`;
   }
   function bindFcd(host, s, R){
-    if (window.KT_CRESC) KT_CRESC.bind(host, s); const est = $("#nb-est", host); if (est) est.onchange = () => est.files[0] && KT_CRESC.importarEstudo(s, est.files[0]);
+    if (window.KT_CRESC){ KT_CRESC.bind(host, s); KT_CRESC.bindCapex(host, s); } const est = $("#nb-est", host); if (est) est.onchange = () => est.files[0] && KT_CRESC.importarEstudo(s, est.files[0]);
     const f = $("#fprem", host); if (!f) return; const vlp = s.dd?.vl || {};
     f.onsubmit = e => { e.preventDefault(); const prem = {}; $$("[data-prem]", host).forEach(i => { const x = n(i.value); prem[i.dataset.prem] = {real:x}; });
       const g = id => n($("#" + id).value); up(s, {dd:{vl:{prem, margemOt:g("pr-mg"), capex:g("pr-cx"), ncgp:g("pr-nc"), gReal:$("#pr-gp") && $("#pr-gp").value.trim() !== "" ? g("pr-gp") : null}}}).then(() => toast("Premissas salvas")); };

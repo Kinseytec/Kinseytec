@@ -24,6 +24,22 @@ if (window.KT_DD && window.KT_VAL) (() => {
       <div class="tbl"><table><thead><tr><th>Linha</th><th class="dd-num">Histórico nominal</th><th class="dd-num">Histórico real</th><th>Moderado (real a.a., %)</th><th class="dd-num">Otimista (real)</th></tr></thead><tbody>${linhas}</tbody></table></div>
       ${ed ? "" : `<div style="display:flex;gap:8px;flex-wrap:wrap"><button type="submit" class="btn sm primary">Salvar crescimento moderado</button><span class="sub" style="margin:0;font-size:12px">vazio = histórico da linha</span></div>`}</form>`;
   }
+  /* investimentos: CAPEX e outros investimentos ano a ano; sem CAPEX informado, reinveste a depreciação (regra do valuation) */
+  function capexCard(s, R){
+    const X = R.X, vl = X.vl, A = R.mod.c.anos, ed = D.ed() ? "" : "disabled", inf = A.filter(a => a.cxInf).length;
+    const v = x => x != null && x !== "" ? fmt(+x, 1) : "";
+    return `<form class="card" id="fx-capex" style="display:flex;flex-direction:column;gap:10px;font-size:13px" novalidate><div><h3 style="margin:0">Investimentos · CAPEX</h3><p class="sub" style="margin:2px 0 0;font-size:12px">Informe o CAPEX previsto e outros investimentos de cada ano (R$ milhões). Ano sem CAPEX informado reinveste a própria depreciação (${pc(X.capex)} da receita). Vale para o moderado, o otimista, o PPA e o impairment.</p></div>
+      <div class="tbl"><table style="font-size:12.5px"><thead><tr><th>Ano</th><th class="dd-num">Receita</th><th class="dd-num">Depreciação</th><th>CAPEX (R$ mi)</th><th>Outros investimentos (R$ mi)</th><th class="dd-num">Usado no FCD</th></tr></thead><tbody>
+      ${A.map(a => `<tr><td>${a.y}</td><td class="dd-num">${mi(a.rl)}</td><td class="dd-num">${mi(a.rl * X.capex)}</td>
+        <td><input data-cxa="${a.y}" inputmode="decimal" value="${v(vl.capexAno?.[a.y])}" placeholder="${fmt(a.rl * X.capex / 1e6, 1)} (depreciação)" style="width:120px;text-align:right;height:32px;font-size:12.5px" aria-label="CAPEX ${a.y}" ${ed}></td>
+        <td><input data-ivA="${a.y}" inputmode="decimal" value="${v(vl.invAno?.[a.y])}" placeholder="0" style="width:100px;text-align:right;height:32px;font-size:12.5px" aria-label="Outros investimentos ${a.y}" ${ed}></td>
+        <td class="dd-num">${mi(a.capex + a.oinv)}${a.cxInf ? "" : ` <span class="sub" style="font-size:10.5px">reinvestimento</span>`}</td></tr>`).join("")}</tbody></table></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${ed ? "" : `<button type="submit" class="btn sm primary">Salvar investimentos</button>`}<span class="sub" style="margin:0;font-size:12px">${inf ? `${inf} ano(s) com CAPEX informado` : "Nenhum CAPEX informado: o FCD reinveste a depreciação"}. Na perpetuidade o CAPEX é igual à depreciação.</span></div></form>`;
+  }
+  function bindCapex(host, s){ const f = $("#fx-capex", host); if (!f) return;
+    f.onsubmit = e => { e.preventDefault(); const cx = {}, iv = {};
+      $$("[data-cxa]", f).forEach(i => { cx[i.dataset.cxa] = i.value.trim() === "" ? null : nn(i.value); }); $$("[data-iva]", f).forEach(i => { iv[i.dataset.iva] = i.value.trim() === "" ? null : nn(i.value); });
+      D.up(s, {dd:{vl:{capexAno:cx, invAno:iv}}}).then(() => toast("Investimentos salvos")); }; }
   function bind(host, s){ const f = $("#fx-cresc", host); if (!f) return;
     f.onsubmit = e => { e.preventDefault(); const pm = {}; $$("[data-pmod]", f).forEach(i => { const v = i.value.trim() === "" ? null : nn(i.value); pm[i.dataset.pmod] = {real:v}; });
       D.up(s, {dd:{vl:{premMod:pm}}}).then(() => toast("Crescimento moderado salvo")); }; }
@@ -70,5 +86,5 @@ if (window.KT_DD && window.KT_VAL) (() => {
       await D.up(s, {dd:{vl:{novos:{["n" + Date.now().toString(36)]:{tipo:$("#fe-t").value, nome:$("#fe-n").value.trim() || f.name, inicio:Math.max(1, Math.min(5, Math.round(g("fe-i") || 1))), rec1:g("fe-r") || 0, cresc:g("fe-c") || 0, margem:g("fe-m") || 0, fonte:"Estudo de viabilidade", comprova:$("#fe-p").value.trim(), estudo:{arquivo:f.name, serie:S2, investimento:invT}}}}}});
       close(); toast("Estudo incluído no cenário otimista: justifique para emitir"); };
   }
-  window.KT_CRESC = {card, bind, lerEstudo, importarEstudo, TIPOS};
+  window.KT_CRESC = {capexCard, bindCapex, card, bind, lerEstudo, importarEstudo, TIPOS};
 })();
