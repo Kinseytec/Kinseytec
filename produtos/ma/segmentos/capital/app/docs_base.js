@@ -88,6 +88,8 @@ if (window.KT_DD) (() => {
       const m = n.match(/(\d{2})[._-](\d{4})|(\d{4})[._-](\d{2})/); if (m){ const a = m[2] || m[3], me = m[1] || m[4]; r.periodo = {ini:`${a}-01-01`, fim:new Date(+a, +me, 0, 12).toISOString().slice(0, 10)}; } return r; }
     const t = await texto(f) || ""; r.texto = t; r.leu = t.trim().length > 40;
     r.cnpjs = [...new Set((t.match(/\b\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}\b/g) || []).map(dig).filter(d => d.length === 14 && IMP.docValido(d)))];
+    if (window.KT_SPED && KT_SPED.tipo(t)){ try{ const o = await KT_SPED.ler(f); if (o){ r.tipo = o.tipo; r.formato = o.formato; r.como = `conteúdo (${o.formato})`; r.multi = o.multi; r.texto = t.slice(0, 1500);
+        r.periodo = {ini:o.ini || o.multi[0].periodo.ini, fim:o.fim || o.multi[o.multi.length - 1].periodo.fim}; if (o.cnpj && IMP.docValido(o.cnpj)) r.cnpjs = [o.cnpj]; r.contas = o.multi[o.multi.length - 1].contas; return r; } }catch(e){ console.warn("SPED", e); } }
     const T = TIPOS.find(x => x[2](t)); if (T){ r.tipo = T[0]; r.como = "conteúdo"; }
     if (!r.tipo && typeof DOCAN !== "undefined" && r.leu){ try{ let x = DOCAN.extrair(t); if (!x.tipo) x = DOCAN.extrair(t.replace(/\s*\n\s*/g, " ")); if (x.tipo){ r.tipo = x.tipo; r.como = "conteúdo"; r.cad = x.cad; } }catch(e){} }
     if (!r.tipo){ const m = NOME_ARQ.find(([re]) => re.test(f.name)); if (m){ r.tipo = m[1]; r.como = "nome do arquivo"; } }
@@ -110,6 +112,10 @@ if (window.KT_DD) (() => {
     return supById(id) || {id, nome, doc:fmtC(d), nivel:"N3"};
   }
   async function aplicar(s, r, o = {}){
+    /* SPED: cada período do ECD (mês a mês) ou do ECF vira um balancete; o arquivo fica uma vez no dossiê */
+    if (r.multi?.length){ let n = 0; for (const m of r.multi){ await aplicar(s, {...r, multi:null, periodo:m.periodo, contas:m.contas, contasDRE:null, tipo:r.formato === "ECF" ? "balanco" : "balancete"}, {semArquivo:true}); n++; }
+      const resto = await aplicar(s, {...r, multi:null, contas:null, contasDRE:null, tipo:"sped"}, o);
+      return [`Due Diligence: ${n} ${r.formato === "ECD" ? "balancete(s) mensal(is) do ECD" : "balanço e DRE do ECF"} (${dBR(r.multi[0].periodo.fim)} a ${dBR(r.multi[n - 1].periodo.fim)})`, ...resto]; }
     const feito = [];
     if (["balanco", "dre", "balancete"].includes(r.tipo) && (r.contas || r.contasDRE)){
       const P = r.periodo || {ini:`${new Date().getFullYear() - 1}-01-01`, fim:`${new Date().getFullYear() - 1}-12-31`}, per = P.fim.slice(0, 7), cur = (supById(s.id) || s).dd?.bal?.[per];
@@ -179,12 +185,14 @@ if (window.KT_DD) (() => {
       $("#dc-go").disabled = !R.length || R.every(r => r.feito); $("#dc-go").textContent = R.length ? `Importar ${R.filter(r => !r.feito).length} documento(s)` : "Importar";
       p.innerHTML = !R.length ? "" : `<div class="result" style="font-size:13px;margin-bottom:6px"><b>${ok}</b> de ${R.length} reconhecido(s)${R.length - ok ? ` · <b style="color:var(--warn)">${R.length - ok} a identificar</b> (toque em Ver e escolha o tipo)` : ""}</div>
         <div class="tbl" style="max-height:420px;overflow:auto"><table><thead><tr><th>Documento</th><th>Tipo</th><th>Empresa</th><th>Resultado</th></tr></thead><tbody>${R.map((r, i) => { const s = alvoDe(r, fixo);
-          return `<tr><td style="font-size:12.5px;min-width:140px;word-break:break-all">${esc(r.f.name)}${r.periodo ? `<div class="sub" style="margin:0;font-size:11px">${dBR(r.periodo.ini)} a ${dBR(r.periodo.fim)}</div>` : ""}<div><button type="button" class="btn sm ghost" data-dcv="${i}" style="margin-top:4px">${abertos.has(i) ? "Fechar" : "Ver"}</button></div></td>
+          return `<tr><td style="font-size:12.5px;min-width:140px;word-break:break-all">${esc(r.f.name)}${r.periodo ? `<div class="sub" style="margin:0;font-size:11px">${dBR(r.periodo.ini)} a ${dBR(r.periodo.fim)}</div>` : ""}<div><button type="button" class="btn sm ghost" data-dcv="${i}" style="margin-top:4px">${abertos.has(i) ? "Fechar" : "Ver"}</button>${r.feito ? "" : ` <button type="button" class="btn sm ghost" data-dcr="${i}" style="margin-top:4px">Ler de novo</button> <button type="button" class="btn sm ghost" data-dcx="${i}" style="margin-top:4px;color:var(--bad)">Remover</button>`}</div></td>
             <td><select data-dct="${i}" style="max-width:200px" ${r.feito ? "disabled" : ""}><option value="">— identificar documento —</option>${OPCOES.map(([k, l]) => `<option value="${k}" ${k === r.tipo ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>${r.contas || r.contasDRE ? `<div class="sub" style="margin:2px 0 0;font-size:11px">${(r.contas || []).length + (r.contasDRE || []).length} contas lidas</div>` : r.erro ? `<div class="sub" style="margin:2px 0 0;font-size:11px;color:var(--warn)">${esc(r.erro)}</div>` : ""}</td>
             <td style="font-size:12.5px">${s ? esc(s.nome) : r.cnpjs[0] ? `<span style="color:var(--warn)">CNPJ ${fmtC(r.cnpjs[0])} novo: será cadastrado como target</span>` : `<span style="color:var(--bad)">escolha a empresa acima</span>`}</td>
             <td style="font-size:12px;min-width:160px">${r.feito ? r.feito.map(esc).join("<br>") : r.tipo ? `identificado pelo ${esc(r.como || "usuário")}` : `<b style="color:var(--warn)">Identificar documento:</b> toque em Ver, confira e escolha o tipo${r.leu === false ? " (sem texto legível: foto ou digitalização)" : ""}`}</td></tr>${abertos.has(i) ? `<tr><td colspan="4">${previa(r)}</td></tr>` : ""}`; }).join("")}</tbody></table></div>`;
       $$("[data-dcv]", p).forEach(x => x.onclick = () => { const i = +x.dataset.dcv; abertos.has(i) ? abertos.delete(i) : abertos.add(i); desenha(); });
-      $$("[data-dct]", p).forEach(x => x.onchange = () => { R[+x.dataset.dct].tipo = x.value || null; R[+x.dataset.dct].como = "usuário"; desenha(); }); };
+      $$("[data-dct]", p).forEach(x => x.onchange = () => { R[+x.dataset.dct].tipo = x.value || null; R[+x.dataset.dct].como = "usuário"; desenha(); });
+      $$("[data-dcx]", p).forEach(x => x.onclick = () => { R.splice(+x.dataset.dcx, 1); abertos.clear(); desenha(); });
+      $$("[data-dcr]", p).forEach(x => x.onclick = async () => { const i = +x.dataset.dcr, f = R[i].f; x.disabled = true; x.textContent = "Lendo…"; try{ R[i] = await ler(f); }catch(e){ R[i] = {f, tipo:null, cnpjs:[], erro:"não foi possível ler"}; } desenha(); }); };
     $("#dc-f").onchange = async ev => { const fs = [...ev.target.files]; ev.target.value = ""; if (!fs.length) return; const p = $("#dc-prev"); p.innerHTML = `<div class="result">Lendo ${fs.length} arquivo(s)…</div>`;
       const MIME = {pdf:"application/pdf", docx:"application/vnd.openxmlformats-officedocument.wordprocessingml.document", xlsx:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", csv:"text/csv", txt:"text/plain", xml:"text/xml", jpg:"image/jpeg", jpeg:"image/jpeg", png:"image/png"};
       const todos = []; for (const f of fs){ if (/\.zip$/i.test(f.name)){ try{ const z = await IMP.unzip(await f.arrayBuffer()); for (const [nome, ent] of Object.entries(z)){ if (/\/$|__MACOSX|(^|\/)\./.test(nome)) continue; const ext = (nome.split(".").pop() || "").toLowerCase(); if (!MIME[ext]) continue; todos.push(new File([await ent.bytes()], nome.split("/").pop(), {type:MIME[ext]})); } }catch(e){ toast("Não foi possível abrir " + f.name); } } else todos.push(f); }
@@ -197,14 +205,21 @@ if (window.KT_DD) (() => {
       go.disabled = true; let n = 0; const tocados = new Set();
       for (const r of R.filter(x => !x.feito)){ go.textContent = `Importando ${++n}/${R.filter(x => !x.feito).length}…`;
         try{ let s = alvoDe(r, fixo); if (!s) s = await novoTarget(r); if (!s){ r.feito = ["sem empresa"]; continue; } tocados.add(s.id); r.feito = await aplicar(s, r); }catch(e){ console.error(e); r.feito = ["erro: " + (e.message || "não importado")]; } }
-      cartaoPelaReceita(); desenha(); toast(`${n} documento(s) importado(s)`); renderAll(); };
+      cartaoPelaReceita(); desenha(); toast(`${n} documento(s) importado(s)`); renderAll();
+      if (window.KT_ANAUTO){ go.textContent = "Analisando…"; const box = document.createElement("div"); box.style.cssText = "display:flex;flex-direction:column;gap:10px;margin-top:10px"; $("#dc-prev").appendChild(box);
+        for (const id of tocados){ const s = supById(id); if (!s) continue; const el = document.createElement("div"); el.innerHTML = `<div class="result">Análise automática de ${esc(s.nome)}…</div>`; box.appendChild(el);
+          try{ const res = await KT_ANAUTO.rodar(s, {reler:false}); el.innerHTML = KT_ANAUTO.html(supById(id) || s, res, {compacto:true}); KT_ANAUTO.bind(el, supById(id) || s, close); }catch(e){ console.error(e); el.innerHTML = `<div class="result">Análise de ${esc(s.nome)} não concluída: ${esc(e.message || "erro")}</div>`; } }
+        go.textContent = "Importado"; renderAll(); } };
   }
 
   /* Base inicial: botão "Importação de documentos" */
   const _cad = renderCadeia;
   renderCadeia = function(){ const r = _cad.apply(this, arguments); const top = $("#bi-top"); if (!top || top.querySelector("#bi-docs") || Store.me?.canWrite === false) return r;
     const g = top.querySelector("#bi-imp")?.parentElement; if (g){ const b = document.createElement("button"); b.type = "button"; b.className = "btn"; b.id = "bi-docs"; b.style.cssText = "min-height:64px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;white-space:normal;grid-column:1/-1";
-      b.innerHTML = `<b style="font-size:15px">Importação de documentos</b><span style="font-size:12px;opacity:.85;font-weight:500">balanços, DRE, balancetes, contrato social, certidões, mandato, NDA, SPA: o sistema reconhece e organiza</span>`; g.appendChild(b); b.onclick = () => importar(); }
+      b.innerHTML = `<b style="font-size:15px">Importação de documentos</b><span style="font-size:12px;opacity:.85;font-weight:500">balanços, DRE, balancetes, contrato social, certidões, mandato, NDA, SPA: o sistema reconhece e organiza</span>`; g.appendChild(b); b.onclick = () => importar();
+      if (window.KT_ANAUTO){ const a = document.createElement("button"); a.type = "button"; a.className = "btn"; a.id = "bi-ana"; a.style.cssText = b.style.cssText;
+        a.innerHTML = `<b style="font-size:15px">Analisar documentos importados</b><span style="font-size:12px;opacity:.85;font-weight:500">roda as análises automáticas da empresa: demonstrações, Due Diligence, valuation, PPA, impairment e jurídico; ler, excluir ou trocar documentos</span>`;
+        g.appendChild(a); a.onclick = () => KT_ANAUTO.abrir(); } }
     return r; };
   /* dossiê: a importação sai daqui e fica na Base inicial (atalho para a mesma tela, com a empresa escolhida) */
   EXT_DOCS.push((s, b) => { setTimeout(() => { const head = b.querySelector(".head"); if (!head) return;

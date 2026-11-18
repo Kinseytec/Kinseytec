@@ -1,5 +1,12 @@
 # Registro de versões
 
+## v2.96 — 2026-11-18 · Análise automática ao importar documentos, SPED (ECD e ECF) e gestão dos documentos
+- Ao importar, o sistema analisa cada empresa na hora e mostra o quadro "Análise automática dos documentos": análises financeiras, Due Diligence (pré-diligência, procedimentos e revisão analítica), valuation, PPA, impairment (quando houver aquisição) e jurídico, com atalho para cada área. O mesmo quadro aparece no dossiê.
+- Base inicial: novo botão "Analisar documentos importados", logo abaixo da Importação de documentos: busca a empresa, lista os documentos do dossiê com "Ler documento" e "Excluir" (o período que veio do documento é refeito com os demais), "Importar novo documento" e "Analisar de novo".
+- Na importação, cada arquivo tem "Ler de novo" e "Remover" antes de importar.
+- SPED: ECD (SPED Contábil) com os 12 balancetes mensais (I050, I155 e encerramento pelo I355), que alimentam a revisão analítica mês a mês; ECF com balanço (L100) e DRE (L300) do plano referencial. Circulante e não circulante pela hierarquia do plano.
+- Sem DRE no período, o quadro pede a DRE (ou balancete, ECD, ECF) em vez de mostrar EBITDA e valuation zerados.
+
 ## v2.95 — 2026-11-18 · Análise automática das demonstrações contábeis (teste com balanços e DRE reais)
 - EBITDA sem o resultado não operacional: "Receitas/despesas não operacionais" da DRE passam a um grupo próprio, abaixo do EBIT (antes inflavam o EBITDA). Os itens não recorrentes operacionais continuam no EBITDA reportado e são normalizados pela Due Diligence, como antes.
 - Classificação: "Disponível" entra como caixa (dívida líquida correta); "Obrigações trabalhistas" como trabalhistas; "Partes relacionadas" do passivo como mútuos/partes relacionadas (dívida equivalente).
