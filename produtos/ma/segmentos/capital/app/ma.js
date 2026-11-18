@@ -128,7 +128,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     const P = KTPdf(); P.page();
     P.para("Kinsey Capital", {size:9, bold:true, color:[4,115,195], gap:2});
     P.para(m.titulo, {size:15, bold:true, color:[1,31,75], gap:2});
-    P.para(m.oficial ? `Versão oficial ${m.versao}` : "MODELO PROVISÓRIO — substituir pelo modelo oficial Kinsey antes da assinatura", {size:8.5, color: m.oficial ? [90,101,120] : [176,48,43], gap:12});
+    P.para(m.oficial && m.versao ? `Modelo Kinsey · ${m.versao}` : "Modelo Kinsey", {size:8.5, color:[90,101,120], gap:12});
     m.texto.forEach(([h, t]) => { P.para(preenche(h, c), {size:10.5, bold:true, gap:2}); preenche(t, c).split("\n").forEach((x, i, a) => P.para(x, {size:9.5, gap:i === a.length - 1 ? 9 : 4})); });
     P.y += 30; P.ensure(60); const y = P.y + 30, W2 = (P.CW - 30) / 2;
     P.line(P.M, y, P.M + W2, y, [27,36,51], .6); P.line(P.M + W2 + 30, y, P.M + P.CW, y, [27,36,51], .6);
@@ -136,25 +136,48 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     const bytes = P.out(m.titulo, `Kinsey Capital · ${m.titulo} · ${m.oficial ? m.versao : "modelo provisório"} · confidencial`);
     await rptSave(bytes, `Kinsey_${m.id}_${(c.EMPRESA || "").replace(/[^\w]+/g, "_").slice(0, 40)}.pdf`, "application/pdf");
   }
+  /* Word preenchido: NDA (Jurídico · NDA), mandato e MOU/SPA usam o emissor próprio; os demais saem do texto do modelo */
+  async function word(s, id, man){
+    if (/^nda_/.test(id) && window.KT_NDA){ if (id === "nda_mandato") S.ndaMand = man?.id || ""; return KT_NDA.emitir(s, id === "nda_mandato" ? "mandato" : "geral"); }
+    if (id === "mandato_venda" && window.KT_MAND?.emitirModelo && s.nivel === "N3") return KT_MAND.emitirModelo(s);
+    if ((id === "mou_venda" || id === "spa_venda") && window.KT_OPDOC?.emitir && s.nivel === "N3") return KT_OPDOC.emitir(s, id === "mou_venda" ? "MOU" : "SPA");
+    const m = modelo(id), c = campos(s, {mand:man?.mandato}), P = [];
+    P.push({t:m.titulo.toUpperCase(), b:true, jc:"center", sz:26, after:240});
+    m.texto.forEach(([h, t]) => { if (h) P.push({t:preenche(h, c), b:true, keep:true, before:160}); preenche(t, c).split("\n").forEach(l => l.trim() && P.push({t:l})); });
+    const ass = n => { P.push({t:"______________________________________________", jc:"left", before:420, after:0}); P.push({t:n, b:true, jc:"left"}); };
+    ass(c.EMPRESA); ass(window.KT_MARCA && !KT_MARCA.kinsey() ? "[ASSESSORIA]" : "KINSEY BR");
+    const bytes = KT_DOCX.build(P, {header:`${m.titulo} · ${c.EMPRESA} · confidencial`, headerColor:"5A6578", titulo:`${m.titulo} · ${c.EMPRESA}`});
+    await rptSave(bytes, `${m.id}_${String(c.EMPRESA || "").replace(/[^\wÀ-ú]+/g, "_").slice(0, 40)}.docx`, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+  }
   function gerar(s, id){
     const ms = MA_MODELOS.filter(x => x.para.includes(s.nivel)); id = id || ms[0]?.id; if (!id){ toast("Nenhum modelo para este nível."); return; }
     const precisaMand = s.nivel !== "N3" && /\{CODINOME\}/.test(JSON.stringify(modelo(id).texto));
-    const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Documento padronizado Kinsey</div><h2>${esc(s.nome)}</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
+    const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Jurídico · modelos Kinsey</div><h2>${esc(s.nome)}</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
       <div class="sheet-b" style="display:flex;flex-direction:column;gap:12px">
         <div class="form"><div class="fld"><label for="g-mod">Modelo</label><select id="g-mod">${opt(ms.map(x => [x.id, x.titulo]), id)}</select></div>
         ${precisaMand ? `<div class="fld"><label for="g-man">Mandato</label><select id="g-man">${opt(mandatos().map(x => [x.id, x.mandato.codinome]), "")}</select></div>` : ""}</div>
-        <div id="g-aviso"></div>
-        <textarea id="g-txt" rows="18" style="width:100%;font-family:var(--mono,monospace);font-size:12.5px;line-height:1.5;background:transparent;color:inherit;border:1px solid var(--line);border-radius:8px;padding:10px" aria-label="Texto do documento"></textarea>
-        <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn primary" id="g-pdf">Baixar PDF</button><button type="button" class="btn" id="g-cp">Copiar texto</button>
+        <div id="g-dados"></div><div id="g-aviso"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn primary" id="g-word">Emitir em Word</button><button type="button" class="btn" id="g-pdf">Baixar PDF</button><button type="button" class="btn ghost" id="g-cp">Copiar texto</button></div>
+        <details><summary class="sub" style="cursor:pointer">Ver o texto</summary><textarea id="g-txt" rows="16" style="width:100%;margin-top:8px;font-family:var(--mono,monospace);font-size:12.5px;line-height:1.5;background:transparent;color:inherit;border:1px solid var(--line);border-radius:8px;padding:10px" aria-label="Texto do documento"></textarea></details>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
         ${s.nivel === "N3" && /^mandato/.test(id) ? `<button type="button" class="btn ghost" id="g-reg">Registrar mandato</button>` : ""}</div></div>`);
     const atual = () => { const m = modelo($("#g-mod").value), man = $("#g-man") ? supById($("#g-man").value) : null; return {m, c: campos(s, {mand: man?.mandato})}; };
-    const pinta = () => { const {m, c} = atual(); $("#g-txt").value = textoPlano(m, c);
-      $("#g-aviso").innerHTML = m.oficial ? `<div class="banner" style="border-color:rgba(54,211,153,.45)">Modelo oficial Kinsey · ${esc(m.versao)}</div>` : `<div class="banner"><b>Modelo provisório.</b> Use para conversar com a parte; antes da assinatura, o Jurídico inclui o modelo oficial Kinsey em Jurídico · Modelos.</div>`;
+    const pinta = () => { const {m, c} = atual(); $("#g-txt").value = textoPlano(m, c).replace(/^MODELO PROVISÓRIO[^\n]*\n/m, "");
+      const P0 = window.KT_MAND && s.nivel === "N3" ? KT_MAND.partes(s) : null, rf = s.receita && !s.receita.erro ? s.receita : {};
+      const lin = (k, v) => v ? `<tr><td style="white-space:nowrap">${k}</td><td>${/^\[/.test(String(v)) ? `<span class="pill r-alto">a completar</span> <span class="sub" style="font-size:12px">${esc(v)}</span>` : esc(v)}</td></tr>` : "";
+      let rows = lin("Razão social", P0?.EMPRESA || rf.razao || s.nome) + lin("CNPJ", P0?.DOC || s.doc || "[CNPJ]") + lin("Endereço", P0?.ENDERECO) + lin("Representante", P0?.REPRESENTANTE || c.REPRESENTANTE) + (P0?._socios?.length ? lin("Sócios", P0._socios.map(p => p.nome).join("; ")) : "");
+      if (/^mandato/.test(m.id) && window.KT_MAND && s.nivel === "N3"){ const R = KT_MAND.calc(s), P = R.B ? KT_MAND.parcelas(s, R) : [];
+        rows += lin("Success fee", `${R.c.pct}% do valor da transação`) + lin("Operação mínima", R.B ? `${KT_MAND.brl(R.vmin)} (${R.B.fonte})` : "[valuation ou faturamento do target]") + lin("Sucesso mínimo", R.B ? KT_MAND.brl(R.sucMin) : "") + lin("Retainer sugerido", R.B ? `${KT_MAND.brl(R.ret)} em ${R.c.parcelas} parcelas de ${KT_MAND.brl(R.parc)}, a 1ª ${R.c.dias} dias após o primeiro NDA com investidor` : "");
+        const so = s.projeto?.socio || s.projeto?.socioMandato || ""; if (so) rows += lin("Sócio responsável (Kinsey)", so); }
+      $("#g-dados").innerHTML = `<div class="tbl"><table><tbody>${rows}</tbody></table></div><p class="sub" style="margin:4px 0 0;font-size:12px">Dados da Receita Federal e do cadastro; o que faltar sai marcado no Word.</p>`;
+      $("#g-aviso").innerHTML = `<p class="sub" style="margin:0;font-size:12.5px">Modelo Kinsey validado pelo Jurídico${m.oficial && m.versao ? ` · ${esc(m.versao)}` : ""}: o consultor pode emitir e enviar.</p>`;
       const faltam = [...new Set((JSON.stringify(m.texto).match(/\{[A-Z]+\}/g) || []).filter(k => /^\[/.test(c[k.slice(1, -1)] || "")))];
       if (faltam.length) $("#g-aviso").insertAdjacentHTML("beforeend", `<p class="sub" style="margin:6px 0 0">Campos a completar: ${faltam.map(esc).join(", ")}${s.nivel === "N3" ? " (preencha na aba M&A do dossiê)" : ""}.</p>`); };
     $("#g-mod").onchange = pinta; if ($("#g-man")) $("#g-man").onchange = pinta; pinta();
     $("#g-cp").onclick = e => copiar($("#g-txt").value, e.currentTarget);
     $("#g-pdf").onclick = () => { const {m, c} = atual(); pdf(m, c).catch(() => toast("Não foi possível gerar o PDF.")); };
+    $("#g-word").onclick = async e => { const bt = e.currentTarget, man = $("#g-man") ? supById($("#g-man").value) : null; bt.disabled = true; bt.textContent = "Gerando…";
+      try{ await word(supById(s.id) || s, $("#g-mod").value, man); toast("Documento emitido em Word"); }catch(x){ console.error(x); toast("Não foi possível emitir o Word."); } bt.disabled = false; bt.textContent = "Emitir em Word"; };
     const r = $("#g-reg"); if (r) r.onclick = () => { close(); openSupplier(s.id, "ma"); };
   }
   function editarModelo(id){
@@ -227,7 +250,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     const n = v => { const x = parseFloat(String(v).replace(/\./g, "").replace(",", ".")); return isFinite(x) ? x : ""; };
     let h = `<div class="head"><div><h3>${s.nivel === "N1" ? "Tese de investimento" : s.nivel === "N2" ? "Acordo de originação e parceria" : "Target · funil, financeiros e mandato"}</h3>
       <p class="sub">${s.nivel === "N3" ? "Etapa do funil, números principais, intermediador, mandato e investidores indicados." : s.nivel === "N1" ? "Usada para indicar oportunidades (matching) e para o mandato de compra." : "Remuneração e situação do acordo com a Kinsey."}</p></div>
-      <button type="button" class="btn sm primary" id="ma-ger">Gerar documento</button></div>`;
+      <button type="button" class="btn sm primary" id="ma-ger">Documentos no Jurídico</button></div>`;
     if (s.nivel === "N1"){ const t = s.tese || {};
       h += `<form id="ma-f" class="form" novalidate>${fld("t-seg", "Segmentos de interesse", (t.segmentos || []).join(", "), {full:1, ph:"ex.: Saúde, Tecnologia"})}${fld("t-cnae", "CNAEs (divisões)", (t.cnaes || []).join(", "), {ph:"ex.: 62, 86"})}
         ${fld("t-reg", "Regiões", (t.regioes || []).join(", "), {ph:"ex.: Brasil, Sudeste"})}${fld("t-fmin", "Faturamento mín. (R$ mi)", t.fatMin, {num:1})}${fld("t-fmax", "Faturamento máx. (R$ mi)", t.fatMax, {num:1})}
@@ -270,7 +293,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
         ${ed ? `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end"><div class="fld" style="min-width:220px"><label for="m-addinv">Indicar investidor</label><select id="m-addinv"><option value="">Escolha…</option>${opt(N1s.filter(x => !(s.investidores || []).includes(x.id)).map(x => [x.id, x.nome]), "")}</select></div><button type="button" class="btn sm" id="m-addgo">Indicar</button></div>` : ""}</div>`;
     }
     b.innerHTML = `<div style="display:flex;flex-direction:column;gap:14px">${h}</div>`;
-    $("#ma-ger").onclick = () => gerar(s);
+    $("#ma-ger").onclick = () => { S.jurTab = "docs"; S.maJur = s.nivel; S.jurAlvo = s.nivel === "N3" ? s.id : S.jurAlvo; $("#layer").innerHTML = ""; S.openSup = null; go("juridico"); setTimeout(() => gerar(supById(s.id) || s), 120); };
     const v = id => { const e = $("#" + id); return e ? e.value.trim() : ""; }, lista = id => v(id).split(",").map(x => x.trim()).filter(Boolean);
     const f = $("#ma-f"); if (f) f.onsubmit = e => { e.preventDefault();
       if (s.nivel === "N1") up({tese:{segmentos:lista("t-seg"), cnaes:lista("t-cnae"), regioes:lista("t-reg"), fatMin:n(v("t-fmin")), fatMax:n(v("t-fmax")), ebitdaMin:n(v("t-emin")), participacao:lista("t-part"), ticketMin:n(v("t-tmin")), ticketMax:n(v("t-tmax")), restricoes:v("t-res")}, contato:v("t-ct")}).then(() => toast("Tese salva"));

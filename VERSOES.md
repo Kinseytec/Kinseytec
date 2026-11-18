@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v2.71 — 2026-11-18 · Modelos Kinsey emitidos pelo consultor, em Word
+- Os modelos (NDA, NDA do mandato, mandato, MOU, SPA, acordo de originação) ficam no Jurídico e já são validados pelo Jurídico: o consultor emite e envia sem passar pela validação da advogada; sai o aviso de "modelo provisório"
+- "Emitir em Word" já preenchido com os dados da empresa (Receita Federal e cadastro: razão social, CNPJ, endereço, representante e sócios); no mandato, também success fee de 6%, operação mínima (valuation ou múltiplo do faturamento, arredondada ao milhão), sucesso mínimo, retainer sugerido em parcelas e o sócio responsável do projeto
+- O mandato emitido pelo consultor sai sem o cabeçalho de minuta para revisão; a emissão de minuta para revisão jurídica continua disponível em Jurídico · Mandatos
+- Dossiê: o botão "Gerar documento" virou "Documentos no Jurídico" e abre o Jurídico já com a empresa e os modelos
+
 ## v2.70 — 2026-11-18 · CNPJ obrigatório no cadastro e sem duplicados
 - Cadastro da empresa (Base inicial e Novo projeto): CNPJ obrigatório para empresa brasileira, digitado só com números ou com pontos; ao completar os 14 números o sistema consulta a Receita Federal sozinho e preenche razão social, cidade, UF e segmento, e mostra o tipo de negócio pelo CNAE (setor, atividade principal e secundárias) e os sócios
 - Botão "Importar cartão CNPJ" no cadastro: lê o PDF, preenche CNPJ, razão social, cidade, UF e CNAE e consulta a Receita; sem Receita no momento, os dados do cartão ficam gravados e a consulta é refeita depois

@@ -122,7 +122,7 @@ if (window.KT_DD) (() => {
   const xe = t => String(window.KT_MARCA ? KT_MARCA.txt(String(t)) : t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const run = (t, o = {}) => `<w:r><w:rPr>${o.b ? "<w:b/>" : ""}${o.i ? "<w:i/>" : ""}${o.pend ? '<w:highlight w:val="yellow"/>' : ""}${o.color ? `<w:color w:val="${o.color}"/>` : ""}${o.sz ? `<w:sz w:val="${o.sz}"/><w:szCs w:val="${o.sz}"/>` : ""}</w:rPr><w:t xml:space="preserve">${xe(t)}</w:t></w:r>`;
   const par = (t, o = {}) => `<w:p><w:pPr>${o.brk ? '<w:pageBreakBefore/>' : ""}${o.keep ? "<w:keepNext/>" : ""}<w:spacing w:before="${o.before || 0}" w:after="${o.after ?? 120}" w:line="276" w:lineRule="auto"/>${o.ind ? `<w:ind w:left="${o.ind}"/>` : ""}<w:jc w:val="${o.jc || "both"}"/></w:pPr>${String(t).split(/(\[[^\]]+\])/).filter(Boolean).map(x => run(x, {...o, pend:/^\[.*\]$/.test(x)})).join("")}</w:p>`;
-  function docx(s, R, c, versao){
+  function docx(s, R, c, versao, modo){ const MOD = modo === "modelo";
     const m = modeloTexto(), B = [], cod = s.mandato?.codinome;
     m.texto.forEach(([h, t], i) => {
       if (i === 0){ B.push(par(preenche(h, c), {b:true, jc:"center", sz:26, after:240})); }
@@ -147,10 +147,10 @@ if (window.KT_DD) (() => {
       ["Campos a completar (em amarelo)", pendencias(c).join("; ") || "nenhum"]];
     B.push(par("QUADRO DE CONFERÊNCIA DA MINUTA (não integra o contrato)", {brk:true, b:true, jc:"left", sz:22, after:200}));
     L.forEach(([k, v]) => B.push(par(`${k}: ${v}`, {jc:"left", after:80})));
-    B.push(par(`Minuta ${versao} emitida pelo KinseyTec M&A em ${dBR(nowISO())} por ${eu() || "usuário"} para revisão jurídica. Modelo: ${m.versao}.`, {i:true, jc:"left", before:200, color:"5A6578", sz:18}));
+    B.push(par(MOD ? `Emitido pelo KinseyTec M&A em ${dBR(nowISO())} a partir do modelo de mandato Kinsey validado pelo Jurídico (${m.versao}).` : `Minuta ${versao} emitida pelo KinseyTec M&A em ${dBR(nowISO())} por ${eu() || "usuário"} para revisão jurídica. Modelo: ${m.versao}.`, {i:true, jc:"left", before:200, color:"5A6578", sz:18}));
     const NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
     const doc = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ${NS}><w:body>${B.join("")}<w:sectPr><w:headerReference w:type="default" r:id="rId1"/><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1418" w:right="1418" w:bottom="1418" w:left="1418" w:header="709" w:footer="709" w:gutter="0"/></w:sectPr></w:body></w:document>`;
-    const hdr = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:hdr ${NS}>${par(`MINUTA PARA REVISÃO JURÍDICA · versão ${versao} · ${cod || c.EMPRESA} · ${dBR(nowISO())} · não assinar antes da aprovação do Jurídico`, {jc:"right", sz:16, color:"B0302B", after:0})}</w:hdr>`;
+    const hdr = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:hdr ${NS}>${MOD ? par(`Mandato de assessoria · ${cod || c.EMPRESA} · ${dBR(nowISO())} · confidencial`, {jc:"right", sz:16, color:"5A6578", after:0}) : par(`MINUTA PARA REVISÃO JURÍDICA · versão ${versao} · ${cod || c.EMPRESA} · ${dBR(nowISO())} · não assinar antes da aprovação do Jurídico`, {jc:"right", sz:16, color:"B0302B", after:0})}</w:hdr>`;
     const sty = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial" w:eastAsia="Arial"/><w:sz w:val="21"/><w:szCs w:val="21"/><w:lang w:val="pt-BR"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="120"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style></w:styles>`;
     const ct = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/></Types>`;
     const rels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/></Relationships>`;
@@ -170,6 +170,16 @@ if (window.KT_DD) (() => {
     await D.up(s, {mandato:{...(M.status ? {} : {status:"minuta"}), minutas:[...(M.minutas || []), reg], revisao:{status:"pendente", versao:n, em:reg.em},
       ...(auto ? {success:c.SUCCESS, retainer:c.RETAINER, autoCond:true} : {}), ...(R.B ? {valorMinimo:R.vmin, sucessoMinimo:R.sucMin} : {})}});
     toast(`Minuta v${n} emitida para revisão jurídica`);
+  }
+  /* emissão pelo consultor a partir do modelo validado: Word preenchido, sem revisão jurídica */
+  async function emitirModelo(s){
+    const R = calc(s), c = campos(s), M = s.mandato || {};
+    const bytes = docx(s, R, c, "", "modelo"), nome = `Mandato_${(M.codinome || s.nome || "target").replace(/[^\wÀ-ú]+/g, "_").slice(0, 40)}.docx`;
+    await rptSave(bytes, nome, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    const reg = {em:nowISO(), por:eu(), arquivo:nome, vmin:R.vmin || null, sucMin:R.sucMin || null, ret:R.ret || null, pct:R.c.pct, fonte:R.B?.fonte || ""};
+    const auto = !M.success || M.autoCond;
+    await D.up(s, {mandato:{...(M.status ? {} : {status:"enviado"}), enviados:[...(M.enviados || []), reg], ...(auto ? {success:c.SUCCESS, retainer:c.RETAINER, autoCond:true} : {}), ...(R.B ? {valorMinimo:R.vmin, sucessoMinimo:R.sucMin} : {})}});
+    return {R, c, pend:pendencias(c)};
   }
   async function revisar(s, st){
     const nota = st === "ajustes" ? prompt("O que precisa ser ajustado na minuta?", "") : ""; if (nota == null) return;
@@ -256,5 +266,5 @@ if (window.KT_DD) (() => {
     (b.firstElementChild || b).appendChild(el);
     el.querySelector("[data-jm-ir]").onclick = () => { S.jurTab = "mand"; S.mandAlvo = s.id; $("#layer").innerHTML = ""; S.openSup = null; go("juridico"); }; };
 
-  window.KT_MAND = {brl, pctTxt, qtd, dataExt, metodos, resumoHtml, campos, calc, cond, valorBase, arred, extenso, reais, ndaInv, parcelas, docx, emitir, partes, pendencias};
+  window.KT_MAND = {emitirModelo, brl, pctTxt, qtd, dataExt, metodos, resumoHtml, campos, calc, cond, valorBase, arred, extenso, reais, ndaInv, parcelas, docx, emitir, partes, pendencias};
 })();

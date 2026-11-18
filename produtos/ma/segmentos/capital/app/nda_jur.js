@@ -73,7 +73,7 @@ if (window.KT_DD && window.KT_DOCX && window.KT_MAND) (() => {
     const ass = (n, p) => { P.push({t:"______________________________________________", jc:"left", before:420, after:0}); t(n, {b:true, jc:"left", after:0}); t(p, {jc:"left"}); };
     ass(window.KT_MARCA && !KT_MARCA.kinsey() ? "[ASSESSORIA]" : "KINSEY BR", "Kinsey BR"); ass(c.EMPRESA, `${c.REPRESENTANTE} · representante legal`);
     t("Testemunhas:", {b:true, before:300}); ass("Nome: [testemunha 1]", "CPF: [CPF]"); ass("Nome: [testemunha 2]", "CPF: [CPF]");
-    const bytes = X.build(P, {header:`NDA · ${c.EMPRESA} · ${m.oficial && !inv ? "modelo " + m.versao : inv ? "NDA do mandato" : "modelo provisório"} · confidencial`, headerColor:"5A6578", titulo:`NDA · ${c.EMPRESA}`});
+    const bytes = X.build(P, {header:`NDA · ${c.EMPRESA} · ${m.oficial && !inv ? "modelo " + m.versao : inv ? "NDA do mandato" : "modelo Kinsey"} · confidencial`, headerColor:"5A6578", titulo:`NDA · ${c.EMPRESA}`});
     return {bytes, nome:`NDA_${String(s.mandato?.codinome || s.nome || "empresa").replace(/[^\wÀ-ú]+/g, "_").slice(0, 40)}.docx`};
   }
   async function emitir(s, tipo){ const w = word(s, tipo); await rptSave(w.bytes, w.nome, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");

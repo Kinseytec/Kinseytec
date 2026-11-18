@@ -194,5 +194,6 @@ if (window.KT_DD && window.KT_DOCX && window.KT_MAND && window.KT_CONTRATO) (() 
       const top = tabs.closest("#juridico > *") || tabs.parentElement; while (top.nextSibling) top.nextSibling.remove();
       try{ painel(host); }catch(e){ console.error(e); host.insertAdjacentHTML("beforeend", `<div class="empty">Não foi possível montar os documentos da operação.</div>`); } };
   }
-  window.KT_OPDOC = {termos, campos, corrigir, lerArquivo, docs, registrar, wordCorrigido, wordComparado, paragrafosModelo};
+  async function emitir(s, tipo){ const c = campos(supById(s.id) || s), P = paragrafosModelo(tipo === "MOU" ? "mou_venda" : "spa_venda", c); const k = await registrar(s, tipo, "kinsey", P, ""); await wordLimpo(s, k, P, "minuta Kinsey"); return k; }
+  window.KT_OPDOC = {emitir, termos, campos, corrigir, lerArquivo, docs, registrar, wordCorrigido, wordComparado, paragrafosModelo};
 })();
