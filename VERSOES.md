@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v2.86 — 2026-11-18 · "Cliente da Órbita?" também no Valuation e na Due Diligence
+- Avaliação de ativos, Valuation e Due Diligence: quadro "Trabalho" com "Cliente da Órbita?" e o "Sim" já marcado; com Sim, cadastro, Receita, balancetes e análises vêm do cadastro inicial
+- "Não, trabalho novo": só então aparece o cadastro do cliente novo (CNPJ digitado ou lido do cartão CNPJ, razão social, data-base, finalidade da área, local e contratante) e a importação do balanço do ano e demais documentos (reconhecidos automaticamente) ou dos balancetes mensais do ano (abre a importação por ano); o trabalho fica marcado como avulso e fora do globo da Órbita
+- "Dados do trabalho" revisa data-base, finalidade, local e contratante de cada área
+
 ## v2.85 — 2026-11-18 · Indicadores de mercado e barra do topo em movimento
 - Análises financeiras: quadro "Mercado e indicadores macroeconômicos" com Ibovespa, small caps, IFIX, dólar, euro, S&P 500, Nasdaq, petróleo Brent, ouro e bitcoin (com a variação do dia), Selic, CDI, IPCA 12 meses e Treasury de 10 anos; expectativas do Focus (Selic, IPCA e PIB); as 5 maiores empresas listadas do setor da empresa consultada (ação, preço, variação e valor de mercado); maiores altas e baixas do dia entre as maiores da B3
 - Servidor: nova rotina "bolsa" a cada 30 minutos no pregão (9h às 18h, dias úteis), com cotações do Yahoo Finance (atraso de até 15 minutos) e as empresas da CVM/B3
