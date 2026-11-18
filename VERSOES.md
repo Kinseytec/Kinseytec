@@ -1,5 +1,9 @@
 # Registro de versões
 
+## v2.87 — 2026-11-18 · "Cliente da Órbita?" também no PPA
+- Pós-aquisição (PPA): o mesmo quadro "Trabalho" das demais áreas; "Não, trabalho novo" cadastra o cliente (CNPJ ou cartão CNPJ, data-base, finalidade: PPA CPC 15, ágio para fins fiscais pela Lei 12.973, PPA avulso, teste de recuperabilidade do ágio) e importa o balanço do ano ou os balancetes mensais
+- Agora vale para Valuation, Avaliação de ativos, Due Diligence e PPA
+
 ## v2.86 — 2026-11-18 · "Cliente da Órbita?" também no Valuation e na Due Diligence
 - Avaliação de ativos, Valuation e Due Diligence: quadro "Trabalho" com "Cliente da Órbita?" e o "Sim" já marcado; com Sim, cadastro, Receita, balancetes e análises vêm do cadastro inicial
 - "Não, trabalho novo": só então aparece o cadastro do cliente novo (CNPJ digitado ou lido do cartão CNPJ, razão social, data-base, finalidade da área, local e contratante) e a importação do balanço do ano e demais documentos (reconhecidos automaticamente) ou dos balancetes mensais do ano (abre a importação por ano); o trabalho fica marcado como avulso e fora do globo da Órbita

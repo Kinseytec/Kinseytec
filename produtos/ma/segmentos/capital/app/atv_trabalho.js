@@ -1,5 +1,5 @@
 /* ================= KINSEY CAPITAL · TRABALHO: CLIENTE DA ÓRBITA OU TRABALHO NOVO =================
-   No topo de Avaliação de ativos, Valuation e Due Diligence: "Cliente da Órbita?".
+   No topo de Avaliação de ativos, Valuation, Due Diligence e PPA (Pós-aquisição): "Cliente da Órbita?".
    - Sim (marcado por padrão): usa a empresa em consulta; cadastro, Receita Federal, balancetes e análises vêm sozinhos
      desde o cadastro inicial.
    - Não, trabalho novo: só então aparece o cadastro do cliente novo: CNPJ (com consulta à Receita ou leitura do cartão
@@ -12,7 +12,8 @@ if (window.KT_DD) (() => {
   const AREAS = {
     ativos:{nome:"Avaliação de ativos", tag:"avaliacao", fin:["Combinação de negócios · PPA (CPC 15)", "Revisão de vida útil e valor residual (CPC 27)", "Valor justo para fins contábeis (CPC 46)", "Teste de recuperabilidade (CPC 01)", "Seguro", "Garantia ou financiamento", "Fins fiscais ou societários", "Outra"]},
     valuation:{nome:"Valuation", tag:"valuation", fin:["Venda da empresa ou de participação (M&A)", "Compra de empresa (investidor)", "Entrada ou saída de sócio", "Laudo para fins contábeis ou fiscais", "Planejamento e gestão", "Outra"]},
-    dd:{nome:"Due Diligence", tag:"dd", fin:["Due diligence para investidor (compra)", "Due diligence do vendedor (vendor DD)", "Due diligence para financiamento", "Outra"]}};
+    dd:{nome:"Due Diligence", tag:"dd", fin:["Due diligence para investidor (compra)", "Due diligence do vendedor (vendor DD)", "Due diligence para financiamento", "Outra"]},
+    ppa:{nome:"PPA", tag:"ppa", fin:["Combinação de negócios · PPA (CPC 15)", "Ágio para fins fiscais (Lei 12.973)", "PPA avulso (só a alocação do preço)", "Teste de recuperabilidade do ágio (CPC 01)", "Outra"]}};
   const info = (s, a) => a === "ativos" ? (s?.ativos || {}) : (s?.trabalhos?.[a] || {});
   const dataBaseAuto = (s, a) => info(s, a).dataBase || s.perfil?.dataBase || s.ativos?.dataBase || (D.periodos(s) || []).map(p => s.dd.bal[p].dataBase).filter(Boolean)[0] || "";
   const avulso = s => !!s?.trabalho;
@@ -89,6 +90,7 @@ if (window.KT_DD) (() => {
   if (EXT_VIEWS.valuation){ const _v = EXT_VIEWS.valuation; EXT_VIEWS.valuation = function(){ const r = _v.apply(this, arguments); const host = $("#valuation"); if (host && S.valTab !== "base") montar(host, host.querySelector(".dd-split > div:last-child"), "valuation", D.alvoSel()); return r; }; }
   if (typeof renderAuditoria === "function"){ const _r = renderAuditoria; renderAuditoria = function(){ const r = _r.apply(this, arguments); const host = $("#auditoria"); if (!host || !["geral", "ra"].includes(S.ddTab)) return r;
       const tabs = host.querySelector(".dd-tabs"); if (tabs) montar(host, tabs.parentElement, "dd", D.alvoSel(), tabs.nextElementSibling); return r; }; }
+  if (EXT_VIEWS.pos){ const _v = EXT_VIEWS.pos; EXT_VIEWS.pos = function(){ const r = _v.apply(this, arguments); const host = $("#pos"); if (host && S.posTab !== "mod") montar(host, host.querySelector(".dd-split > div:last-child"), "ppa", D.alvoSel()); return r; }; }
   /* trabalhos avulsos não aparecem no globo da Órbita (não são empresas do M&A) */
   { const _f = window.ORB_FILTRO; window.ORB_FILTRO = s => !s?.trabalho && (!_f || _f(s)); }
   window.KT_ATVT = {form, card, AREAS};
