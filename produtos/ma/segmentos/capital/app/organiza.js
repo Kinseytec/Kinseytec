@@ -52,7 +52,7 @@ if (window.KT_DD) (() => {
   const _risk = riskOf; riskOf = function(s){ if (s && s.nivel !== "N3") return {score:0, level:"na", auto:"na", manual:null, reasons:[]}; const r = _risk.apply(this, arguments); return !r.manual && !temDado(s) ? {...r, level:"pend", auto:"pend"} : r; };
   EXT_TARGET.push((s, el) => { if (s.nivel === "N3") return; el.querySelectorAll(".why, .side .pill").forEach(x => x.remove()); });
   /* ---------- dossiê: N3 completo, N1 e N2 simples ---------- */
-  const COMPLETO = TABS.filter(t => !["insp","testes","ops"].includes(t[0])), SIMPLES = TABS.filter(t => ["dados","ma"].includes(t[0]));
+  const COMPLETO = TABS.filter(t => !["insp","testes","ops","lgpd"].includes(t[0])) /* o NDA fica no Jurídico */, SIMPLES = TABS.filter(t => ["dados","ma"].includes(t[0]));
   const _open = openSupplier; openSupplier = function(id, tab){ const s = supById(id); const L = s?.nivel === "N3" ? COMPLETO : SIMPLES; TABS.splice(0, TABS.length, ...L);
     if (!L.some(t => t[0] === (tab || S.supTab))) tab = "ma"; return _open.call(this, id, tab); };
   /* ---------- menu enxuto ---------- */

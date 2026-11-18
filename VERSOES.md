@@ -1,5 +1,12 @@
 # Registro de versões
 
+## v2.69 — 2026-11-18 · NDA no Jurídico
+- Jurídico: nova aba "NDA". O advogado emite o NDA em Word já preenchido com os dados da empresa consultada (razão social, CNPJ, endereço, representante e sócios da Receita Federal e do cadastro); o que faltar sai marcado no Word. Para investidores, escolhe o NDA geral ou o NDA do mandato (nome-código)
+- NDA padrão: importar o modelo da Kinsey (Word, PDF ou TXT); o sistema reconhece as cláusulas, troca os dados da outra parte por campos automáticos (empresa, CNPJ, endereço, representante e data) e guarda como modelo oficial; até lá vale o modelo provisório
+- NDA assinado (importado no Jurídico ou na Importação de documentos da Base inicial): comparação automática com o padrão, "conforme o padrão" ou a lista de cláusulas alteradas; prazo, multa e não abordagem lidos do texto; validação pelo advogado
+- Painel "NDAs por empresa" com a situação (pendente, enviado, assinado, validado)
+- Dossiê: a aba "NDA / LGPD" sai do dossiê; a aba M&A mostra a situação do NDA com atalho para o Jurídico, e os atalhos antigos levam ao Jurídico
+
 ## v2.68 — 2026-11-18 · Importação de documentos na Base inicial e leitura de PDF corrigida
 - Base inicial: "Importação de documentos" com vários arquivos de uma vez (PDF, Word, Excel, CSV, XML, fotos ou .zip); o sistema reconhece o tipo (balanço, DRE, balancete, auditoria, cartão CNPJ, contrato social, certidões, licenças, mandato, NDA, MOU, SPA, laudo, matrícula e IPTU), acha a empresa pelo CNPJ (e cadastra o target quando é novo) e leva cada documento ao lugar certo
 - Balanço patrimonial e DRE em PDF do sistema contábil (sem código de conta) viram o balancete do período na Due Diligence, com a hierarquia lida pelo recuo; se o período já tem balancete detalhado, o balanço fica para conferência
