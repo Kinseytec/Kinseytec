@@ -1,5 +1,12 @@
 # Registro de versões
 
+## v2.77 — 2026-11-18 · Pré-diligência e diligência completa, com relatórios em PDF e PowerPoint
+- Due Diligence: quadro "Balanços, balancetes e relatórios" no topo. Mostra os balanços já importados no cadastro (com "Alterar o balanço importado"), os balancetes do ano e se o workbook do auditor já foi importado
+- "Importar balancetes do ano": o consultor informa o ano e seleciona todos os balancetes de uma vez (Excel, CSV ou PDF); o sistema identifica o mês de cada arquivo (conteúdo, nome ou ordem), reconhece se são acumulados e monta a revisão analítica
+- Pré-diligência = tudo o que vem do cadastro inicial: consultas públicas (Receita, listas oficiais, notícias da empresa e dos sócios), certidões e documentos (CND federal, CNDT, CRF, estaduais e municipais: positivas, vencidas ou com ressalva viram ponto tributário, trabalhista ou previdenciário; as não apresentadas ficam pendentes), procedimentos automáticos, revisão analítica e jurídico
+- Diligência completa: depois que o auditor ou consultor importa o workbook analisado (botões "Workbook preenchido" e "Importar workbook analisado" no mesmo quadro)
+- Relatórios: pré-diligência em PDF e PowerPoint; diligência completa em PDF e PowerPoint
+
 ## v2.76 — 2026-11-18 · Revisão analítica dos balancetes na Due Diligence
 - Due Diligence: nova aba "Revisão analítica" com as contas de resultado ano a ano (3 a 5 exercícios; aviso quando há menos de 3) e período a período no ano (balancetes acumulados viram o movimento de cada mês ou trimestre)
 - Alertas automáticos: picos e quedas fora do padrão nas contas que mexem no EBITDA (ex.: aluguel de 200 mil por mês que vira 500 mil em abril: alto risco de ajuste de EBITDA), variações acima de 30% (revisar) ou de 100% e contas novas (alto risco), saldo credor em conta de despesa, e contas de natureza sensível (gastos de sócios, pró-labore, despesas diversas, brindes, viagens, consultorias, multas, indenizações, não recorrentes); potencial de ajuste de EBITDA somado
