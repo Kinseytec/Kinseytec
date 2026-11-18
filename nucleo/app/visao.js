@@ -1020,7 +1020,7 @@ const VISAO = (() => {
       close(); toast("Fornecedor cadastrado como N1: ajuste o nível em Editar"); setTimeout(() => openSupplier(id, "dados"), 400); };
   }
   function consultaRapida(id){
-    const s = supById(id); if (!s) return; const R = resumoForn(s), {r, g, top, rev} = R, txt = textoResumo(R);
+    const s = supById(id); if (!s) return; const R = resumoForn(s), {r, g, top, rev} = R, txtSeg = typeof window.KT_RESUMO_WA === "function" ? window.KT_RESUMO_WA(s) : null, txt = txtSeg || textoResumo(R);
     const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Consulta rápida · ${s.nivel} · ${esc(LV_NOME[s.nivel])}</div><h2>${esc(s.nome)}</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
       <div class="sheet-b">
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${riskPill(r)}<span class="mono" style="font-size:12px">${r.score} pontos</span><span class="sub" style="margin:0">${esc(s.doc || "sem CNPJ/CPF")} · ${esc([s.municipio, s.uf].filter(Boolean).join("/") || "—")}</span></div>
@@ -1029,10 +1029,11 @@ const VISAO = (() => {
         <div class="card" style="display:flex;flex-direction:column;gap:6px"><h3>Revisões</h3><ul style="margin:0;padding-left:18px;font-size:13px">${rev.map(t => `<li>${esc(t)}</li>`).join("")}</ul></div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px">
           <button type="button" class="btn primary" id="cr-res">Relatório resumido (PDF)</button><button type="button" class="btn primary" id="cr-pdf">Relatório completo ${g.total < 100 ? "prévio " : ""}(PDF)</button>
-          <a class="btn" id="cr-wa" href="https://wa.me/?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener" style="justify-content:center">Resumo (até 20 linhas) por WhatsApp</a>
+          <a class="btn" id="cr-wa" href="https://wa.me/?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener" style="justify-content:center">${txtSeg ? "Resumo para investidores (WhatsApp)" : "Resumo (até 20 linhas) por WhatsApp"}</a>
           ${navigator.share ? `<button type="button" class="btn" id="cr-sh">Compartilhar</button>` : ""}<button type="button" class="btn ghost" id="cr-cp">Copiar resumo</button>
           <button type="button" class="btn ghost" id="cr-dos">Abrir dossiê completo</button></div>
-        <p class="sub" style="margin:0;font-size:11.5px">O resumo é confidencial: envie apenas a quem participa da decisão de compra.</p></div>`);
+        ${txtSeg ? `<details><summary class="sub" style="cursor:pointer">Ver o resumo (${txt.split("\n").length} linhas)</summary><pre style="white-space:pre-wrap;font-size:12.5px;margin:8px 0 0">${esc(txt)}</pre></details>` : ""}
+        <p class="sub" style="margin:0;font-size:11.5px">${txtSeg ? "Resumo sem identificação da empresa (nome-código), pronto para enviar a investidores antes do NDA." : "O resumo é confidencial: envie apenas a quem participa da decisão de compra."}</p></div>`);
     $("#cr-pdf").onclick = () => rptFornecedor(s.id); $("#cr-res").onclick = () => rptResumo(s.id);
     const sh = $("#cr-sh"); if (sh) sh.onclick = () => navigator.share({title: s.nome, text: txt.replace(/\*/g, "")}).catch(() => {});
     $("#cr-cp").onclick = () => { try{ navigator.clipboard.writeText(txt.replace(/\*/g, "")).then(() => toast("Resumo copiado")); }catch(e){ toast("Não foi possível copiar"); } };

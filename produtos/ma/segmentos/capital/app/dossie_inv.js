@@ -93,5 +93,39 @@ if (window.KT_DD && window.KT_VAL) (() => {
       const top = tabs.closest("#juridico > *") || tabs.parentElement; while (top.nextSibling) top.nextSibling.remove();
       try{ painelQuest(host); }catch(e){ console.error(e); host.insertAdjacentHTML("beforeend", `<div class="empty">Não foi possível montar o questionário.</div>`); } };
   }
-  window.KT_DOSSIE = {identificadores, anonimizador, numeros, card};
+  /* ---------------- resumo para investidores por WhatsApp (até 30 linhas, sem identificar a empresa) ---------------- */
+  const REG = {Norte:"AC AM AP PA RO RR TO", Nordeste:"AL BA CE MA PB PE PI RN SE", "Centro-Oeste":"DF GO MS MT", Sudeste:"ES MG RJ SP", Sul:"PR RS SC"};
+  const regiao = uf => (Object.entries(REG).find(([, l]) => l.split(" ").includes(String(uf || "").toUpperCase())) || [""])[0];
+  const INTERNO = /coopera|lgpd|nda|question|document|portal|cadastro|consulta|pend|inspe/i;
+  function resumoWa(s){
+    const cod = codinome(s), Z = window.KT_TEASER ? KT_TEASER.conteudo(s, "pre") : {destaques:[], tese:[]}, an = anonimizador(s, cod), N = numeros(s), W = N.W, M = N.M, r = riskOf(s);
+    const rf = s.receita && !s.receita.erro ? s.receita : {}, ano = +(String(rf.abertura || "").match(/(19|20)\d\d/) || [])[0] || 0, idade = ano ? new Date().getFullYear() - ano : 0;
+    const seg = s.perfil?.segmento || s.segmento || W?.seg || "", atv = rf.cnaeDesc ? an(rf.cnaeDesc) : "", rg = regiao(s.uf), m1 = v => mi(v).replace(",0 mi", " mi");
+    const L = [`*Oportunidade de investimento · ${cod}*`, `_Kinsey Capital · confidencial · empresa não identificada_`, ""];
+    L.push("*A empresa*");
+    L.push(`• ${[seg && "Segmento " + seg, rg && "região " + rg, idade >= 5 ? `mais de ${Math.floor(idade / 5) * 5} anos de operação` : ""].filter(Boolean).join(" · ") || "Empresa de capital fechado"}`);
+    if (atv) L.push(`• Atividade: ${atv.charAt(0).toUpperCase() + atv.slice(1).toLowerCase()}`);
+    if (N.rl) L.push(`• Faturamento ${m1(N.rl)}${N.eb ? ` · EBITDA ${m1(N.eb)} (margem ${pc(N.eb / N.rl)})` : ""}`);
+    const cres = (Z.destaques || []).find(d => /cresc/i.test(d)); if (cres) L.push(`• ${an(cres).replace(/\.$/, "")}`);
+    L.push("", "*Valor esperado*");
+    if (N.faixa) L.push(`• Faixa de valuation: ${m1(N.faixa[0])} a ${m1(N.faixa[1])} (enterprise value)`);
+    if (N.fcd) L.push(`• Fluxo de caixa descontado: ${m1(N.fcd[0])} a ${m1(N.fcd[1])}${W ? ` · WACC ${pc(W.wacc)}` : ""}`);
+    if (N.mer) L.push(`• Múltiplos de mercado: ${m1(N.mer[0])} a ${m1(N.mer[1])}${N.merTxt ? ` (${N.merTxt.replace(/ \(\d+ cias\.\)/, "").replace(/, −.*$/, "")})` : ""}`);
+    if (N.dif != null) L.push(`• Fluxo de caixa ${Math.abs(N.dif) < .1 ? "alinhado aos múltiplos de mercado" : `${pc(Math.abs(N.dif), 0)} ${N.dif > 0 ? "acima" : "abaixo"} dos múltiplos de mercado`}`);
+    if (N.eb > 0 && N.faixa) L.push(`• Múltiplo implícito: ${fmt((N.faixa[0] + N.faixa[1]) / 2 / N.eb, 1)}x o EBITDA`);
+    if (M?.B) L.push(`• Operação mínima: ${m1(M.vmin)}`);
+    if (Z.transacao) L.push(`• ${an(Z.transacao).replace(/^Transação: /, "Transação: ")}`);
+    L.push("", "*Riscos*");
+    const rk = {alto:"alto", medio:"médio", baixo:"baixo"}[r.level];
+    const motivos = (r.reasons || []).filter(x => !INTERNO.test((x.crit || "") + " " + (x.txt || ""))).slice(0, 2).map(x => an(String(x.txt || "").replace(/ — .*$/, "")));
+    L.push(`• Empresa: risco ${rk || "em avaliação"}${motivos.length ? "" : rk === "baixo" ? " nas consultas públicas e na due diligence" : ""}`); motivos.forEach(t => L.push(`  – ${t.length > 110 ? t.slice(0, 107) + "…" : t}`));
+    if (W) L.push(`• Setor: beta ${fmt(W.bu, 2)} (${W.bu < .9 ? "menos volátil que a média do mercado" : W.bu > 1.1 ? "mais volátil que a média do mercado" : "próximo da média do mercado"})${N.eb && N.rl ? "" : ""}`);
+    const dl = (Z.destaques || []).find(d => /endividamento|dívida|caixa líquido/i.test(d)); if (dl) L.push(`• ${an(dl).replace(/\.$/, "")}`);
+    const dest = [...(Z.destaques || []).filter(d => d !== cres && d !== dl), ...(Z.tese || []).filter(d => !/balanço (leve|sem dívida)/i.test(d) || !dl)].map(an).filter(Boolean);
+    const vagas = 30 - L.length - 4; if (vagas > 0 && dest.length){ L.push("", "*Destaques*"); dest.slice(0, Math.min(3, vagas - 1)).forEach(d => L.push(`• ${d.length > 120 ? d.slice(0, 117) + "…" : d.replace(/\.$/, "")}`)); }
+    L.push("", "Próximo passo: assinatura do NDA para receber a apresentação completa e o acesso ao data room. Contato pela Kinsey Capital.");
+    return L.slice(0, 30).join("\n");
+  }
+  window.KT_RESUMO_WA = s => s && s.nivel === "N3" ? resumoWa(s) : null;
+  window.KT_DOSSIE = {identificadores, anonimizador, numeros, card, resumoWa};
 })();

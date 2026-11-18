@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v2.73 — 2026-11-18 · Resumo para investidores por WhatsApp
+- Consulta rápida do target: "Resumo para investidores (WhatsApp)" com até 30 linhas, sem identificar a empresa (nome-código), pronto para enviar antes do NDA
+- Conteúdo: a empresa (segmento, região, tempo de operação, atividade, faturamento, EBITDA e margem, crescimento); valor esperado (faixa de valuation, fluxo de caixa descontado com WACC, múltiplos de mercado, comparação entre os dois, múltiplo implícito, operação mínima e transação); riscos da empresa e do setor (beta do setor) e endividamento; destaques e próximo passo (NDA)
+- O texto completo aparece na tela antes de enviar ("Ver o resumo"); Compartilhar e Copiar usam o mesmo texto
+- Teaser: caixa líquido (dívida líquida negativa) aparece como "a empresa tem mais caixa do que dívida"
+
 ## v2.72 — 2026-11-18 · Dossiê para o investidor e teaser anônimo de verdade
 - Dossiê do target: "Resumo para o investidor" no topo, com risco e principais preocupações, faturamento, EBITDA e margem, faixa de valuation, comparabilidade entre o fluxo de caixa descontado e os múltiplos de mercado, WACC apurado, beta do setor (desalavancado) e beta usado no custo do capital próprio, success fee, operação mínima, sucesso mínimo e retainer sugerido
 - Do dossiê saem o teaser antes do NDA (sem nome) e a apresentação depois do NDA (com o nome), além do atalho para o Valuation

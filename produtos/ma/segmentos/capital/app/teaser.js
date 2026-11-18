@@ -25,7 +25,7 @@ if (window.KT_DD && window.KT_VAL) (() => {
       if (cg && an.length > 1) destaques.push(`Receita cresceu ${pc(cg.nom, dc)} ao ano entre ${an[0].ano} e ${an[an.length - 1].ano}, ${pc(cg.real, dc)} acima da inflação.`);
       const best = Object.entries(X.histL).filter(([, h]) => h).sort((a, b) => b[1].real - a[1].real)[0]; if (best && best[1].real > 0 && Object.keys(X.histL).length > 1) destaques.push(`${best[0]}: crescimento real de ${pc(best[1].real, dc)} ao ano.`);
       if (C?.mg) destaques.push(`Margem EBITDA de ${pc(div(eb, rl), dc)}${X.mgHist > C.mg.med ? `, acima da mediana das companhias abertas do setor (${pc(C.mg.med)})` : ""}.`);
-      const r = div(X.dl, eb); if (r != null && r < 2) destaques.push(`Endividamento moderado: dívida líquida de ${xx(r)} o EBITDA.`);
+      const r = div(X.dl, eb); if (r != null && r < 0) destaques.push(`Caixa líquido: a empresa tem mais caixa do que dívida.`); else if (r != null && r < 2) destaques.push(`Endividamento moderado: dívida líquida de ${xx(r)} o EBITDA.`);
       X.H.comp.forEach(g => { const a = g[g.length - 2], b = g[g.length - 1], v = b.rl / a.rl - 1; if (v > 0) destaques.push(`Receita dos ${b.meses} meses até ${String(b.mes).padStart(2, "0")}/${b.ano} ${pc(v)} acima do mesmo período de ${a.ano}.`); });
       if (C?.eb) mercado.push(`Companhias abertas de ${seg.toLowerCase()} e setores semelhantes negociam a ${xx(C.eb.med)} o EBITDA (mediana de ${C.eb.n} companhias).`);
       if (R.T?.eb) mercado.push(`Transações recentes no setor: mediana de ${xx(R.T.eb.med)} o EBITDA em ${R.T.eb.n} aquisições.`);
@@ -53,7 +53,7 @@ if (window.KT_DD && window.KT_VAL) (() => {
     const tese = []; if (X && !X.vazio){ const cg = X.total, r = div(X.dl, X.bp.eb);
       if (cg?.real > .05) tese.push(`Crescimento acima do mercado: ${pc(cg.real, dc)} ao ano acima da inflação no período analisado.`);
       if (C?.mg && X.mgHist > C.mg.med) tese.push(`Rentabilidade superior aos pares: margem EBITDA de ${pc(div(X.bp.eb, X.bp.rl), dc)} contra ${pc(C.mg.med, dc)} das companhias abertas do setor.`);
-      if (r != null && r < 1.5) tese.push(`Balanço leve: dívida líquida de ${xx(r)} o EBITDA, com capacidade para alavancar a expansão.`);
+      if (r != null && r < 0) tese.push(`Balanço sem dívida líquida (caixa maior que a dívida), com capacidade para alavancar a expansão.`); else if (r != null && r < 1.5) tese.push(`Balanço leve: dívida líquida de ${xx(r)} o EBITDA, com capacidade para alavancar a expansão.`);
       tese.push(`Plataforma para consolidação em ${seg.toLowerCase() || "seu setor"}: base de clientes, operação e equipe prontas para receber aquisições complementares.`);
       if (C?.eb) tese.push(`Referência de mercado: companhias comparáveis negociam a ${xx(C.eb.med)} o EBITDA.`); }
     (t.tese || "").split("\n").map(x => x.trim()).filter(Boolean).forEach(x => tese.unshift(x));
