@@ -419,7 +419,8 @@ if (typeof VAL_BASE !== "undefined" && window.KT_DD) (() => {
     const met = [["FCD · moderado (histórico)", mod.min, mod.max, `WACC ${pc(X.W.wacc)} ±1 p.p.`, "#4FB0F5"]];
     if (C.eb) met.push(["Múltiplos de mercado · EV/EBITDA", e * C.eb.p25 * d, e * C.eb.p75 * d, `${xx(C.eb.p25)} a ${xx(C.eb.p75)} (${C.eb.n} cias.), −${fmt(P.desc.v, 0)}% de liquidez`, "#4FB0F5"]);
     if (C.rec) met.push(["Múltiplos de mercado · EV/Receita", X.bp.rl * C.rec.p25 * d, X.bp.rl * C.rec.p75 * d, `${xx(C.rec.p25, 2)} a ${xx(C.rec.p75, 2)}`, "#4FB0F5"]);
-    const ll = X.bp.K.ll + X.bp.A.lucro; if (C.pl && ll > 0) met.push(["Múltiplos de mercado · P/L (equity)", ll * C.pl.p25 * d + X.dl, ll * C.pl.p75 * d + X.dl, `${xx(C.pl.p25)} a ${xx(C.pl.p75)} o lucro líquido ajustado de ${mi(ll)}`, "#4FB0F5"]);
+    const nop = (X.bp.K.naoOp || 0) * (1 - X.W.t), ll = X.bp.K.ll + X.bp.A.lucro - nop; /* lucro recorrente: sem o resultado não operacional, líquido de IR */
+    if (C.pl && ll > 0) met.push(["Múltiplos de mercado · P/L (equity)", ll * C.pl.p25 * d + X.dl, ll * C.pl.p75 * d + X.dl, `${xx(C.pl.p25)} a ${xx(C.pl.p75)} o lucro líquido recorrente de ${mi(ll)}${nop ? ` (sem ${mi(nop)} de resultado não operacional)` : ""}`, "#4FB0F5"]);
     if (T.eb) met.push(["Transações comparáveis · EV/EBITDA", e * T.eb.p25, e * T.eb.p75, `${xx(T.eb.p25)} a ${xx(T.eb.p75)} (${T.eb.n} transações)`, "#4FB0F5"]);
     const pl = X.bp.K.PL + X.bp.A.pl; met.push(["Patrimônio líquido ajustado", pl + X.dl, pl + X.dl, "PL ajustado + dívida líquida (piso de referência)", "#7A8699"]);
     met.push(["FCD · otimista (justificado)", ot.min, ot.max, "premissas do consultor e novos negócios", "#C39BFF"]);

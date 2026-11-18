@@ -110,8 +110,8 @@ if (window.KT_DD && window.KT_XLSX) (() => {
     f.add(["(-) Despesas operacionais", ...v("despOp", -1)], "dop"); f.add(["EBITDA", ...Hs.map((_, i) => G(`${c(i)}${f.r("lb")}+${c(i)}${f.r("dop")}`))], "eb");
     f.add(["% margem EBITDA", ...Hs.map((_, i) => FP(`IFERROR(${c(i)}${f.r("eb")}/${c(i)}${f.r("rl")},0)`))]);
     f.add(["(-) Depreciação e amortização", ...v("da", -1)], "da"); f.add(["EBIT", ...Hs.map((_, i) => F(`${c(i)}${f.r("eb")}+${c(i)}${f.r("da")}`))], "ebit");
-    f.add(["(+/-) Resultado financeiro", ...v("resFin")], "rf"); f.add(["(-) IRPJ e CSLL", ...v("ir", -1)], "ir");
-    f.add(["Lucro líquido", ...Hs.map((_, i) => G(`${c(i)}${f.r("ebit")}+${c(i)}${f.r("rf")}+${c(i)}${f.r("ir")}`))], "ll");
+    f.add(["(+/-) Resultado financeiro", ...v("resFin")], "rf"); f.add(["(+/-) Resultado não operacional (fora do EBITDA)", ...v("naoOp")], "nop"); f.add(["(-) IRPJ e CSLL", ...v("ir", -1)], "ir");
+    f.add(["Lucro líquido", ...Hs.map((_, i) => G(`${c(i)}${f.r("ebit")}+${c(i)}${f.r("rf")}+${c(i)}${f.r("nop")}+${c(i)}${f.r("ir")}`))], "ll");
     f.add([]); f.add([HH("Balanço patrimonial (R$)"), ...Hs.map(h => HH(h.rot))]);
     const g = k => Hs.map(h => I(h.K.G[k] || 0));
     const AC = [["caixa", "Caixa e equivalentes"], ["clientes", "Contas a receber"], ["pdd", "(-) Perdas esperadas"], ["estoques", "Estoques"], ["impRec", "Impostos a recuperar"], ["outrosAC", "Outros ativos circulantes"]];

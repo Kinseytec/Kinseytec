@@ -10,7 +10,7 @@
 if (window.KT_DD) (() => {
   const D = KT_DD, G = D.GRUPOS;
   const EBITDA = new Set(["recBruta", "deducoes", "cpv", "pessoal", "prolabore", "adm", "aluguel", "vendas", "outrasOp", "naoRec"]);
-  const RESULT = new Set([...EBITDA, "da", "recFin", "despFin", "ir"]);
+  const RESULT = new Set([...EBITDA, "naoOp", "da", "recFin", "despFin", "ir"]);
   const NAT = /s[oó]ci|pr[oó].?labore|retirad|diversa|outras despesas|brinde|doa[cç]|viage|hospedag|consultori|honor[aá]ri|assessori|multa|indeniza|acordo|n[aã]o recorrente|extraordin|partes relacionadas|ve[ií]culo|combust|celular|presente|festa|confraterniza|patroc[ií]nio/i;
   const MES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
   const nrm = t => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim();
@@ -22,7 +22,9 @@ if (window.KT_DD) (() => {
     const P = (D.periodos(s) || []).slice().sort(), bal = s.dd?.bal || {}, contas = new Map();
     const conta = (c, g) => { const k = String(c[0] || "").trim() ? String(c[0]).trim() : nrm(c[1]); if (!contas.has(k)) contas.set(k, {k, cod:String(c[0] || ""), desc:String(c[1] || ""), g, ebitda:EBITDA.has(g), anual:{}, cum:{}}); return contas.get(k); };
     P.forEach(p => { const b = bal[p]; D.C(b).forEach(c => { const g = c[3]; if (!RESULT.has(g)) return; const x = conta(c, g); x.cum[p] = (x.cum[p] || 0) + val(g, +c[2] || 0); if (+b.meses === 12) x.anual[p.slice(0, 4)] = (x.anual[p.slice(0, 4)] || 0) + val(g, +c[2] || 0); }); });
-    const anos = [...new Set(P.filter(p => +bal[p].meses === 12).map(p => p.slice(0, 4)))].sort().slice(-5);
+    /* só entram no ano a ano os exercícios com DRE (um balanço sem DRE não pode gerar "conta nova") */
+    const temDRE = p => D.C(bal[p]).some(c => RESULT.has(c[3]));
+    const anos = [...new Set(P.filter(p => +bal[p].meses === 12 && temDRE(p)).map(p => p.slice(0, 4)))].sort().slice(-5);
     /* ano aberto: o mais recente com 2+ balancetes; acumulados (YTD) viram movimento do período */
     const porAno = {}; P.forEach(p => (porAno[p.slice(0, 4)] ||= []).push(p)); const anoM = Object.keys(porAno).sort().reverse().find(a => porAno[a].length >= 2) || "";
     let fat = []; if (anoM){ const L = porAno[anoM].map(p => ({p, m:+bal[p].meses || 12, fim:+p.slice(5, 7)})).sort((a, b) => a.fim - b.fim);

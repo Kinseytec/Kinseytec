@@ -76,7 +76,7 @@ if (window.KT_DD) (() => {
       if (!txt || !nums.length || /^(descri|empresa|c\.?n\.?p\.?j|per[ií]odo|folha)/i.test(txt)) return;
       const subtotal = nums.length === 1 && /^(receita l[ií]quida|lucro|preju[ií]zo|resultado|total|despesas operacionais$)/i.test(nrm(txt)) || (nums.length === 1 && /^(lucro|resultado|receita liquida)/.test(nrm(txt)));
       if (subtotal) return; const v = valor(nums[0].t).v, n = nrm(txt);
-      const g = /nao operaciona/.test(n) ? "naoRec" : /dedu/.test(n) ? "deducoes" : /^custos?\b|custo dos/.test(n) ? "cpv" : /imposto de renda|contribuic\w* social|\bir\b.*cs/.test(n) ? "ir" : /receitas? financeir/.test(n) ? "recFin" : /despesas? financeir/.test(n) ? "despFin" : D.classifica("3", txt);
+      const g = /nao operaciona/.test(n) ? "naoOp" : /dedu/.test(n) ? "deducoes" : /^custos?\b|custo dos/.test(n) ? "cpv" : /imposto de renda|contribuic\w* social|\bir\b.*cs/.test(n) ? "ir" : /receitas? financeir/.test(n) ? "recFin" : /despesas? financeir/.test(n) ? "despFin" : D.classifica("3", txt);
       contas.push(["3." + (++k), txt, Math.round(-v * 100) / 100, g]); });
     return contas.length ? contas : null;
   }

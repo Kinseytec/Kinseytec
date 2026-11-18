@@ -1,5 +1,14 @@
 # Registro de versões
 
+## v2.95 — 2026-11-18 · Análise automática das demonstrações contábeis (teste com balanços e DRE reais)
+- EBITDA sem o resultado não operacional: "Receitas/despesas não operacionais" da DRE passam a um grupo próprio, abaixo do EBIT (antes inflavam o EBITDA). Os itens não recorrentes operacionais continuam no EBITDA reportado e são normalizados pela Due Diligence, como antes.
+- Classificação: "Disponível" entra como caixa (dívida líquida correta); "Obrigações trabalhistas" como trabalhistas; "Partes relacionadas" do passivo como mútuos/partes relacionadas (dívida equivalente).
+- Circulante × não circulante pela posição da conta no balanço (ex.: parcelamento de impostos ou mútuo no circulante), quando o plano de contas traz os códigos.
+- Demonstrações, relatório de análises e planilha de valuation com a linha "Resultado não operacional", conciliando EBIT com o lucro líquido; períodos só com balanço aparecem como "— (sem DRE)".
+- Revisão analítica e procedimentos sem falsos alertas quando o exercício anterior não tem DRE ("conta nova", "receita −100%"); natureza invertida não acusa receita não operacional; DRE sintética pede o analítico para o pró-labore.
+- Novos pontos de diligência: resultado não operacional relevante (natureza e recorrência) e outros créditos sem composição.
+- Valuation: múltiplo P/L sobre o lucro recorrente (sem o resultado não operacional líquido de IR).
+
 ## v2.94 — 2026-11-18 · Planilha modelo de impairment e revisão dos dados automáticos do cadastro
 - Impairment: "Exportar planilha modelo (Excel)" no padrão das planilhas padronizadas do PPA (CPC 15): Resumo, Premissas, UGCs, Fluxo de caixa, Carrying amount, Teste por UGC, Indícios, Sensibilidade, Conferências e CPC 01, com fórmulas vivas e células azuis para o consultor.
 - Aba UGCs com opções prontas (empresa toda, cada linha de negócio com o % da receita, marca e operações que a usam, filial): o consultor marca Sim nas que são UGC, informa o % da receita e do ágio e o indício.

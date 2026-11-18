@@ -30,7 +30,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     empLP:["Empréstimos e financiamentos (LP)","P","PNC"], parcTrib:["Parcelamentos tributários","P","PNC"], provisoes:["Provisões para contingências","P","PNC"], mutuoPassivo:["Mútuos e partes relacionadas (passivo)","P","PNC"], outrosPNC:["Outros passivos não circulantes","P","PNC"],
     pl:["Patrimônio líquido","P","PL"],
     recBruta:["Receita bruta","R","DRE"], deducoes:["(−) Deduções da receita","D","DRE"], cpv:["Custo dos produtos e serviços","D","DRE"], pessoal:["Despesas com pessoal","D","DRE"], prolabore:["Pró-labore","D","DRE"], adm:["Despesas administrativas e gerais","D","DRE"],
-    aluguel:["Aluguéis e arrendamentos","D","DRE"], vendas:["Despesas comerciais","D","DRE"], outrasOp:["Outras receitas e despesas operacionais","D","DRE"], naoRec:["Itens não recorrentes","D","DRE"], da:["Depreciação e amortização","D","DRE"],
+    aluguel:["Aluguéis e arrendamentos","D","DRE"], vendas:["Despesas comerciais","D","DRE"], outrasOp:["Outras receitas e despesas operacionais","D","DRE"], naoRec:["Itens não recorrentes","D","DRE"], naoOp:["Resultado não operacional","D","DRE"], da:["Depreciação e amortização","D","DRE"],
     recFin:["Receitas financeiras","R","DRE"], despFin:["Despesas financeiras","D","DRE"], ir:["IRPJ e CSLL","D","DRE"]
   };
   const sec = c => String(c || "").replace(/\D/g, "")[0] || "";
@@ -42,7 +42,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     if (S1 === "1"){
       if (h(/acumulad/) && h(/deprecia|amortiza|exaust/)) return "deprec";
       if (h(/(provis|perda|ajuste).*(devedor|duvidos|credit|liquidacao|esperad)|pcld|pecld|\bpdd\b/)) return "pdd";
-      if (h(/caixa|banco|aplicac|equivalente|numerario|conta movimento/)) return "caixa";
+      if (h(/caixa|banco|aplicac|equivalente|numerario|conta movimento|disponiv|disponibilidade/)) return "caixa";
       if (h(/client|duplicatas a receber|contas a receber|titulos a receber/)) return "clientes";
       if (h(/estoque|mercadoria|materia.prima|produtos? acabad|em elaboracao|embalage|almoxarifado/)) return "estoques";
       if (h(/a recuperar|a compensar|credito.*(icms|pis|cofins|ipi|irpj|csll)/)) return "impRec";
@@ -59,8 +59,8 @@ if (typeof MA_MODELOS !== "undefined") (() => {
       if (h(/emprestim|financiament|debentur|capital (de )?giro|leasing|cedula|\bccb\b|bndes|finame|nota promissoria/)) return sb === "2.2" || h(/longo prazo|\blp\b/) ? "empLP" : "empCP";
       if (h(/fornecedor/)) return "fornecedores";
       if (h(/conting|processo|provis.*(trabalh|civel|fiscal|tribut)/)) return "provisoes";
-      if (h(/mutuo|socio|partes relacionadas/)) return sb === "2.1" ? "outrosPC" : "mutuoPassivo";
-      if (h(/salari|ferias|13|decimo|inss|fgts|rescis|pro.labore|encargos sociais|folha|ordenado/)) return "trab";
+      if (h(/mutuo|socio|partes relacionadas|coligad|controlad/)) return "mutuoPassivo";
+      if (h(/salari|ferias|13|decimo|inss|fgts|rescis|pro.labore|encargos sociais|folha|ordenado|trabalhist/)) return "trab";
       if (h(/icms|\bpis\b|cofins|\biss\b|\bipi\b|irpj|csll|imposto|tribut|simples nacional|irrf|\bdas\b/)) return "tribCP";
       if (h(/adiantamento.*client|client.*adiantament/)) return "adiantCli";
       return sb === "2.1" ? "outrosPC" : sb === "2.2" ? "outrosPNC" : "pl";
@@ -68,6 +68,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     if (h(/deduc|devoluc|abatiment|cancelament|(impostos?|tributos?) (sobre|incidentes)|\b(icms|pis|cofins|iss|ipi|simples nacional)\b.*(venda|fatur|servic|receita)|^\(-\)\s*(icms|pis|cofins|iss|ipi|simples)\b/)) return "deducoes";
     if (h(/(receita|rendimento|ganho)s?.*(financeir|aplicac)|juros (ativos|recebidos)|juros.{0,12}ativ|variacao cambial ativa|descontos obtidos/)) return "recFin";
     if (h(/irpj|csll|imposto de renda|contribuicao social sobre o lucro/)) return "ir";
+    if (h(/nao operaciona|outros resultados nao operac/)) return "naoOp";
     if (h(/venda de (imobiliz|ativo)|alienacao|ganho de capital|indeniza|baixa de imobiliz|nao recorrent|eventua|extraordinar/)) return "naoRec";
     if (h(/outras (receitas|despesas)/)) return "outrasOp";
     if (h(/receita|faturamento|vendas? de (produto|mercador|servic)|prestacao de servic/) && !h(/despesa|custo/)) return "recBruta";
@@ -137,7 +138,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
       const g = classifica(o.cod, o.desc); let v = o.n.v;
       if (o.n.dc === "C") v = -Math.abs(v); else if (o.n.dc === "D") v = Math.abs(v);
       else if (!temSinal){ const contra = ["deprec","pdd"].includes(g) || /^\(-\)/.test(o.desc); const credor = ["P","R"].includes(GRUPOS[g][1]);
-        v = Math.abs(v) * ((credor ? -1 : 1) * (contra ? -1 : 1)); if (["naoRec","outrasOp"].includes(g) && /receita|ganho/.test(norm(o.desc))) v = -Math.abs(o.n.v); }
+        v = Math.abs(v) * ((credor ? -1 : 1) * (contra ? -1 : 1)); if (["naoRec","naoOp","outrasOp"].includes(g) && /receita|ganho/.test(norm(o.desc))) v = -Math.abs(o.n.v); }
       return [o.cod, o.desc, Math.round(v * 100) / 100, g];
     });
   }
@@ -159,16 +160,23 @@ if (typeof MA_MODELOS !== "undefined") (() => {
   /* ---------------- CÁLCULOS ---------------- */
   function calc(b){
     const G = Object.fromEntries(Object.keys(GRUPOS).map(k => [k, 0])); let soma = 0;
-    C(b).forEach(([, , v, g]) => { if (!GRUPOS[g]) return; G[g] += natural(g, v); soma += v; });
+    const pos = {AC:0, ANC:0, PC:0, PNC:0, ok:true, n:0};
+    C(b).forEach(([cod, , v, g]) => { if (!GRUPOS[g]) return; G[g] += natural(g, v); soma += v;
+      const tp = GRUPOS[g][1], lado = GRUPOS[g][2]; if (lado === "DRE" || lado === "PL") return; const sb = sub(cod); pos.n++;
+      if (tp === "A" && (sb === "1.1" || sb === "1.2")) pos[sb === "1.1" ? "AC" : "ANC"] += natural(g, v);
+      else if (tp === "P" && (sb === "2.1" || sb === "2.2")) pos[sb === "2.1" ? "PC" : "PNC"] += natural(g, v);
+      else pos.ok = false; });
     const f = 12 / (+b.meses || 12), K = {G, f, soma};
     K.recBruta = G.recBruta * f; K.deducoes = G.deducoes * f; K.recLiq = K.recBruta - K.deducoes; K.cpv = G.cpv * f; K.lucroBruto = K.recLiq - K.cpv;
-    K.despOp = (G.pessoal + G.prolabore + G.adm + G.aluguel + G.vendas + G.outrasOp + G.naoRec) * f;
+    K.despOp = (G.pessoal + G.prolabore + G.adm + G.aluguel + G.vendas + G.outrasOp + G.naoRec) * f; K.naoOp = -G.naoOp * f; /* resultado não operacional: abaixo do EBIT */
     K.ebitda = K.lucroBruto - K.despOp; K.da = G.da * f; K.ebit = K.ebitda - K.da; K.resFin = (G.recFin - G.despFin) * f; K.despFin = G.despFin * f;
-    K.lair = K.ebit + K.resFin; K.ir = G.ir * f; K.ll = K.lair - K.ir;
+    K.lair = K.ebit + K.resFin + K.naoOp; K.ir = G.ir * f; K.ll = K.lair - K.ir;
     const s = ks => ks.reduce((a, k) => a + G[k], 0);
     K.caixa = G.caixa; K.AC = s(["caixa","clientes","pdd","estoques","impRec","outrosAC"]); K.ANC = s(["rlp","deposJud","mutuoAtivo","investimentos","imobilizado","deprec","intangivel"]); K.AT = K.AC + K.ANC;
     K.PC = s(["fornecedores","empCP","trab","tribCP","adiantCli","outrosPC"]); K.PNC = s(["empLP","parcTrib","provisoes","mutuoPassivo","outrosPNC"]);
-    K.llPeriodo = (G.recBruta - G.deducoes - G.cpv - G.pessoal - G.prolabore - G.adm - G.aluguel - G.vendas - G.outrasOp - G.naoRec - G.da + G.recFin - G.despFin - G.ir);
+    /* quando todas as contas patrimoniais têm o código do plano (1.1/1.2/2.1/2.2), vale a posição do balanço (ex.: parcelamento ou mútuo no circulante) */
+    if (pos.ok && pos.n){ K.AC = pos.AC; K.ANC = pos.ANC; K.AT = K.AC + K.ANC; K.PC = pos.PC; K.PNC = pos.PNC; K.porPosicao = true; }
+    K.llPeriodo = (G.recBruta - G.deducoes - G.cpv - G.pessoal - G.prolabore - G.adm - G.aluguel - G.vendas - G.outrasOp - G.naoRec - G.naoOp - G.da + G.recFin - G.despFin - G.ir);
     K.PL = G.pl + K.llPeriodo;
     K.fecha = Math.abs(soma) <= Math.max(1, Math.abs(K.AT) * .001);
     K.divBruta = G.empCP + G.empLP; K.dl = K.divBruta - K.caixa;
@@ -191,7 +199,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     {id:"c_fech", area:"contabil", t:"Balancete fecha (débitos = créditos)", n:"NBC TG Estrutura Conceitual", f:(K) => K.fecha ? {st:"ok", txt:"Débitos e créditos conferem."} : {st:"achado", txt:`Diferença de ${mi(K.soma, 2)} entre débitos e créditos. Peça o balancete fechado.`}},
     {id:"c_trans", area:"contabil", t:"Contas transitórias ou a classificar", n:"NBC TG 26 (CPC 26)", f:(K, b) => { const L = contas(b, /classificar|transit|diversos|pendente|a identificar/).filter(c => !/client|fornecedor|despesas diversas|receitas diversas/.test(norm(c[1])) && Math.abs(c[2]) > Math.abs(K.AT) * .005);
       return L.length ? {st:"achado", txt:`${L.length} conta(s) relevante(s): ${L.map(c => `${c[1]} (${mi(Math.abs(c[2]))})`).join("; ")}. Pedir a composição e reclassificar.`} : {st:"ok", txt:"Sem saldos relevantes em contas transitórias."}; }},
-    {id:"c_inv", area:"contabil", t:"Saldos com natureza invertida", n:"NBC TG 26 (CPC 26)", f:(K, b) => { const L = C(b).filter(([c, d, v, g]) => !["deprec","pdd","deducoes","naoRec","outrasOp","pl"].includes(g) && !/^\(-\)/.test(d) && natural(g, v) < -Math.max(1000, Math.abs(K.AT) * .001));
+    {id:"c_inv", area:"contabil", t:"Saldos com natureza invertida", n:"NBC TG 26 (CPC 26)", f:(K, b) => { const L = C(b).filter(([c, d, v, g]) => !["deprec","pdd","deducoes","naoRec","naoOp","outrasOp","pl"].includes(g) && !/^\(-\)/.test(d) && natural(g, v) < -Math.max(1000, Math.abs(K.AT) * .001));
       return L.length ? {st:"achado", txt:`${L.length} conta(s) com saldo contrário à natureza: ${L.slice(0, 4).map(c => c[1]).join("; ")}${L.length > 4 ? "…" : ""}.`} : {st:"ok", txt:"Nenhum saldo invertido relevante."}; }},
     {id:"c_dep", area:"contabil", t:"Depreciação do imobilizado", n:"CPC 27", f:(K) => { const im = K.G.imobilizado; if (!im) return {st:"na", txt:"Sem imobilizado."};
       if (K.G.da) return {st:"ok", txt:`Depreciação registrada: ${mi(K.da)} por ano (${pc(div(K.da, im))} do imobilizado bruto).`};
@@ -225,15 +233,20 @@ if (typeof MA_MODELOS !== "undefined") (() => {
       return L.length ? {st:"achado", txt, aj:{titulo:"Normalização de gastos pré-operacionais", tipo:"Normalização do EBITDA", v:{ebitda:tot}}} : {st:"achado", txt}; }},
     {id:"f_salto", area:"financeira", t:"Despesas que cresceram acima da receita", n:"Revisão analítica (NBC TA 520) e normalização", f:(K, b, s) => {
       if (!s?.dd?.bal) return {st:"na", txt:"Sem balancete anterior para comparar."};
-      const per = Object.keys(s.dd.bal).find(k => s.dd.bal[k] === b), ant = periodos(s).filter(p => p < per && +(s.dd.bal[p].meses || 12) === 12).sort().pop();
-      if (!ant) return {st:"na", txt:"Sem exercício anterior completo para comparar."};
+      const per = Object.keys(s.dd.bal).find(k => s.dd.bal[k] === b), ant = periodos(s).filter(p => p < per && +(s.dd.bal[p].meses || 12) === 12 && C(s.dd.bal[p]).some(c => GRUPOS[c[3]]?.[2] === "DRE")).sort().pop();
+      if (!ant) return {st:"na", txt:"Sem exercício anterior completo com DRE para comparar."};
       const K0 = calc(s.dd.bal[ant]), gR = div(K.recLiq, K0.recLiq) - 1, G = ["adm","vendas","outrasOp","aluguel","pessoal"], NOME = {adm:"despesas administrativas", vendas:"despesas com vendas", outrasOp:"outras despesas operacionais", aluguel:"aluguéis", pessoal:"pessoal"};
       const L = G.map(g => ({g, a:(K0.G[g] || 0) * K0.f, n:(K.G[g] || 0) * K.f})).filter(x => x.n > K.recLiq * .005 && x.n > x.a * (1 + Math.max(0, gR)) * 1.2);
       if (!L.length) return {st:"ok", txt:`Despesas acompanham a receita (${pc(gR)} frente a ${ant}).`};
       return {st:"achado", txt:`Frente a ${ant} (receita ${pc(gR)}, valores anualizados): ${L.map(x => `${NOME[x.g]} de ${mi(x.a)} para ${mi(x.n)} (${pc(div(x.n, x.a) - 1)})`).join("; ")}. Verificar se há gastos de nova unidade, não recorrentes ou com natureza de investimento (CPC 27) antes de usar o EBITDA no valuation.`}; }},
+    {id:"c_outros", area:"contabil", t:"Outros créditos sem composição", n:"NBC TA 500 · evidência", f:(K, b) => { const v = K.G.outrosAC || 0; if (v < Math.max(100000, K.AT * .1)) return {st:"ok", txt:"Outros créditos sem relevância no ativo."};
+      const L = C(b).filter(c => c[3] === "outrosAC"); return {st:"achado", txt:`Outros créditos de ${mi(v)} (${Math.round(v / K.AT * 100)}% do ativo) em ${L.length} conta(s) sintética(s): pedir a composição (mútuos com sócios ou partes relacionadas, adiantamentos a fornecedores, créditos tributários). Se houver créditos com sócios, saem do capital de giro e entram como item não operacional.`}; }},
+    {id:"f_naoop", area:"financeira", t:"Resultado não operacional", n:"CPC 26 · normalização", f:(K, b) => { const v = K.naoOp || 0; if (!v) return {st:"ok", txt:"Sem resultado não operacional no período."};
+      const rel = Math.abs(v) / Math.max(1, Math.abs(K.lair)), txt = `${contas(b, null, ["naoOp"]).map(c => c[1]).join("; ")}: ${mi(v)} (${Math.round(rel * 100)}% do lucro antes do IR), fora do EBITDA.`;
+      return Math.abs(v) >= Math.max(K.recLiq * .02, Math.abs(K.lair) * .1) ? {st:"achado", txt:txt + " Verificar a natureza (venda de ativo, recuperação de crédito, subvenção, ganho de capital), a documentação e se se repete; não entra no valuation pelo EBITDA."} : {st:"ok", txt}; }},
     {id:"f_nrec", area:"financeira", t:"Itens não recorrentes (normalização do EBITDA)", n:"Normalização", f:(K, b) => { const v = K.G.naoRec * K.f; if (!v) return {st:"ok", txt:"Nenhum item não recorrente identificado nas contas."};
       return {st:"achado", txt:`${contas(b, null, ["naoRec"]).map(c => c[1]).join("; ")}: ${mi(-v)} no EBITDA. Retirar do EBITDA recorrente.`, aj:{titulo:"Normalização de itens não recorrentes", tipo:"Normalização do EBITDA e do lucro", v:{ebitda:v, lucro:v * (1 - .34)}}}; }},
-    {id:"f_prol", area:"financeira", t:"Remuneração dos sócios a valor de mercado", n:"Normalização", f:(K) => K.G.prolabore ? {st:"ok", txt:`Pró-labore de ${mi(K.G.prolabore * K.f)} por ano. Comparar com o custo de um executivo de mercado.`} : {st:"achado", txt:"Sem pró-labore registrado. Se os sócios trabalham na empresa, o EBITDA está superestimado: incluir ajuste manual com o custo de mercado."}},
+    {id:"f_prol", area:"financeira", t:"Remuneração dos sócios a valor de mercado", n:"Normalização", f:(K, b) => !K.G.prolabore && !K.G.pessoal && C(b).filter(c => GRUPOS[c[3]]?.[2] === "DRE").length <= 15 ? {st:"sd", txt:"DRE sintética, sem abertura das despesas: pedir o balancete analítico ou o razão para verificar o pró-labore e a folha dos sócios dentro das despesas administrativas."} : K.G.prolabore ? {st:"ok", txt:`Pró-labore de ${mi(K.G.prolabore * K.f)} por ano. Comparar com o custo de um executivo de mercado.`} : {st:"achado", txt:"Sem pró-labore registrado. Se os sócios trabalham na empresa, o EBITDA está superestimado: incluir ajuste manual com o custo de mercado."}},
     {id:"f_mut", area:"financeira", t:"Mútuos e partes relacionadas", n:"CPC 05", f:(K) => { const m = K.G.mutuoAtivo; if (!m) return {st:"ok", txt:"Sem mútuos com sócios ou partes relacionadas no ativo."};
       return {st:"achado", txt:`Mútuo a receber de sócios ou partes relacionadas: ${mi(m)}. Tratar como item não operacional, a liquidar antes do fechamento.`, aj:{titulo:"Mútuo com sócios fora do patrimônio ajustado", tipo:"Item não operacional", v:{pl:-m}}}; }},
     {id:"f_liq", area:"financeira", t:"Liquidez e caixa", n:"Análise financeira", f:(K) => { const lc = div(K.AC, K.PC); return lc != null && lc < 1 ? {st:"achado", txt:`Liquidez corrente de ${xx(lc, 2)}: o passivo de curto prazo supera o ativo circulante.`} : {st:"ok", txt:`Liquidez corrente de ${xx(lc, 2)}.`}; }},

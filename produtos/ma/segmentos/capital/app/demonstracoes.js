@@ -46,7 +46,7 @@ if (window.KT_DD) (() => {
     tab(P, ["R$ mil", ...H.map(h => h.rot)], [["Meses", ...H.map(h => String(h.b.meses || 12))], ["Receita bruta", ...H.map(h => m(v(h, "recBruta")))], ["(-) Deduções da receita", ...H.map(h => m(-v(h, "deducoes")))], [B("Receita líquida"), ...H.map(h => B(m(v(h, "recLiq"))))],
       ["(-) Custos", ...H.map(h => m(-v(h, "cpv")))], [B("Lucro bruto"), ...H.map(h => B(m(v(h, "lucroBruto"))))], ["  % margem bruta", ...H.map(h => pc(h, "lucroBruto"))], ["(-) Despesas operacionais", ...H.map(h => m(-v(h, "despOp")))],
       [Bv("EBITDA reportado"), ...H.map(h => Bv(m(v(h, "ebitda"))))], ["  % margem EBITDA", ...H.map(h => pc(h, "ebitda"))], ["(-) Depreciação e amortização", ...H.map(h => m(-v(h, "da")))], ["EBIT", ...H.map(h => m(v(h, "ebit")))],
-      ["(+/-) Resultado financeiro", ...H.map(h => m(v(h, "resFin")))], ["(-) IRPJ e CSLL", ...H.map(h => m(-v(h, "ir")))], [B("Lucro líquido"), ...H.map(h => B(m(v(h, "ll"))))], ["  % margem líquida", ...H.map(h => pc(h, "ll"))]], ws(H.length));
+      ["(+/-) Resultado financeiro", ...H.map(h => m(v(h, "resFin")))], ...(H.some(h => v(h, "naoOp")) ? [["(+/-) Resultado não operacional", ...H.map(h => m(v(h, "naoOp")))]] : []), ["(-) IRPJ e CSLL", ...H.map(h => m(-v(h, "ir")))], [B("Lucro líquido"), ...H.map(h => B(m(v(h, "ll"))))], ["  % margem líquida", ...H.map(h => pc(h, "ll"))]], ws(H.length));
     R().par(P, "Valores do período (não anualizados). Fonte: balancetes do cadastro do projeto ou do workbook do auditor, não auditados.", {size:8, color:MUT});
   }
   function balanco(P, s, X){
@@ -111,7 +111,7 @@ if (window.KT_DD) (() => {
     P.ensure(170); R().par(P, `Demonstração do resultado pro forma · ${h.rot}`, {size:10, bold:true});
     const ll = v => v / f;
     tab(P, ["R$ mil", "Reportado", "Ajustes", "Pro forma"], [["Receita líquida", m(ll(K.recLiq)), "-", m(ll(K.recLiq))], ["EBITDA", m(ll(K.ebitda)), m(ll(A.ebitda)), B(m(ll(K.ebitda + A.ebitda)))], ["  % margem EBITDA", p1(div(K.ebitda, K.recLiq)), "", p1(div(K.ebitda + A.ebitda, K.recLiq))],
-      ["(-) Depreciação e amortização", m(-ll(K.da)), "-", m(-ll(K.da))], ["(+/-) Resultado financeiro e IR", m(ll(K.resFin - K.ir)), "-", m(ll(K.resFin - K.ir))], [Bv("Lucro líquido"), Bv(m(ll(K.ll))), Bv(m(ll(A.lucro))), Bv(m(ll(K.ll + A.lucro)))]], [.4, .2, .2, .2]);
+      ["(-) Depreciação e amortização", m(-ll(K.da)), "-", m(-ll(K.da))], ["(+/-) Resultado financeiro, não operacional e IR", m(ll(K.resFin + (K.naoOp || 0) - K.ir)), "-", m(ll(K.resFin + (K.naoOp || 0) - K.ir))], [Bv("Lucro líquido"), Bv(m(ll(K.ll))), Bv(m(ll(A.lucro))), Bv(m(ll(K.ll + A.lucro)))]], [.4, .2, .2, .2]);
     P.ensure(190); R().par(P, `Balanço patrimonial pro forma · ${h.rot} (visão do capital investido)`, {size:10, bold:true});
     const G = K.G, fixo = (G.imobilizado || 0) + (G.deprec || 0) + (G.intangivel || 0), eqv = (G.parcTrib || 0) + (G.mutuoPassivo || 0) + (G.provisoes || 0), dl = K.dl + eqv, ci = dl + K.PL, outros = ci - K.ncg - fixo;
     const dNcg = A.ncg, dDiv = A.divida, dPl = A.pl, dOut = dDiv + dPl - dNcg;
