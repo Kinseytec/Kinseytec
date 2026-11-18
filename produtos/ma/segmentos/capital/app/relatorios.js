@@ -8,7 +8,8 @@ if (window.KT_DD) (() => {
   const T = s => String(s ?? "").replace(/−/g, "-").replace(/≈/g, "~").replace(/[“”]/g, '"');
   const CONTATO = "contato@kinsey.com.br · newton.kao@kinsey.com.br · (11) 96635-0424";
   const hojeBR = () => new Date().toLocaleDateString("pt-BR");
-  const arq = (s, t, ext) => `Kinsey_${t}_${String(s.mandato?.codinome || s.nome || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/^EXEMPLO /, "").replace(/[^\w]+/g, "_").slice(0, 40)}.${ext}`;
+  /* antes do NDA o arquivo leva só o nome-código: nunca o nome da empresa */
+  const arq = (s, t, ext) => `Kinsey_${t}_${String(/^(teaser|one_pager)$/.test(t) ? (s.mandato?.codinome || (window.KT_TEASER ? KT_TEASER.conteudo(s, "pre").codinome : "Projeto")) : (s.mandato?.codinome || s.nome || "")).normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/^EXEMPLO /, "").replace(/[^\w]+/g, "_").slice(0, 40)}.${ext}`;
 
   /* ---------------- TEXTOS-PADRÃO ---------------- */
   const TXT = {

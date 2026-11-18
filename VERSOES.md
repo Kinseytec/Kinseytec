@@ -1,5 +1,12 @@
 # Registro de versões
 
+## v2.72 — 2026-11-18 · Dossiê para o investidor e teaser anônimo de verdade
+- Dossiê do target: "Resumo para o investidor" no topo, com risco e principais preocupações, faturamento, EBITDA e margem, faixa de valuation, comparabilidade entre o fluxo de caixa descontado e os múltiplos de mercado, WACC apurado, beta do setor (desalavancado) e beta usado no custo do capital próprio, success fee, operação mínima, sucesso mínimo e retainer sugerido
+- Do dossiê saem o teaser antes do NDA (sem nome) e a apresentação depois do NDA (com o nome), além do atalho para o Valuation
+- Teaser antes do NDA: nome, razão social, nome fantasia, CNPJ, site, sócios e e-mails da empresa são trocados pelo nome-código em todo o conteúdo (tela, PDF e PowerPoint), inclusive no nome do arquivo
+- Valuation: o WACC mostra o beta do setor do cadastro (com o CNAE) e o beta realavancado usado no custo do capital próprio, com a fórmula
+- O questionário (perguntas jurídicas e documentais) sai do dossiê e vai para o Jurídico, aba "Questionário", com a empresa em consulta; os atalhos antigos levam para lá
+
 ## v2.71 — 2026-11-18 · Modelos Kinsey emitidos pelo consultor, em Word
 - Os modelos (NDA, NDA do mandato, mandato, MOU, SPA, acordo de originação) ficam no Jurídico e já são validados pelo Jurídico: o consultor emite e envia sem passar pela validação da advogada; sai o aviso de "modelo provisório"
 - "Emitir em Word" já preenchido com os dados da empresa (Receita Federal e cadastro: razão social, CNPJ, endereço, representante e sócios); no mandato, também success fee de 6%, operação mínima (valuation ou múltiplo do faturamento, arredondada ao milhão), sucesso mínimo, retainer sugerido em parcelas e o sócio responsável do projeto
