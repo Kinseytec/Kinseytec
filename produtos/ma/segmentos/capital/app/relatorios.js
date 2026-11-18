@@ -4,7 +4,7 @@
    (modelos provisórios até a Kinsey incluir os seus). */
 if (window.KT_DD) (() => {
   const D = KT_DD, {mi, pc, xx, div} = D;
-  const NAVY = [1,31,75], ACC = [4,115,195], MUT = [90,101,120], BAD = [198,40,40], OKC = [46,125,50], GOLD = [178,121,26], LILAS = [120,80,190];
+  const NAVY = [1,31,75], ACC = [4,115,195], MUT = [90,101,120], BAD = [198,40,40], OKC = [46,125,50], GOLD = [230,176,40], LILAS = [120,80,190];
   const T = s => String(s ?? "").replace(/−/g, "-").replace(/≈/g, "~").replace(/[“”]/g, '"');
   const CONTATO = "contato@kinsey.com.br · newton.kao@kinsey.com.br · (11) 96635-0424";
   const hojeBR = () => new Date().toLocaleDateString("pt-BR");
@@ -185,7 +185,7 @@ if (window.KT_DD) (() => {
       faixasPdf(P, R.met.map(m => [m[0], m[1], m[2]]), R.rec);
       const G = window.KT_GRAF, evm = (R.rec[0] + R.rec[1]) / 2, grp = {}; X.pt.L.filter(x => x.inc).forEach(x => { grp[x.grupo] = (grp[x.grupo] || 0) + x.v; });
       if (G) G.cascata(P, "Do enterprise value ao equity value (ponto médio da faixa moderada)", [{l:"Enterprise value", v:evm, tipo:"base"}, ...Object.entries(grp).filter(([, v]) => Math.abs(v) > 1).map(([g, v]) => ({l:g, v:-v, tipo:"delta"})), {l:"Equity value", v:evm - X.dl, tipo:"total"}], v => mi(v, 1));
-      const histG = () => G && anos.length && G.colunas(P, "Receita líquida, EBITDA ajustado e margem", anos.map(a => String(a.ano)), [{n:"Receita líquida", v:anos.map(a => a.rl), c:ACC}, {n:"EBITDA ajustado", v:anos.map(a => a.eb), c:G.VERDE}], v => mi(v, 1), {n:"Margem EBITDA", v:anos.map(a => a.eb / (a.rl || 1))});
+      const histG = () => G && anos.length && G.colunas(P, "Receita líquida, EBITDA ajustado e margem", anos.map(a => String(a.ano)), [{n:"Receita líquida", v:anos.map(a => a.rl), c:ACC}, {n:"EBITDA ajustado", v:anos.map(a => a.eb), c:[244,196,64]}], v => mi(v, 1), {n:"Margem EBITDA", v:anos.map(a => a.eb / (a.rl || 1))});
       const evEbT = R.rec && X.bp.eb ? evm / X.bp.eb : null;
       const compG = () => G && C.ok.length && G.barrasH(P, "Comparáveis · EV/EBITDA (companhias abertas)", C.ok.filter(c => c.evEb > 0 && c.evEb < 60).sort((a, b) => b.evEb - a.evEb).slice(0, 14).map(c => ({l:c.nome, v:c.evEb, txt:xx(c.evEb)})), v => xx(v), evEbT ? {v:evEbT, l:`target ${xx(evEbT)} (faixa moderada)`} : null);
       if (modo === "resumo"){
@@ -268,7 +268,7 @@ if (window.KT_DD) (() => {
     if (fmtx === "pdf"){
       const P = KTPdf(), pre = fase === "pre", bl = (t, o) => par(P, "• " + t, {size:9.5, gap:2, ...(o || {})});
       let nsec = 0; const secT = (t, h = 120) => { P.ensure(h); P.y += 6; nsec++; P.h1(nsec, T(t)); };
-      const G = window.KT_GRAF, evol = () => Z.serie.length && (G ? G.colunas(P, "Evolução da empresa · receita líquida, EBITDA ajustado e margem", Z.serie.map(a => a.ano), [{n:"Receita líquida", v:Z.serie.map(a => a.rl), c:ACC}, {n:"EBITDA ajustado", v:Z.serie.map(a => a.eb), c:G.VERDE}], v => mi(v, pre ? 0 : 1), {n:"Margem EBITDA", v:Z.serie.map(a => a.mg ?? a.eb / (a.rl || 1))}) : barrasPdf(P, "Receita líquida e EBITDA ajustado", Z.serie.map(a => a.ano), [{n:"Receita líquida", v:Z.serie.map(a => a.rl), c:ACC}, {n:"EBITDA ajustado", v:Z.serie.map(a => a.eb), c:GOLD}], v => mi(v, 0), 120));
+      const G = window.KT_GRAF, evol = () => Z.serie.length && (G ? G.colunas(P, "Evolução da empresa · receita líquida, EBITDA ajustado e margem", Z.serie.map(a => a.ano), [{n:"Receita líquida", v:Z.serie.map(a => a.rl), c:ACC}, {n:"EBITDA ajustado", v:Z.serie.map(a => a.eb), c:[244,196,64]}], v => mi(v, pre ? 0 : 1), {n:"Margem EBITDA", v:Z.serie.map(a => a.mg ?? a.eb / (a.rl || 1))}) : barrasPdf(P, "Receita líquida e EBITDA ajustado", Z.serie.map(a => a.ano), [{n:"Receita líquida", v:Z.serie.map(a => a.rl), c:ACC}, {n:"EBITDA ajustado", v:Z.serie.map(a => a.eb), c:GOLD}], v => mi(v, 0), 120));
       const paresG = () => G && Z.pares.length && G.barrasH(P, "Setor · EV/EBITDA de companhias abertas comparáveis", Z.pares.map(c => ({l:c.nome, v:c.evEb, txt:xx(c.evEb)})), v => xx(v));
       if (modo === "resumo"){ /* one-pager */
         P.page(); P.rect(0, 0, P.W, 118, NAVY); P.rect(0, 118, P.W, 4, ACC);
@@ -358,7 +358,7 @@ if (window.KT_DD) (() => {
     L.push(`Liquidez corrente de ${xx(I.lc, 2)}${I.lc < 1 ? ": passivo circulante maior que o ativo circulante, ponto de atenção" : ""}; capital de giro (NCG) de ${mi(I.ncg)}, ${pc(I.ncgRec)} da receita; ciclo de caixa de ${dias(K.ciclo)}.`);
     if (pend.length) L.push(`${pend.length} ajuste(s) da Due Diligence aguardam o OK do consultor e ainda não estão nos números.`);
     const kp = () => kpisPdf(P, [["Receita líquida", mi(K.recLiq, 1), b.meses != 12 ? `${b.meses} meses anualizado` : "exercício"], ["EBITDA ajustado", mi(I.ebitda, 1), `margem ${pc(I.mEbitda)}`], ["Dívida líquida", mi(I.dl, 1), `${xx(I.dlEbitda)} o EBITDA`], ["Capital de giro", mi(I.ncg, 1), `${pc(I.ncgRec)} da receita`]]);
-    const evolG = () => G && H.length > 1 && G.colunas(P, "Evolução · receita líquida e EBITDA ajustado (anualizados) e margem", H.map(h => h.rot), [{n:"Receita líquida", v:H.map(h => h.K.recLiq), c:ACC}, {n:"EBITDA ajustado", v:H.map(h => h.I.ebitda), c:G.VERDE}], v => mi(v, 1), {n:"Margem EBITDA", v:H.map(h => h.I.mEbitda)});
+    const evolG = () => G && H.length > 1 && G.colunas(P, "Evolução · receita líquida e EBITDA ajustado (anualizados) e margem", H.map(h => h.rot), [{n:"Receita líquida", v:H.map(h => h.K.recLiq), c:ACC}, {n:"EBITDA ajustado", v:H.map(h => h.I.ebitda), c:[244,196,64]}], v => mi(v, 1), {n:"Margem EBITDA", v:H.map(h => h.I.mEbitda)});
     const ponteG = () => { const L2 = ap.filter(a => a.v.ebitda); if (G && L2.length) G.cascata(P, "Ponte do EBITDA · reportado ao ajustado (ajustes com OK)", [{l:"EBITDA reportado", v:K.ebitda, tipo:"base"}, ...L2.map(a => ({l:a.titulo, v:a.v.ebitda, tipo:"delta"})), {l:"EBITDA ajustado", v:I.ebitda, tipo:"total"}], v => mi(v, 1)); };
     const liqG = () => G && G.barrasH(P, "Liquidez e endividamento (ajustado)", [{l:"Liquidez corrente", v:I.lc, txt:xx(I.lc, 2)}, {l:"Liquidez seca", v:I.ls, txt:xx(I.ls, 2)}, {l:"Liquidez imediata", v:I.li, txt:xx(I.li, 2)}, {l:"Liquidez geral", v:I.lg, txt:xx(I.lg, 2)}, {l:"Dívida líquida / EBITDA", v:Math.max(0, I.dlEbitda || 0), txt:xx(I.dlEbitda), c:G.GOLD}], v => xx(v, 2), {v:1, l:"1,0x"});
     sec(P, 1, "Sumário executivo"); kp(); L.forEach(t => par(P, "• " + t, {size:9.5}));

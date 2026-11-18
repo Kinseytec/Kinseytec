@@ -4,7 +4,7 @@
    ficam escritos no gráfico. Modo de emissão: "Resumo para apresentação" (poucas páginas, gráficos e conclusões) ou
    "Relatório completo" (todas as seções, tabelas e anexos), escolhido ao emitir em qualquer área. */
 (() => {
-  const NAVY = [1,31,75], ACC = [4,115,195], GOLD = [178,121,26], VERDE = [46,150,105], VERM = [198,40,40], CINZA = [120,131,148], CLARO = [238,245,252], LINHA = [213,220,230];
+  const NAVY = [1,31,75], ACC = [4,115,195], GOLD = [230,176,40], VERDE = [46,150,105], VERM = [198,40,40], CINZA = [120,131,148], CLARO = [238,245,252], LINHA = [213,220,230];
   const PAL = [ACC, GOLD, VERDE, [127,184,230], [110,84,170], [230,140,60], CINZA, VERM, [60,170,190]];
   const T = s => window.KT_REL ? KT_REL.T(String(s ?? "")) : String(s ?? "");
   const larg = (s, sz) => String(s).length * sz * .5;

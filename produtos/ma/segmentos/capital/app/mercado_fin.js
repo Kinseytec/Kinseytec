@@ -73,7 +73,12 @@ if (window.KT_DD) (() => {
 #pricebar:hover .pb-track{animation-play-state:paused}
 #pricebar .pb-it{display:inline-flex;gap:6px;align-items:baseline;font-family:var(--f-mono);font-variant-numeric:tabular-nums}#pricebar .pb-it span{color:var(--muted)}#pricebar .pb-it em{font-style:normal;font-size:.9em}
 @keyframes pbcorre{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-@media (prefers-reduced-motion:reduce){#pricebar .pb-track{animation:none}}`;
+@media (prefers-reduced-motion:reduce){#pricebar .pb-track{animation:none}}
+/* amarelo Kinsey (o mesmo das Reuniões na Prospecção): só nos números que resumem cada tela */
+:root{--ouro:#F4C440}
+#pricebar .pb-it span{color:var(--ouro);opacity:.9}
+#vx-topo .dd-kpis .dd-k:last-child b,#dv-inv .dd-kpis:first-of-type .dd-k:nth-child(3) b,#fx-card .dd-kpis:first-of-type .dd-k:first-child b,#ra-pan .dd-kpis .dd-k:last-child b,#mf-card .dd-kpis:first-of-type .dd-k:first-child b,#fx-cresc .dd-kpis .dd-k:nth-child(3) b,#ap-merc .dd-kpis:first-of-type .dd-k:first-child b{color:var(--ouro)}
+#vx-topo .dd-kpis .dd-k:last-child,#dv-inv .dd-kpis:first-of-type .dd-k:nth-child(3){box-shadow:inset 0 0 0 1px rgba(244,196,64,.35)}`;
   document.head.appendChild(css);
   if (typeof renderPriceBar === "function"){ const _pb = renderPriceBar;
     renderPriceBar = function(){ const r = _pb.apply(this, arguments); const el = $("#pricebar"); if (!el) return r; ouvir(); const I = indicadores(); if (!I.length) return r;

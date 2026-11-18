@@ -597,7 +597,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     const pts = passos.map(p => { let a, b; if (p.t === "b"){ a = 0; b = p.v; acc = p.v; } else { a = acc; b = acc + p.v; acc = b; } return {...p, a, b}; });
     const mx = Math.max(...pts.map(p => Math.max(p.a, p.b)), 1), mn = Math.min(0, ...pts.map(p => Math.min(p.a, p.b))), sx = v => x0 + (v - mn) / (mx - mn) * w;
     return `<div style="overflow-x:auto"><svg class="dd-svg" viewBox="0 0 ${W} ${H}" width="100%" style="min-width:520px" role="img" aria-label="${l0} até ${l1}">
-      ${pts.map((p, i) => { const y = 14 + i * 30, xa = sx(Math.min(p.a, p.b)), xb = sx(Math.max(p.a, p.b)), cor = p.t === "b" ? "#4FB0F5" : p.v >= 0 ? "#3DDC97" : "#FF6B6B";
+      ${pts.map((p, i) => { const y = 14 + i * 30, xa = sx(Math.min(p.a, p.b)), xb = sx(Math.max(p.a, p.b)), cor = p.t === "b" ? (i === pts.length - 1 ? "#F4C440" : "#4FB0F5") : p.v >= 0 ? "#3DDC97" : "#FF6B6B";
         return `<text x="${x0 - 8}" y="${y + 14}" text-anchor="end" class="lb">${esc(p.l.length > 34 ? p.l.slice(0, 33) + "…" : p.l)}</text><rect x="${xa}" y="${y + 3}" width="${Math.max(2, xb - xa)}" height="16" rx="3" fill="${cor}"/><text x="${xb + 6}" y="${y + 15}">${p.t === "b" ? mi(p.v) : mil(p.v)}</text>`; }).join("")}
       <line x1="${sx(0)}" x2="${sx(0)}" y1="8" y2="${H - 8}" stroke="currentColor" stroke-opacity=".25"/></svg></div>`;
   }

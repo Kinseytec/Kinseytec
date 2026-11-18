@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v2.88 — 2026-11-18 · Amarelo Kinsey nos destaques
+- O amarelo das Reuniões da Prospecção (#F4C440) passa a destacar, com moderação, os números que resumem cada tela: equity value no Valuation, faixa de valuation no resumo do dossiê, valor no quadro de PPA estimado, potencial de ajuste de EBITDA na revisão analítica, Ibovespa no quadro de mercado e o moderado projetado no crescimento
+- Barra de mercado do topo com os nomes dos indicadores em amarelo; ponte do EBITDA com a barra final em amarelo
+- Relatórios em PDF: EBITDA em amarelo nos gráficos de evolução e o dourado dos gráficos mais claro
+
 ## v2.87 — 2026-11-18 · "Cliente da Órbita?" também no PPA
 - Pós-aquisição (PPA): o mesmo quadro "Trabalho" das demais áreas; "Não, trabalho novo" cadastra o cliente (CNPJ ou cartão CNPJ, data-base, finalidade: PPA CPC 15, ágio para fins fiscais pela Lei 12.973, PPA avulso, teste de recuperabilidade do ágio) e importa o balanço do ano ou os balancetes mensais
 - Agora vale para Valuation, Avaliação de ativos, Due Diligence e PPA
