@@ -314,6 +314,7 @@ if (window.KT_DD) (() => {
             if (cg.n) par(P, `${cg.n} processo(s): provável ${mi(cg.provavel)}, possível ${mi(cg.possivel)}, remota ${mi(cg.remota)}.`, {size:9.5});
             if (risco.length){ P.h2("Pontos de atenção"); risco.slice(0, 8).forEach(x => bl(`${x.t}${q[x.id]?.n ? " · " + q[x.id].n : ""}`, {size:9})); }
             if (rec.length){ P.h2("Encaminhamento no contrato"); rec.slice(0, 6).forEach(x => bl(x, {size:9})); } } } }
+      if (!pre && window.KT_FINX && D.temBal(s)) KT_FINX.secoesPdf(P, s, t => secT(t, 220), {semAjustes:true});
       secT("Tese de investimento", 260); cartoes(P, Z.tese);
       secT("Setor e mercado", 200); marcadores(P, Z.mercado); paresG();
       if (!pre && Z.noticias.length){ P.h2("Notícias do segmento"); Z.noticias.forEach(n2 => bl(`${n2.titulo} (${n2.fonte || ""} ${n2.data || ""})`, {size:9})); }
@@ -364,6 +365,7 @@ if (window.KT_DD) (() => {
       sec(P, 2, "Indicadores e pontos de atenção"); liqG();
       tab(P, ["Indicador", "Reportado", "Ajustado"], [["Margem bruta", pc(I0.mBruta), pc(I.mBruta)], ["Margem EBITDA", pc(I0.mEbitda), pc(I.mEbitda)], ["Margem líquida", pc(I0.mLiq), pc(I.mLiq)], ["Dívida líquida / EBITDA", xx(I0.dlEbitda), xx(I.dlEbitda)], ["Liquidez corrente", xx(I0.lc, 2), xx(I.lc, 2)], ["ROE", pc(I0.roe), pc(I.roe)], ["Ciclo de caixa", dias(K.ciclo), dias(K.ciclo)]], [.5, .25, .25]);
       if (window.KT_DEM) KT_DEM.resumo(P, s, {aprovados:true});
+      if (window.KT_FINX){ let nR = 2; KT_FINX.secoesPdf(P, s, t => sec(P, ++nR, t), {semAjustes:true}); }
       P.h2("Ajustes da Due Diligence"); AJ.length ? tab(P, ["Ajuste", "Efeito", "Situação"], AJ.slice(0, 12).map(a => [a.titulo, D.efeitoTxt(a), D.okFin(a) ? "OK nas análises" : "aguardando OK"]), [.4, .4, .2]) : par(P, "Nenhum ajuste.", {size:9});
       par(P, "Análises calculadas sobre os balancetes do cadastro do projeto (ou do workbook do auditor, quando importado). Não constituem auditoria. Confidencial.", {size:8, color:MUT});
       await rptSave(P.out(`Análises financeiras · ${nome}`, T(`Kinsey Capital · Análises financeiras (resumo) · ${nome} · ${db} · confidencial`)), arq(s, "analises_financeiras_resumo", "pdf"), "application/pdf"); return; }
@@ -376,6 +378,7 @@ if (window.KT_DD) (() => {
     if (G) G.barrasH(P, "Prazos médios (dias)", [{l:"Recebimento (PMR)", v:K.pmr, txt:dias(K.pmr)}, {l:"Estocagem (PME)", v:K.pme, txt:dias(K.pme)}, {l:"Pagamento (PMP)", v:K.pmp, txt:dias(K.pmp), c:G.GOLD}, {l:"Ciclo de caixa", v:Math.max(0, K.ciclo || 0), txt:dias(K.ciclo), c:G.NAVY}], v => dias(v));
     liqG();
     let nA = 3; if (window.KT_DEM) KT_DEM.historico(P, s, {aprovados:true, sec:t => sec(P, ++nA, t)});
+    if (window.KT_FINX) KT_FINX.secoesPdf(P, s, t => sec(P, ++nA, t));
     sec(P, ++nA, "Limitações"); par(P, "As análises são calculadas sobre os saldos dos balancetes fornecidos e não constituem auditoria das demonstrações financeiras. Os ajustes refletem a Due Diligence na data de emissão e dependem do OK do consultor responsável. Quando o workbook do auditor for importado, ele passa a ser a base dos números. Relatório confidencial, destinado às partes autorizadas pela Kinsey Capital.");
     await rptSave(P.out(`Análises financeiras · ${nome}`, T(`Kinsey Capital · Análises financeiras · ${nome} · ${db} · confidencial`)), arq(s, "analises_financeiras", "pdf"), "application/pdf");
   }

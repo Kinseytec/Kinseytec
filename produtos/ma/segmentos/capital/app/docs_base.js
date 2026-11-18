@@ -109,7 +109,7 @@ if (window.KT_DD) (() => {
     try{ if (window.ORG?.atualizar) setTimeout(() => ORG.atualizar(supById(id), false), 500); }catch(e){}
     return supById(id) || {id, nome, doc:fmtC(d), nivel:"N3"};
   }
-  async function aplicar(s, r){
+  async function aplicar(s, r, o = {}){
     const feito = [];
     if (["balanco", "dre", "balancete"].includes(r.tipo) && (r.contas || r.contasDRE)){
       const P = r.periodo || {ini:`${new Date().getFullYear() - 1}-01-01`, fim:`${new Date().getFullYear() - 1}-12-31`}, per = P.fim.slice(0, 7), cur = (supById(s.id) || s).dd?.bal?.[per];
@@ -129,8 +129,8 @@ if (window.KT_DD) (() => {
     if (r.tipo === "nda" && window.KT_NDA?.registrar){ try{ const C = await KT_NDA.registrar(supById(s.id) || s, r.f, r.texto ? r.texto.split(/\n+/).map(x => x.trim()).filter(Boolean) : null, {semEvid:true}); feito.push("Jurídico: NDA registrado" + (C ? (C.conforme ? " (conforme o padrão)" : ` (${C.dif.length} cláusula(s) diferente(s) do padrão)`) : "")); }catch(e){} }
     if (r.tipo === "mandato" && window.KT_AUTO?.registrarMandato){ try{ await KT_AUTO.registrarMandato(supById(s.id) || s, r.f, false); feito.push("Jurídico: mandato registrado"); }catch(e){} }
     if ((r.tipo === "spa" || r.tipo === "mou") && window.KT_OPDOC && r.texto){ try{ await KT_OPDOC.registrar(supById(s.id) || s, r.tipo.toUpperCase(), "investidor", r.texto.split(/\n+/).map(x => x.trim()).filter(Boolean), r.f.name); feito.push("Jurídico: análise pró-vendedor (SPA e MOU)"); }catch(e){} }
-    /* arquivo no dossiê */
-    try{ const blob = r.f.type?.startsWith("image/") && typeof shrink === "function" ? await shrink(r.f) : r.f, up = await Store.upload(blob);
+    /* arquivo no dossiê (na releitura de um documento que já está lá, não duplica) */
+    if (!o.semArquivo) try{ const blob = r.f.type?.startsWith("image/") && typeof shrink === "function" ? await shrink(r.f) : r.f, up = await Store.upload(blob);
       await salvarEvid(uid(), {supplierId:s.id, tipo:evTipo(r.tipo), obs:`Importação de documentos · ${rotulo(r.tipo)}${r.como ? " (identificado pelo " + r.como + ")" : ""}`, ...up, mime:blob.type || r.f.type, nome:r.f.name, criadoEm:nowISO(), criadoPor:Store.me?.id || "", origem:"Importação de documentos", tipoDoc:r.tipo || ""}, blob);
       feito.push("arquivo guardado no dossiê"); }catch(e){ feito.push("arquivo não guardado: " + (e.message || "erro")); }
     /* checklist documental */

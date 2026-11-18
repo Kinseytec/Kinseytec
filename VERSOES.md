@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v2.75 — 2026-11-18 · Análises financeiras com os documentos já importados, PPA estimado e pontos da diligência
+- Balanços, DRE e balancetes que já estavam no dossiê (importados antes da leitura automática) são lidos de novo, sozinhos, ao abrir Análises financeiras, Due Diligence ou Valuation, e viram os balancetes de cada período (balanço e DRE do mesmo período juntos), sem duplicar os arquivos
+- Análises financeiras: novo quadro "Valor, PPA estimado e pontos da diligência", com faixa de valuation, FCD com WACC e beta do setor, PPA estimado numa aquisição (marca, carteira de clientes, contratos e goodwill, pelos critérios do PPA Kinsey) e os principais pontos da diligência (achados automáticos, ajustes de EBITDA, exposições e contingências jurídicas)
+- Relatório de análises financeiras (resumo e completo) e apresentação depois do NDA trazem as seções "Valor e PPA estimado" e "Principais pontos da diligência"
+
 ## v2.74 — 2026-11-18 · Central de relatórios do target e risco sem pendência de NDA
 - Órbita: botão "Relatórios" no quadro do target, ao lado de Abrir dossiê e Resumo rápido (também no resumo do dossiê)
 - Relatórios num só lugar: prospecção antes do NDA (teaser, one-pager e PowerPoint, sem o nome da empresa), prospecção depois do NDA (apresentação, resumo e PowerPoint), valuation (PDF e PowerPoint), due diligence (relatório, papéis de trabalho e análises financeiras), avaliação de ativos (laudo em Word e planilha Excel, e laudo de cada imóvel) e diligência jurídica; o que ainda não tem dados aparece desativado com o motivo
