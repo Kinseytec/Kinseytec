@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v2.89 — 2026-11-18 · Pré-diligência resumida e pontos de mercado e concorrência
+- Due Diligence: os pontos da pré-diligência aparecem resumidos (total por nível e por área) e a lista completa abre em "Ver pontos de diligência"; os relatórios (prévio e completo, PDF e PowerPoint) ficam logo acima
+- Novos pontos de "Mercado e concorrência": atividade exposta a importados, principalmente da China e da Ásia (têxteis, vestuário, calçados, químicos, plásticos, cerâmica, aço, metal, eletrônicos, máquinas, autopeças, móveis, brinquedos, pelo CNAE principal e secundários), medida antidumping ou concorrência chinesa citadas em notícias e materiais, preço de commodities, exposição ao câmbio e comércio atacadista
+- A seção entra também nos relatórios de pré-diligência em PDF e PowerPoint; "Jurídico" e "Jurídica" unificados
+
 ## v2.88 — 2026-11-18 · Amarelo Kinsey nos destaques
 - O amarelo das Reuniões da Prospecção (#F4C440) passa a destacar, com moderação, os números que resumem cada tela: equity value no Valuation, faixa de valuation no resumo do dossiê, valor no quadro de PPA estimado, potencial de ajuste de EBITDA na revisão analítica, Ibovespa no quadro de mercado e o moderado projetado no crescimento
 - Barra de mercado do topo com os nomes dos indicadores em amarelo; ponte do EBITDA com a barra final em amarelo
