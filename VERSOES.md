@@ -1,5 +1,12 @@
 # Registro de versões
 
+## v2.68 — 2026-11-18 · Importação de documentos na Base inicial e leitura de PDF corrigida
+- Base inicial: "Importação de documentos" com vários arquivos de uma vez (PDF, Word, Excel, CSV, XML, fotos ou .zip); o sistema reconhece o tipo (balanço, DRE, balancete, auditoria, cartão CNPJ, contrato social, certidões, licenças, mandato, NDA, MOU, SPA, laudo, matrícula e IPTU), acha a empresa pelo CNPJ (e cadastra o target quando é novo) e leva cada documento ao lugar certo
+- Balanço patrimonial e DRE em PDF do sistema contábil (sem código de conta) viram o balancete do período na Due Diligence, com a hierarquia lida pelo recuo; se o período já tem balancete detalhado, o balanço fica para conferência
+- Contrato social vai para a diligência jurídica; mandato, MOU e SPA para o Jurídico; todos os arquivos ficam no dossiê e marcam o checklist documental; o cartão CNPJ é dispensado quando a Receita Federal já foi consultada
+- Dossiê: a importação sai da aba Documentos (fica um atalho para a mesma importação da Base inicial)
+- Leitor de PDF: usa o mapa de caracteres de cada fonte e só o conteúdo em uso da página (PDFs assinados digitalmente traziam a versão antiga embaralhada); números e letras de balanços, DRE e certidões agora saem corretos
+
 ## v2.67 — 2026-11-17 · Prospecção do Econodata e nova Base inicial
 - Importação de listas: o nome da empresa vem da razão social ou do nome fantasia, nunca do link do Econodata (o link é descartado); sem nome, o sistema busca a razão social na Receita pelo CNPJ e corrige também os prospects já importados com o link
 - Faturamento, funcionários, decisores e sócios (com cargo), telefones e e-mails; a mesma empresa em várias linhas do arquivo vira um só prospect; contatos repetidos entre Econodata, Lemitti e Ramper se juntam (o celular e o e-mail completam a pessoa já cadastrada)

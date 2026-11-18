@@ -67,32 +67,61 @@ const IMP = (() => {
     if (g.length){ const n = g.length; while (g.length < 5) g.push(84); let v = 0; for (const x of g) v = v * 85 + x; [v >>> 24 & 255, v >>> 16 & 255, v >>> 8 & 255, v & 255].slice(0, n - 1).forEach(x => out.push(x)); }
     return new Uint8Array(out); }
   async function lerPDF(buf, bruto){
-    const b = new Uint8Array(buf), L1 = x => new TextDecoder("latin1").decode(x), s = L1(b), streams = [];
+    const b = new Uint8Array(buf), L1 = x => new TextDecoder("latin1").decode(x), s = L1(b), streams = [], porObj = {}, dicObj = {}, streamOn = [];
     const re = /stream\r?\n/g; let m;
     while ((m = re.exec(s))){
       const ini = m.index + m[0].length, fim = s.indexOf("endstream", ini); if (fim < 0) break;
       const dic = s.slice(Math.max(0, s.lastIndexOf("<<", m.index)), m.index), lm = dic.match(/\/Length\s+(\d+)(?!\s+\d+\s+R)/), n = lm ? +lm[1] : 0;
       let d = b.subarray(ini, n > 0 && ini + n <= fim ? ini + n : fim);   /* usa o tamanho declarado: bytes extras no fim cortavam parte do texto */
       try{ if (/ASCII85Decode|\/A85/.test(dic)) d = a85(L1(d)); if (/FlateDecode|\/Fl\b/.test(dic)) d = await inflate(d, "deflate"); }catch(e){ re.lastIndex = fim + 9; continue; }
-      streams.push(L1(d)); re.lastIndex = fim + 9;
+      const tx = L1(d); streams.push(tx); const on = (s.slice(Math.max(0, m.index - 400), m.index).match(/(\d+)\s+\d+\s+obj(?![\s\S]*\bobj\b)/) || [])[1]; streamOn.push(on || null); if (on){ porObj[on] = tx; dicObj[on] = dic; } re.lastIndex = fim + 9;
     }
     /* mapas ToUnicode (fontes de Word, LibreOffice e ERPs) */
     const cmap = {1: {}, 2: {}}, hx = h => h.replace(/[^0-9a-f]/gi, "");
     const uni = h => { h = hx(h); let r = ""; for (let k = 0; k + 4 <= h.length; k += 4) r += String.fromCharCode(parseInt(h.slice(k, k + 4), 16)); return r || String.fromCharCode(parseInt(h || "0", 16)); };
     streams.filter(t => /begincmap/.test(t)).forEach(t => {
       (t.match(/beginbfchar([\s\S]*?)endbfchar/g) || []).forEach(bl => (bl.match(/<[0-9a-fA-F]+>\s*<[0-9a-fA-F]+>/g) || []).forEach(pr => { const [a, c] = pr.match(/<([0-9a-fA-F]+)>/g).map(x => x.slice(1, -1)); const n = a.length / 2; (cmap[n] ||= {})[parseInt(a, 16)] = uni(c); }));
-      (t.match(/beginbfrange([\s\S]*?)endbfrange/g) || []).forEach(bl => bl.split(/\n/).forEach(l => { const h = l.match(/<([0-9a-fA-F]+)>\s*<([0-9a-fA-F]+)>\s*(<([0-9a-fA-F]+)>|\[([^\]]*)\])/); if (!h) return;
+      (t.match(/beginbfrange([\s\S]*?)endbfrange/g) || []).forEach(bl => [...bl.matchAll(/<([0-9a-fA-F]+)>\s*<([0-9a-fA-F]+)>\s*(<([0-9a-fA-F]+)>|\[([^\]]*)\])/g)].forEach(h => {
         const a = parseInt(h[1], 16), z = parseInt(h[2], 16), n = h[1].length / 2; (cmap[n] ||= {});
         if (h[4]){ const base = parseInt(h[4], 16); for (let c = a; c <= z && c - a < 5000; c++) cmap[n][c] = String.fromCharCode(base + c - a); }
         else (h[5].match(/<([0-9a-fA-F]+)>/g) || []).forEach((x, k) => cmap[n][a + k] = uni(x.slice(1, -1))); })); });
     const tem2 = Object.keys(cmap[2]).length > 0, tem1 = Object.keys(cmap[1]).length > 0;
-    const dec = (bytes, hex) => { if (hex && tem2 && bytes.length % 2 === 0){ let r = ""; for (let k = 0; k < bytes.length; k += 2){ const c = bytes[k] << 8 | bytes[k + 1]; r += cmap[2][c] ?? ""; } return r; }
+    const lerCmap = t => { const M = {1: {}, 2: {}}; let w = 0; const cs = t.match(/begincodespacerange\s*<([0-9a-fA-F]+)>/); if (cs) w = cs[1].length / 2;
+      (t.match(/beginbfchar([\s\S]*?)endbfchar/g) || []).forEach(bl => (bl.match(/<[0-9a-fA-F]+>\s*<[0-9a-fA-F]+>/g) || []).forEach(pr => { const [a, c] = pr.match(/<([0-9a-fA-F]+)>/g).map(x => x.slice(1, -1)); const n = a.length / 2; (M[n] ||= {})[parseInt(a, 16)] = uni(c); if (!w) w = n; }));
+      (t.match(/beginbfrange([\s\S]*?)endbfrange/g) || []).forEach(bl => [...bl.matchAll(/<([0-9a-fA-F]+)>\s*<([0-9a-fA-F]+)>\s*(<([0-9a-fA-F]+)>|\[([^\]]*)\])/g)].forEach(h => {
+        const a = parseInt(h[1], 16), z = parseInt(h[2], 16), n = h[1].length / 2; (M[n] ||= {}); if (!w) w = n;
+        if (h[4]){ const base = parseInt(h[4], 16); for (let c = a; c <= z && c - a < 5000; c++) M[n][c] = String.fromCharCode(base + c - a); }
+        else (h[5].match(/<([0-9a-fA-F]+)>/g) || []).forEach((x, k) => M[n][a + k] = uni(x.slice(1, -1))); }));
+      return {M, w:w || 1}; };
+    /* objetos: soltos no arquivo e dentro de fluxos de objetos (ObjStm) */
+    const objs = {}; for (const m2 of s.matchAll(/(\d+)\s+\d+\s+obj\b([\s\S]*?)(?:\bstream\b|\bendobj\b)/g)) objs[m2[1]] = m2[2];
+    Object.entries(dicObj).forEach(([on, dic]) => { if (!/\/Type\s*\/ObjStm/.test(dic)) return; const t = porObj[on], fi = +(dic.match(/\/First\s+(\d+)/) || [])[1]; if (!t || !(fi >= 0)) return;
+      const nums = t.slice(0, fi).trim().split(/\s+/).map(Number); for (let k = 0; k + 1 < nums.length; k += 2){ const ini = fi + nums[k + 1], fim = k + 3 < nums.length ? fi + nums[k + 3] : t.length; objs[nums[k]] = t.slice(ini, fim); } });
+    const fonteCmap = {}; Object.entries(objs).forEach(([on, d]) => { const tu = d.match(/\/ToUnicode\s+(\d+)\s+\d+\s+R/); if (tu && porObj[tu[1]]) fonteCmap[on] = lerCmap(porObj[tu[1]]); });
+    /* nome do recurso (/F1) → fonte; o dicionário de fontes pode ser direto ou indireto */
+    const recurso = {}; const pares = t => { for (const p of t.matchAll(/\/([^\s\/<>\[\]()]+)\s+(\d+)\s+\d+\s+R/g)) if (fonteCmap[p[2]] && !recurso[p[1]]) recurso[p[1]] = fonteCmap[p[2]]; };
+    Object.values(objs).forEach(d => { const fd = d.match(/\/Font\s*<<([\s\S]*?)>>/); if (fd) pares(fd[1]); const fi = d.match(/\/Font\s+(\d+)\s+\d+\s+R/); if (fi && objs[fi[1]]) pares(objs[fi[1]]); });
+    /* fontes de cada conteúdo: recursos do formulário (XObject) ou da página que aponta para ele (com herança do /Parent) */
+    const fontsDe = rt => { const R = {}; let fdt = (rt.match(/\/Font\s*<<([\s\S]*?)>>/) || [])[1]; if (!fdt){ const fi = rt.match(/\/Font\s+(\d+)\s+\d+\s+R/); if (fi && objs[fi[1]]) fdt = objs[fi[1]]; }
+      if (fdt) for (const p of fdt.matchAll(/\/([^\s\/<>\[\]()]+)\s+(\d+)\s+\d+\s+R/g)) if (fonteCmap[p[2]]) R[p[1]] = fonteCmap[p[2]]; return R; };
+    const resDe = d => { const m = d.match(/\/Resources\s+(\d+)\s+\d+\s+R/); if (m && objs[m[1]]) return objs[m[1]]; const i = d.indexOf("/Resources"); return i >= 0 ? d.slice(i, i + 3000) : null; };
+    const recursoDe = on => { if (!on) return null; const d = dicObj[on] || ""; let r = /\/Resources/.test(d) ? resDe(d) : null;
+      if (!r){ const reC = new RegExp("/Contents\\s*(\\[[^\\]]*\\b" + on + "\\s+\\d+\\s+R|" + on + "\\s+\\d+\\s+R)"), pg = Object.values(objs).find(t => reC.test(t));
+        if (pg){ r = resDe(pg); if (!r){ const par = pg.match(/\/Parent\s+(\d+)\s+\d+\s+R/); if (par && objs[par[1]]) r = resDe(objs[par[1]]); } } }
+      return r ? fontsDe(r) : null; };
+    /* só os conteúdos em uso: páginas (/Contents) e formulários (/XObject); versões antigas de PDFs assinados ou editados ficam de fora */
+    const usados = new Set(); Object.values(objs).forEach(t => { if (/\/Type\s*\/Page\b(?!s)/.test(t)){ const c = t.match(/\/Contents\s*(\[[^\]]*\]|\d+\s+\d+\s+R)/); if (c) for (const r of c[1].matchAll(/(\d+)\s+\d+\s+R/g)) usados.add(r[1]); }
+      const xo = t.match(/\/XObject\s*<<([\s\S]*?)>>/); if (xo) for (const r of xo[1].matchAll(/(\d+)\s+\d+\s+R/g)) usados.add(r[1]); });
+    let atual = null, RS = null;
+    const dec = (bytes, hex) => { if (atual){ const {M, w} = atual; if (w === 2 && bytes.length % 2 === 0){ let r = ""; for (let k = 0; k < bytes.length; k += 2){ const c = bytes[k] << 8 | bytes[k + 1]; r += M[2]?.[c] ?? ""; } return r; }
+        return bytes.map(c => M[1]?.[c] ?? String.fromCharCode(c)).join(""); }
+      if (hex && tem2 && bytes.length % 2 === 0){ let r = ""; for (let k = 0; k < bytes.length; k += 2){ const c = bytes[k] << 8 | bytes[k + 1]; r += cmap[2][c] ?? ""; } return r; }
       if (tem1 && bytes.some(c => cmap[1][c] != null)) return bytes.map(c => cmap[1][c] ?? String.fromCharCode(c)).join(""); return bytes.map(c => String.fromCharCode(c)).join(""); };
     const lit = x => { const out = []; for (let k = 0; k < x.length; k++){ let c = x[k]; if (c === "\\"){ const n = x[++k]; if (/[0-7]/.test(n)){ let o = n; while (o.length < 3 && /[0-7]/.test(x[k + 1])) o += x[++k]; out.push(parseInt(o, 8)); } else out.push({n: 10, r: 13, t: 9, b: 8, f: 12}[n] ?? n.charCodeAt(0)); } else out.push(c.charCodeAt(0)); } return out; };
     const hexb = x => { x = hx(x); if (x.length % 2) x += "0"; const o = []; for (let k = 0; k < x.length; k += 2) o.push(parseInt(x.slice(k, k + 2), 16)); return o; };
     /* conteúdo das páginas: posição de cada texto */
     const itens = [];
-    streams.forEach((c, pg) => { if (!/\b(Tj|TJ)\b/.test(c)) return;
+    streams.forEach((c, pg) => { if (!/\b(Tj|TJ)\b/.test(c)) return; if (usados.size && streamOn[pg] && !usados.has(streamOn[pg])) return; atual = null; RS = recursoDe(streamOn[pg]);
       const tok = /\((?:\\.|[^\\()]|\((?:\\.|[^\\)])*\))*\)|<[0-9a-fA-F\s]*>|\[|\]|\/[^\s\/\[\]()<>]+|-?\d*\.?\d+|[A-Za-z'"*]+/g;
       let st = [], arr = null, lm = [0, 0], TL = 0, t;
       const emit = txt => { if (txt.trim()) itens.push({pg, x: lm[0], y: Math.round(lm[1]), t: txt}); };
@@ -101,6 +130,7 @@ const IMP = (() => {
         const val = v[0] === "(" ? {s: dec(lit(v.slice(1, -1)), false)} : v[0] === "<" ? {s: dec(hexb(v.slice(1, -1)), true)} : /^-?\d*\.?\d+$/.test(v) ? +v : v[0] === "/" ? v : null;
         if (val !== null){ (arr || st).push(val); continue; }
         if (arr) continue;
+        if (v === "Tf" && st.length >= 2 && typeof st[st.length - 2] === "string") { const nm = st[st.length - 2].slice(1); atual = (RS && RS[nm]) || recurso[nm] || null; }
         if (v === "BT") lm = [0, 0];
         else if (v === "Tm" && st.length >= 6) lm = [st[st.length - 2], st[st.length - 1]];
         else if ((v === "Td" || v === "TD") && st.length >= 2){ lm = [lm[0] + st[st.length - 2], lm[1] + st[st.length - 1]]; if (v === "TD") TL = -st[st.length - 1]; }
@@ -113,6 +143,7 @@ const IMP = (() => {
     const grupos = new Map(); itens.forEach(it => { const k = it.pg + ":" + Math.round(it.y / 2); (grupos.get(k) || grupos.set(k, []).get(k)).push(it); });
     const linhas = [...grupos.entries()].sort((a, b) => { const [pa, ya] = a[0].split(":").map(Number), [pb, yb] = b[0].split(":").map(Number); return pa - pb || yb - ya; })
       .map(([, g]) => g.sort((a, b) => a.x - b.x));
+    if (bruto === "itens") return linhas.map(l => l.map(it => ({x:it.x, t:it.t}))).filter(l => l.length);   /* pedaços com a posição (para recuo e colunas) */
     if (bruto) return linhas.map(l => [l.map(it => it.t).join(" ").replace(/\s+/g, " ").trim()]).filter(r => r[0]);   /* texto corrido por linha, sem montar colunas */
     const junta = (a, b) => !a ? b : (/\s$/.test(a) || /^\s/.test(b)) ? a + b : a + b;
     const ehDoc = t => /\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}/.test(t);
