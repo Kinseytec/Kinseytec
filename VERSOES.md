@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v2.74 — 2026-11-18 · Central de relatórios do target e risco sem pendência de NDA
+- Órbita: botão "Relatórios" no quadro do target, ao lado de Abrir dossiê e Resumo rápido (também no resumo do dossiê)
+- Relatórios num só lugar: prospecção antes do NDA (teaser, one-pager e PowerPoint, sem o nome da empresa), prospecção depois do NDA (apresentação, resumo e PowerPoint), valuation (PDF e PowerPoint), due diligence (relatório, papéis de trabalho e análises financeiras), avaliação de ativos (laudo em Word e planilha Excel, e laudo de cada imóvel) e diligência jurídica; o que ainda não tem dados aparece desativado com o motivo
+- Risco do target: NDA não assinado e questionário em aberto deixam de contar como risco (são pendências de documento acompanhadas pelo Jurídico)
+
 ## v2.73 — 2026-11-18 · Resumo para investidores por WhatsApp
 - Consulta rápida do target: "Resumo para investidores (WhatsApp)" com até 30 linhas, sem identificar a empresa (nome-código), pronto para enviar antes do NDA
 - Conteúdo: a empresa (segmento, região, tempo de operação, atividade, faturamento, EBITDA e margem, crescimento); valor esperado (faixa de valuation, fluxo de caixa descontado com WACC, múltiplos de mercado, comparação entre os dois, múltiplo implícito, operação mínima e transação); riscos da empresa e do setor (beta do setor) e endividamento; destaques e próximo passo (NDA)

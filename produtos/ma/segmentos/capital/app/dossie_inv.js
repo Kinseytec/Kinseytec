@@ -58,11 +58,12 @@ if (window.KT_DD && window.KT_VAL) (() => {
       ${W ? `<div class="tbl"><table><tbody><tr><td>WACC apurado</td><td class="dd-num"><b>${pc(W.wacc, 2)}</b></td></tr><tr><td>Beta do setor · ${esc(W.seg)} (desalavancado)</td><td class="dd-num">${fmt(W.bu, 2)}</td></tr><tr><td>Beta usado no custo do capital próprio (realavancado, D/E ${fmt(W.de, 2)})</td><td class="dd-num">${fmt(W.bl, 2)}</td></tr><tr><td>Custo do capital próprio</td><td class="dd-num">${pc(W.ke, 2)}</td></tr></tbody></table></div>` : ""}
       ${M ? `<div class="dd-kpis">${k("Success fee", `${M.c.pct}%`, "do valor da transação")}${k("Operação mínima", M.B ? mi(M.vmin) : "—", M.B ? `sucesso mínimo ${mi(M.sucMin)}` : "sem base de valor")}${k("Retainer sugerido", M.B ? KT_MAND.brl(M.ret) : "—", M.B ? `${M.c.parcelas} × ${KT_MAND.brl(M.parc)}` : "")}</div>` : ""}
       ${top.length ? `<div class="sub" style="margin:0;font-size:12.5px"><b>Principais preocupações:</b><ul style="margin:4px 0 0;padding-left:18px">${top.map(t => `<li>${esc(t)}</li>`).join("")}</ul></div>` : ""}
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn primary" data-dv="pre">Teaser antes do NDA (sem nome)</button><button type="button" class="btn" data-dv="pos">Apresentação depois do NDA</button><button type="button" class="btn ghost" data-dv="val">Valuation</button></div></div>`;
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn primary" data-dv="pre">Teaser antes do NDA (sem nome)</button><button type="button" class="btn" data-dv="pos">Apresentação depois do NDA</button><button type="button" class="btn" data-dv="rel">Relatórios</button><button type="button" class="btn ghost" data-dv="val">Valuation</button></div></div>`;
   }
   function bind(s, el){
     $$("[data-dv]", el).forEach(b => b.onclick = async () => { const k = b.dataset.dv;
       if (k === "val"){ S.ddSel = s.id; $("#layer").innerHTML = ""; S.openSup = null; go("valuation"); return; }
+      if (k === "rel"){ relatorios(s); return; }
       b.disabled = true; const t0 = b.textContent; b.textContent = "Gerando…";
       try{ await KT_REL.teaser(s, k, "pdf", "completo"); }catch(e){ console.error(e); toast("Não foi possível gerar o PDF."); } b.disabled = false; b.textContent = t0; });
   }
@@ -126,6 +127,41 @@ if (window.KT_DD && window.KT_VAL) (() => {
     L.push("", "Próximo passo: assinatura do NDA para receber a apresentação completa e o acesso ao data room. Contato pela Kinsey Capital.");
     return L.slice(0, 30).join("\n");
   }
+  /* ---------------- central de relatórios do target ---------------- */
+  function relatorios(s){
+    s = supById(s.id) || s; const R = window.KT_REL, D2 = D, per = (D2.periodos ? D2.periodos(s) : Object.keys(s.dd?.bal || {}).sort().reverse())[0] || "", bal = !!per;
+    const atv = window.KT_ATV ? KT_ATV.bens(s).length : 0, imv = s.imoveis || [], jdd = !!window.KT_JDD, cod = codinome(s);
+    const G = [
+      ["Prospecção · antes do NDA (sem o nome da empresa)", [["pre-pdf", "Teaser (PDF)", true], ["pre-one", "One-pager (PDF)", true], ["pre-ppt", "Teaser (PowerPoint)", true]], `sai como ${cod}`],
+      ["Prospecção · depois do NDA", [["pos-pdf", "Apresentação (PDF)", true], ["pos-one", "Resumo (PDF)", true], ["pos-ppt", "Apresentação (PowerPoint)", true]], "com o nome da empresa"],
+      ["Valuation", [["val-pdf", "Relatório (PDF)", bal], ["val-ppt", "Apresentação (PowerPoint)", bal]], bal ? "" : "importe os balancetes na Due Diligence"],
+      ["Due diligence", [["dd-pdf", "Relatório (PDF)", bal], ["dd-pt", "Papéis de trabalho (PDF)", bal], ["an-pdf", "Análises financeiras (PDF)", bal]], bal ? `data-base ${per.split("-").reverse().join("/")}` : "importe os balancetes"],
+      ["Avaliação de ativos", [["atv-doc", "Laudo (Word)", atv > 0], ["atv-xls", "Planilha (Excel)", atv > 0], ...imv.map((m, i) => [`imv-${i}`, `Laudo do imóvel ${i + 1}${m.matricula ? " · matrícula " + m.matricula : ""} (Word)`, true])], atv ? `${atv} bem(ns)` : "importe o cadastro de bens em Avaliação de ativos"],
+      ["Diligência jurídica", [["jur-pdf", "Relatório jurídico (PDF)", jdd]], ""]];
+    const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Relatórios · ${esc(s.nivel)}</div><h2>${esc(s.mandato?.codinome ? s.mandato.codinome + " · " : "")}${esc(s.nome)}</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
+      <div class="sheet-b" style="display:flex;flex-direction:column;gap:12px">${G.map(([t, L, nota]) => `<div class="card" style="display:flex;flex-direction:column;gap:8px"><div><h3 style="margin:0;font-size:15px">${esc(t)}</h3>${nota ? `<p class="sub" style="margin:2px 0 0;font-size:12px">${esc(nota)}</p>` : ""}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">${L.map(([k, l, ok]) => `<button type="button" class="btn sm ${/pre-pdf|pos-pdf|val-pdf|dd-pdf|atv-doc|jur-pdf/.test(k) ? "primary" : ""}" data-rl="${k}" ${ok ? "" : "disabled"}>${esc(l)}</button>`).join("")}</div></div>`).join("")}
+        <p class="sub" style="margin:0;font-size:12px">Antes do NDA nenhum relatório traz nome, CNPJ, site ou sócios da empresa, nem no nome do arquivo.</p></div>`);
+    const run = {
+      "pre-pdf": () => R.teaser(s, "pre", "pdf", "completo"), "pre-one": () => R.teaser(s, "pre", "pdf", "resumo"), "pre-ppt": () => R.teaser(s, "pre", "pptx"),
+      "pos-pdf": () => R.teaser(s, "pos", "pdf", "completo"), "pos-one": () => R.teaser(s, "pos", "pdf", "resumo"), "pos-ppt": () => R.teaser(s, "pos", "pptx"),
+      "val-pdf": () => R.valuation(s, "pdf"), "val-ppt": () => R.valuation(s, "pptx"),
+      "dd-pdf": () => R.ddPdf(s, per), "dd-pt": () => R.papeisPdf(s, per), "an-pdf": () => R.analises(s, "completo"),
+      "atv-doc": () => KT_ATV.laudo(s), "atv-xls": () => KT_ATV.excel(s), "jur-pdf": () => KT_JDD.relatorio(s, "completo")};
+    $$("[data-rl]").forEach(b => b.onclick = async () => { const k = b.dataset.rl, f = run[k] || (/^imv-/.test(k) && window.KT_IMOV ? () => KT_IMOV.laudo(s, imv[+k.slice(4)]) : null); if (!f) return;
+      const t0 = b.textContent; b.disabled = true; b.textContent = "Gerando…"; try{ await f(); }catch(e){ console.error(e); toast("Não foi possível gerar: " + (e.message || "erro")); } b.disabled = false; b.textContent = t0; });
+  }
+  /* botão Relatórios no quadro da Órbita, ao lado de Abrir dossiê e Resumo rápido */
+  if (typeof renderTarget === "function"){ const _rt = renderTarget;
+    renderTarget = function(){ const r = _rt.apply(this, arguments); const t = $("#target"); if (!t || t.hidden || !S.sel || $("#tg-rel", t)) return r; const s = supById(S.sel); if (!s || s.nivel !== "N3") return r;
+      const ref = $("#tg-cr", t) || [...t.querySelectorAll("a.btn, button.btn")].pop(); if (!ref) return r;
+      const b = document.createElement("button"); b.type = "button"; b.className = "btn sm"; b.id = "tg-rel"; b.textContent = "Relatórios"; b.onclick = () => relatorios(supById(S.sel)); ref.after(b); return r; }; }
+
+  /* risco: falta de NDA e questionário em aberto são pendências de documento (Jurídico), não risco do investimento */
+  { const _ro = riskOf; riskOf = function(s){ const r = _ro.apply(this, arguments); if (!r || !Array.isArray(r.reasons)) return r;
+      const fora = x => /^coopera/i.test(nrm(x.crit)) && /nda|lgpd|question/i.test(nrm(x.txt)), R = r.reasons.filter(x => !fora(x)); if (R.length === r.reasons.length) return r;
+      const score = R.reduce((t, x) => t + (x.pts || 0), 0), auto = r.auto === "pend" || r.auto === "na" ? r.auto : score >= 6 ? "alto" : score >= 3 ? "medio" : "baixo";
+      return {...r, reasons:R, score, auto, level:r.manual ? r.level : auto}; }; }
   window.KT_RESUMO_WA = s => s && s.nivel === "N3" ? resumoWa(s) : null;
-  window.KT_DOSSIE = {identificadores, anonimizador, numeros, card, resumoWa};
+  window.KT_DOSSIE = {identificadores, anonimizador, numeros, card, resumoWa, relatorios};
 })();
