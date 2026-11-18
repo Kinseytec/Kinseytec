@@ -121,7 +121,7 @@ if (window.KT_DD) (() => {
       const P = r.periodo || {ini:`${new Date().getFullYear() - 1}-01-01`, fim:`${new Date().getFullYear() - 1}-12-31`}, per = P.fim.slice(0, 7), cur = (supById(s.id) || s).dd?.bal?.[per];
       let contas = r.contas || [];
       if (r.contasDRE) contas = [...contas, ...r.contasDRE];
-      if (cur?.contas?.length && cur.origem !== "demonstracoes" && r.tipo !== "balancete"){ /* já há balancete detalhado: o balanço/DRE fica como conferência */
+      if (cur?.contas?.length && (cur.origem === "workbook" || (cur.origem !== "demonstracoes" && r.tipo !== "balancete"))){ /* período revisado no workbook ou balancete detalhado: o documento fica só para conferência */ /* já há balancete detalhado: o balanço/DRE fica como conferência */
         await save(Store.update("suppliers", s.id, {dd:{demos:{[per]:{[r.tipo]:{contas:r.contas || r.contasDRE, arquivo:r.f.name, em:nowISO()}}}}}));
         feito.push(`Due Diligence: ${rotulo(r.tipo)} de ${dBR(P.fim)} guardado para conferência (o período já tem balancete detalhado)`); }
       else {

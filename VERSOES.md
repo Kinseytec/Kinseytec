@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v3.00 — 2026-11-18 · Resumo do investidor com os números dos documentos já importados
+- Ao abrir o dossiê, o sistema lê sozinho os documentos que ainda não viraram números (balanços, DRE e balancetes guardados como "A classificar" ou importados antes), mesmo que a empresa já tenha outros períodos; cada documento lido fica registrado e não é relido.
+- Análises financeiras, Due Diligence e Valuation também passam a ler os documentos novos, e não só quando a empresa não tinha nenhum balancete.
+- Resumo para o investidor: faturamento (receita líquida anual, com o ano), EBITDA, margem e faixa de valuation pelo último período com DRE.
+- Releitura automática nunca substitui um período revisado no workbook da Due Diligence: o documento fica para conferência.
+
 ## v2.99 — 2026-11-18 · Dossiê: analisar documentos importados (automático ou um por vez)
 - Na aba Documentos do dossiê, depois do checklist: "Analisar documentos importados de forma automática" com Sim (padrão) ou "Não, analisar um por vez".
 - Com Sim, cada importação já faz as consultas públicas (Receita, listas oficiais e notícias, na versão publicada), as análises financeiras e leva números e documentos ao valuation, à Due Diligence, ao PPA e ao jurídico; "Analisar todos agora" refaz tudo e mostra o quadro da análise.

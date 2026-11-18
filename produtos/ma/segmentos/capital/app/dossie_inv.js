@@ -32,9 +32,10 @@ if (window.KT_DD && window.KT_VAL) (() => {
   /* ---------------- números do dossiê ---------------- */
   function numeros(s){
     const o = {}; let R = null;
-    try{ if (D.temBal(s)){ R = V.resumo(s); if (!R.X || R.X.vazio) R = null; } }catch(e){ R = null; }
+    try{ if (D.temBal(s)){ R = V.resumo(s); if (!R.X || R.X.vazio || !(R.X.bp?.rl > 0)) R = null; } }catch(e){ R = null; }
+    if (!R && D.temBal(s)){ try{ const P = D.periodos(s).filter(p => { const K = D.calc(s.dd.bal[p]); return K.recLiq > 0; }); if (P.length){ const K = D.calc(s.dd.bal[P[0]]); Object.assign(o, {fonte:`demonstrações de ${P[0]}`, ano:P[0].slice(0, 4), meses:s.dd.bal[P[0]].meses, rl:K.recLiq, eb:K.ebitda}); } }catch(e){} }
     if (R){ const X = R.X, mer = R.met.find(m => /EV\/EBITDA/.test(m[0]) && !/Transa/.test(m[0]));
-      Object.assign(o, {fonte:"balancetes e due diligence", rl:X.bp.rl, eb:X.bp.eb, W:X.W, fcd:[R.mod.min, R.mod.max], mer:mer ? [mer[1], mer[2]] : null, merTxt:mer ? mer[3] : "", faixa:R.rec}); }
+      Object.assign(o, {fonte:"balancetes e due diligence", ano:String(X.perBase || "").slice(0, 4), meses:X.bp.b?.meses, rl:X.bp.rl, eb:X.bp.eb, W:X.W, fcd:[R.mod.min, R.mod.max], mer:mer ? [mer[1], mer[2]] : null, merTxt:mer ? mer[3] : "", faixa:R.rec}); }
     else { try{ const P = V.prev(s); if (!P.vazio){ const d = 1 - (P.Bs.P.desc?.v || 0) / 100, C = P.C || {};
         Object.assign(o, {fonte:"prévia pelo faturamento do cadastro", rl:P.rl, eb:P.eb, W:P.W, fcd:[P.ev * .9, P.ev * 1.1], mer:C.eb && P.eb > 0 ? [P.eb * C.eb.p25 * d, P.eb * C.eb.p75 * d] : null, merTxt:C.eb ? `${fmt(C.eb.p25, 1)}x a ${fmt(C.eb.p75, 1)}x EV/EBITDA (${C.eb.n} cias.), −${fmt(P.Bs.P.desc.v, 0)}% de liquidez` : ""}); }
         else o.W = P.W; }catch(e){} }
@@ -50,7 +51,7 @@ if (window.KT_DD && window.KT_VAL) (() => {
     const k = (l, v, sm) => `<div class="dd-k"><span>${l}</span><b>${v}</b>${sm ? `<small>${sm}</small>` : ""}</div>`;
     const top = (r.reasons || []).slice().sort((a, b) => (b.w || 0) - (a.w || 0)).slice(0, 3).map(x => `${x.crit}: ${String(x.txt || "").replace(/ — .*$/, "")}`);
     return `<div class="card" id="dv-inv" style="display:flex;flex-direction:column;gap:10px"><div class="head" style="margin:0"><div><div class="eyebrow">Resumo para o investidor</div><h3 style="margin:0">${esc(s.mandato?.codinome || codinome(s))}</h3><p class="sub" style="margin:2px 0 0;font-size:12px">${esc(N.fonte ? "Números: " + N.fonte : "Importe balancetes ou informe o faturamento no cadastro para o valuation")}</p></div><span class="pill ${rk[1]}">Risco ${rk[0]}</span></div>
-      <div class="dd-kpis">${k("Faturamento", mi(N.rl), "receita líquida")}${k("EBITDA", mi(N.eb), N.rl && N.eb ? "margem " + pc(N.eb / N.rl) : "")}${k("Valuation (faixa)", N.faixa ? `${mi(N.faixa[0])} a ${mi(N.faixa[1])}` : "—", "enterprise value")}</div>
+      <div class="dd-kpis">${k("Faturamento", mi(N.rl), N.ano ? `receita líquida anual · ${N.ano}${+N.meses && +N.meses < 12 ? ` (anualizada de ${N.meses} meses)` : ""}` : "receita líquida")}${k("EBITDA", mi(N.eb), N.rl && N.eb ? "margem " + pc(N.eb / N.rl) : "")}${k("Valuation (faixa)", N.faixa ? `${mi(N.faixa[0])} a ${mi(N.faixa[1])}` : "—", "enterprise value")}</div>
       <div class="tbl"><table><thead><tr><th>Comparabilidade do valuation</th><th class="dd-num">Mínimo</th><th class="dd-num">Máximo</th></tr></thead><tbody>
         <tr><td>Fluxo de caixa descontado (FCD)${W ? `<div class="sub" style="margin:0;font-size:11.5px">WACC ${pc(W.wacc, 2)}</div>` : ""}</td><td class="dd-num">${N.fcd ? mi(N.fcd[0]) : "—"}</td><td class="dd-num">${N.fcd ? mi(N.fcd[1]) : "—"}</td></tr>
         <tr><td>Múltiplos de mercado${N.merTxt ? `<div class="sub" style="margin:0;font-size:11.5px">${esc(N.merTxt)}</div>` : ""}</td><td class="dd-num">${N.mer ? mi(N.mer[0]) : "—"}</td><td class="dd-num">${N.mer ? mi(N.mer[1]) : "—"}</td></tr>
