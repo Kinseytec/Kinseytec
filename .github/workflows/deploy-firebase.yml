@@ -1,0 +1,27 @@
+name: Publicar Automaticamente no Firebase
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar código atualizado
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Instalar dependências das Functions
+        run: |
+          if [ -f "functions/package.json" ]; then
+            cd functions && npm install --omit=dev
+          fi
+
+      - name: Publicar no Firebase
+        run: npx -y firebase-tools@latest deploy --only hosting,firestore,storage,functions --project kinsey-capital-ma --token "${{ secrets.FIREBASE_TOKEN }}"
