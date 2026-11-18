@@ -376,5 +376,18 @@ if (window.KT_DD && window.KT_VAL && window.KT_POS) (() => {
       <div class="tbl"><table><thead><tr><th>Item</th><th class="dd-num">Sistema</th><th class="dd-num">Planilha</th><th class="dd-num">Diferença</th></tr></thead><tbody>${L.map(tr).join("")}</tbody></table></div>
       <p class="sub" style="margin:0;font-size:11.5px">Os valores da planilha são os gravados pelo Excel ao salvar; diferença pequena vem de arredondamento.</p></div>`;
   }
+  (() => { const nav = $("nav.tabs"), a = nav && $("[data-go=pos]", nav); if (!a || $("[data-go=impairment]", nav)) return;
+    a.insertAdjacentHTML("afterend", `<button type="button" data-go="impairment"><svg viewBox="0 0 24 24"><path d="M4 4v16h16"/><path d="M7 8l4 4 3-3 5 6"/><path d="M19 11v4h-4"/></svg>Impairment</button>`);
+    const v = $("#v-pos"); if (v) v.insertAdjacentHTML("afterend", `<section class="view" id="v-impairment" data-view="impairment" hidden><div class="pad" id="impairment"></div></section>`);
+    const b = $("[data-go=impairment]", nav); if (b && !b.onclick) b.onclick = () => go("impairment"); })();
+  EXT_VIEWS.impairment = function(){
+    const host = $("#impairment"); if (!host) return;
+    const s = D.alvoSel(), sd = D.lado(s, D.pick, ["sem perda", "com perda ou indício", "sem dados"]);
+    const h = D.cab("Impairment", "Impairment", "Teste de redução ao valor recuperável (CPC 01 / IAS 36) por unidade geradora de caixa: cliente da Órbita com os números das análises, ou trabalho novo com cadastro próprio.");
+    const corpo = !s ? `<div class="empty">Escolha a empresa.</div>` : html(s);
+    host.innerHTML = h + `<div class="dd-split" style="margin-top:14px">${sd.html}<div style="display:flex;flex-direction:column;gap:14px;min-width:0">${corpo}</div></div>`;
+    sd.bind(host); D.bindComum(host, s); if (s && host.querySelector(".imp")) bind(host, s);
+    if (window.KT_ATVT?.montar) KT_ATVT.montar(host, host.querySelector(".dd-split > div:last-child"), "impairment", s);
+  };
   window.KT_IMP = {calc, html, bind, pdf, ppt, xlsx, modelo, importar, INDICIOS, COMP};
 })();

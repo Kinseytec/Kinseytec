@@ -91,8 +91,8 @@ if (window.KT_DD) (() => {
   if (EXT_VIEWS.valuation){ const _v = EXT_VIEWS.valuation; EXT_VIEWS.valuation = function(){ const r = _v.apply(this, arguments); const host = $("#valuation"); if (host && S.valTab !== "base" && S.valTab !== "divida") montar(host, host.querySelector(".dd-split > div:last-child"), "valuation", D.alvoSel()); return r; }; }
   if (typeof renderAuditoria === "function"){ const _r = renderAuditoria; renderAuditoria = function(){ const r = _r.apply(this, arguments); const host = $("#auditoria"); if (!host || !["geral", "ra"].includes(S.ddTab)) return r;
       const tabs = host.querySelector(".dd-tabs"); if (tabs) montar(host, tabs.parentElement, "dd", D.alvoSel(), tabs.nextElementSibling); return r; }; }
-  if (EXT_VIEWS.pos){ const _v = EXT_VIEWS.pos; EXT_VIEWS.pos = function(){ const r = _v.apply(this, arguments); const host = $("#pos"); if (host && S.posTab !== "mod") montar(host, host.querySelector(".dd-split > div:last-child"), S.posTab === "imp" ? "impairment" : "ppa", D.alvoSel()); return r; }; }
+  if (EXT_VIEWS.pos){ const _v = EXT_VIEWS.pos; EXT_VIEWS.pos = function(){ const r = _v.apply(this, arguments); const host = $("#pos"); if (host && S.posTab !== "mod") montar(host, host.querySelector(".dd-split > div:last-child"), "ppa", D.alvoSel()); return r; }; }
   /* trabalhos avulsos não aparecem no globo da Órbita (não são empresas do M&A) */
   { const _f = window.ORB_FILTRO; window.ORB_FILTRO = s => !s?.trabalho && (!_f || _f(s)); }
-  window.KT_ATVT = {form, card, AREAS};
+  window.KT_ATVT = {form, card, AREAS, montar};
 })();

@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v3.02 — 2026-11-18 · Impairment em pasta própria
+- O Impairment sai do Pós-aquisição e ganha item próprio no menu, logo depois do Pós-aquisição; o Pós-aquisição fica com o PPA e a base de modelos.
+- "Cliente da Órbita?": Sim usa os números e documentos das análises automáticas; "Não, trabalho novo" cria uma base nova, sem as informações automáticas, com o cadastro básico do projeto (CNPJ ou cartão CNPJ, razão social, data-base, finalidade, local, contratante e balanços ou balancetes).
+- Laudo em PDF e PowerPoint, planilha modelo (exportar e importar) e os atalhos da análise automática e dos Relatórios passam a abrir a nova pasta.
+
 ## v3.01 — 2026-11-18 · Importação: documentos "A confirmar" com Ver, Aprovar e Excluir
 - Quando o sistema não identifica o documento (sem tipo, erro de leitura, tipo genérico, demonstração sem contas ou planilha que não parece balancete, como uma lista de leads), a linha fica destacada "A confirmar" com Ver, Aprovar e Excluir.
 - Aprovar pede o tipo do documento; só entram na importação os documentos reconhecidos ou aprovados (o botão mostra quantos vão).
