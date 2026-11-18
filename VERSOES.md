@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v3.01 — 2026-11-18 · Importação: documentos "A confirmar" com Ver, Aprovar e Excluir
+- Quando o sistema não identifica o documento (sem tipo, erro de leitura, tipo genérico, demonstração sem contas ou planilha que não parece balancete, como uma lista de leads), a linha fica destacada "A confirmar" com Ver, Aprovar e Excluir.
+- Aprovar pede o tipo do documento; só entram na importação os documentos reconhecidos ou aprovados (o botão mostra quantos vão).
+- Os nomes dos arquivos aparecem com acentos corretos na importação.
+
 ## v3.00 — 2026-11-18 · Resumo do investidor com os números dos documentos já importados
 - Ao abrir o dossiê, o sistema lê sozinho os documentos que ainda não viraram números (balanços, DRE e balancetes guardados como "A classificar" ou importados antes), mesmo que a empresa já tenha outros períodos; cada documento lido fica registrado e não é relido.
 - Análises financeiras, Due Diligence e Valuation também passam a ler os documentos novos, e não só quando a empresa não tinha nenhum balancete.
