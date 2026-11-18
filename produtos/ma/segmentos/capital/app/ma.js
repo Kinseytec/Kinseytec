@@ -42,7 +42,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     el.innerHTML = `<span><i style="background:${LVC.N3};border-radius:50%"></i>Target</span><span><i style="background:${LVC.N1};transform:rotate(45deg)"></i>Investidor</span><span><i style="background:${LVC.N2}"></i>Intermediador</span>`;
     v.appendChild(el); const st = document.createElement("style"); st.textContent = `#orb-leg{position:absolute;left:12px;top:64px;z-index:6;display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--fog);background:rgba(1,20,48,.72);border:1px solid var(--line-2);border-radius:10px;padding:5px 9px;pointer-events:none}
 #orb-leg span{display:inline-flex;align-items:center;gap:5px}#orb-leg i{display:inline-block;width:8px;height:8px}
-@media (min-width:761px){#orb-leg{top:auto;bottom:118px}}`; document.head.appendChild(st); }, 300);
+@media (min-width:761px){#orb-leg{top:auto;left:auto;right:16px;bottom:118px;z-index:2}} /* no computador fica à direita, longe do quadro do dossiê */`; document.head.appendChild(st); }, 300);
   const lvlUi = () => {
     const g = $(".lvl"); if (!g || g.dataset.ma) return; g.dataset.ma = "1";
     const st = document.createElement("style"); st.textContent = ".lvl button{width:auto;white-space:nowrap;display:flex;flex-direction:row;align-items:center;gap:6px;justify-content:flex-start}#ma-cor{opacity:1}"; document.head.appendChild(st);

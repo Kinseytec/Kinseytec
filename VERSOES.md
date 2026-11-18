@@ -6,6 +6,7 @@
 - NDA assinado (importado no Jurídico ou na Importação de documentos da Base inicial): comparação automática com o padrão, "conforme o padrão" ou a lista de cláusulas alteradas; prazo, multa e não abordagem lidos do texto; validação pelo advogado
 - Painel "NDAs por empresa" com a situação (pendente, enviado, assinado, validado)
 - Dossiê: a aba "NDA / LGPD" sai do dossiê; a aba M&A mostra a situação do NDA com atalho para o Jurídico, e os atalhos antigos levam ao Jurídico
+- Órbita no computador: a legenda de cores (Target, Investidor, Intermediador) passa para o canto direito, acima da busca, e não fica mais em cima do quadro do dossiê nem dos botões; no celular continua igual
 
 ## v2.68 — 2026-11-18 · Importação de documentos na Base inicial e leitura de PDF corrigida
 - Base inicial: "Importação de documentos" com vários arquivos de uma vez (PDF, Word, Excel, CSV, XML, fotos ou .zip); o sistema reconhece o tipo (balanço, DRE, balancete, auditoria, cartão CNPJ, contrato social, certidões, licenças, mandato, NDA, MOU, SPA, laudo, matrícula e IPTU), acha a empresa pelo CNPJ (e cadastra o target quando é novo) e leva cada documento ao lugar certo
