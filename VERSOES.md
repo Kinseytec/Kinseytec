@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v2.82 — 2026-11-18 · Importação de documentos: busca da empresa, tipo de documento e identificação manual
+- Empresa: em vez da lista com todas as empresas, busca pelo nome ou pelo CNPJ (em branco, o sistema acha a empresa pelo CNPJ de cada documento)
+- "Como importar": vários documentos (o sistema identifica cada um) ou um tipo de documento (contrato social, balanço, CND, posição financeira etc.: todos os arquivos entram com o tipo escolhido)
+- Documento não reconhecido: "Identificar documento" com o botão Ver, que mostra o arquivo (PDF ou foto), o texto lido e o link para abrir; depois é só escolher o tipo na lista
+
 ## v2.81 — 2026-11-18 · Avaliação de ativos: cliente da Órbita ou trabalho novo
 - Avaliação de ativos: quadro "Trabalho" no topo com a pergunta "Cliente da Órbita?"
 - Sim: usa a empresa em consulta; razão social, CNPJ, endereço e data-base vêm sozinhos do cadastro, da Receita Federal e do valuation (ou do último balancete)
