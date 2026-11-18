@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v2.79 — 2026-11-18 · Crescimento no fluxo de caixa: moderado justificado e otimista com motivos e estudo de viabilidade
+- Valuation · FCD: quadro "Crescimento" com o histórico (nominal e real, total e por linha), o último ano e o crescimento projetado nos cenários moderado e otimista, com a diferença sobre o histórico
+- Moderado: segue o histórico; o consultor pode informar outro crescimento por linha, mas acima do histórico em mais que a tolerância da base de apuração (3 p.p.) a emissão exige a explicação do motivo
+- Otimista: cada crescimento extra tem um motivo (novo negócio, nova unidade ou filial, nova fábrica ou ampliação, novo contrato, novo mercado ou exportação, aquisição) e exige justificativa; nunca fica abaixo do moderado
+- "Importar estudo de viabilidade" (Excel, CSV ou PDF): o sistema lê receita, EBITDA e investimento por ano (R$, R$ mil ou R$ mi), calcula o ano de início, o crescimento real e a margem, guarda o estudo no dossiê e inclui no otimista, só para comparação
+
 ## v2.78 — 2026-11-18 · Valuation: EV, dívida líquida e equity no topo, com os relatórios à vista
 - Valuation: quadro no topo com enterprise value (FCD e múltiplos de mercado), (−) dívida líquida pelo balancete e = equity value; "+ Composição da dívida líquida" abre os itens (empréstimos de curto e longo prazo, caixa e aplicações, parcelamentos, mútuos, ajustes da Due Diligence e complementos do consultor), com o que está dentro ou fora do cálculo
 - Botões "Relatório de valuation (PDF)" e "(PowerPoint)" no topo de todas as abas; se houver pontos a justificar, o sistema mostra quantos e leva até eles
