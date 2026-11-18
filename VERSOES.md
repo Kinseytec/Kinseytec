@@ -1,5 +1,12 @@
 # Registro de versões
 
+## v2.92 — 2026-11-18 · Impairment (CPC 01) no Pós-aquisição
+- Nova aba "Impairment · CPC 01" no Pós-aquisição: teste de recuperabilidade da unidade geradora de caixa adquirida, com o ágio testado todo ano.
+- Valor recuperável = o maior entre o valor em uso (FCD moderado do valuation, 5 anos + perpetuidade, sem expansões) e o valor justo líquido de despesas de venda (múltiplos de mercado − despesas de venda).
+- Valor contábil da UGC pelo PPA: capital de giro, imobilizado a valor justo, intangíveis líquidos da amortização acumulada e ágio (ajustado a 100% quando há não controladores).
+- Taxa antes dos impostos equivalente, indícios de desvalorização (desempenho realizado × projetado apurado sozinho), alocação da perda (ágio primeiro, depois pro rata), sensibilidade taxa × crescimento e ponto de equilíbrio.
+- Premissas editáveis pelo consultor; relatório em PDF e memória de cálculo em Excel.
+
 ## v2.91 — 2026-11-18 · Dívida líquida em síntese
 - Valuation, aba "Dívida líquida": mostra só a dívida líquida (sem o quadro do trabalho e sem os avisos de justificativa), com letras menores.
 - No alto, a fonte: "Não revisado em diligência · fonte: balancete" ou "Revisado na diligência · fonte: workbook da Due Diligence" quando o workbook do auditor foi importado.
