@@ -207,7 +207,7 @@ if (window.KT_DD) (() => {
         try{ let s = alvoDe(r, fixo); if (!s) s = await novoTarget(r); if (!s){ r.feito = ["sem empresa"]; continue; } tocados.add(s.id); r.feito = await aplicar(s, r); }catch(e){ console.error(e); r.feito = ["erro: " + (e.message || "não importado")]; } }
       cartaoPelaReceita(); desenha(); toast(`${n} documento(s) importado(s)`); renderAll();
       if (window.KT_ANAUTO){ go.textContent = "Analisando…"; const box = document.createElement("div"); box.style.cssText = "display:flex;flex-direction:column;gap:10px;margin-top:10px"; $("#dc-prev").appendChild(box);
-        for (const id of tocados){ const s = supById(id); if (!s) continue; const el = document.createElement("div"); el.innerHTML = `<div class="result">Análise automática de ${esc(s.nome)}…</div>`; box.appendChild(el);
+        for (const id of tocados){ const s = supById(id); if (!s) continue; if (s.anaAutoOn === false){ const el0 = document.createElement("div"); el0.innerHTML = `<div class="result">${esc(s.nome)}: análise automática desligada. Analise um documento por vez no dossiê (aba Documentos).</div>`; box.appendChild(el0); continue; } const el = document.createElement("div"); el.innerHTML = `<div class="result">Análise automática de ${esc(s.nome)}…</div>`; box.appendChild(el);
           try{ const res = await KT_ANAUTO.rodar(s, {reler:false}); el.innerHTML = KT_ANAUTO.html(supById(id) || s, res, {compacto:true}); KT_ANAUTO.bind(el, supById(id) || s, close); }catch(e){ console.error(e); el.innerHTML = `<div class="result">Análise de ${esc(s.nome)} não concluída: ${esc(e.message || "erro")}</div>`; } }
         go.textContent = "Importado"; renderAll(); } };
   }

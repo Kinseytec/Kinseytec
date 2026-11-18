@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v2.99 — 2026-11-18 · Dossiê: analisar documentos importados (automático ou um por vez)
+- Na aba Documentos do dossiê, depois do checklist: "Analisar documentos importados de forma automática" com Sim (padrão) ou "Não, analisar um por vez".
+- Com Sim, cada importação já faz as consultas públicas (Receita, listas oficiais e notícias, na versão publicada), as análises financeiras e leva números e documentos ao valuation, à Due Diligence, ao PPA e ao jurídico; "Analisar todos agora" refaz tudo e mostra o quadro da análise.
+- "Analisar um documento": tipo identificado, CNPJ (avisa se difere do cadastro), período, contas lidas, ativo, patrimônio, receita, EBITDA, lucro e dívida líquida; sócios, capital e administração do contrato social; situação e validade da certidão (avisa quando vencida); cláusulas desfavoráveis de NDA, mandato, MOU e SPA; botão "Levar às análises".
+
 ## v2.98 — 2026-11-18 · Jurídico: documentos do questionário localizados pelo sistema
 - Em cada pergunta do questionário de diligência jurídica, a lista com todos os arquivos da empresa foi trocada por uma caixa com o documento: "Localizado pelo sistema", "Validado" ou "Sem documento", com Ver, Validar e Documentos.
 - O sistema localiza e vincula sozinho o documento esperado (contrato social, certidões, apólices, licenças…) quando o arquivo traz todos os termos específicos; na dúvida, só sugere.

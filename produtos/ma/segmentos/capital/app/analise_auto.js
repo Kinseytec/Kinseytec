@@ -28,6 +28,7 @@ if (window.KT_DD && window.KT_DOCS) (() => {
   }
   async function rodar(s, op = {}){
     s = supById(s.id) || s; let rep = null;
+    if (op.consultar !== false && window.KT_CNPJ?.consultarTudo && s.doc) await Promise.race([KT_CNPJ.consultarTudo(s.id).catch(() => {}), new Promise(r => setTimeout(r, 8000))]); /* Receita, listas oficiais, notícias */
     if (op.reler !== false && window.KT_FINX?.reprocessar) rep = await KT_FINX.reprocessar(s).catch(() => null);
     if (s.jdd?.soc && window.KT_JAUTO?.aplicar) await Promise.resolve(KT_JAUTO.aplicar(supById(s.id) || s)).catch(() => {});
     if (window.KT_JDOCS) await KT_JDOCS.autoVincula(supById(s.id) || s).catch(() => {}); /* documentos do questionário jurídico */
@@ -99,5 +100,50 @@ if (window.KT_DD && window.KT_DOCS) (() => {
   if (typeof renderSupBody === "function"){ const _r = renderSupBody;
     renderSupBody = function(){ const r = _r.apply(this, arguments); if (!["dados", "ma"].includes(S.supTab)) return r; const s = supById(S.openSup), b = $("#sup-body"); if (!s || !b || s.nivel !== "N3" || b.querySelector("#aa-dos")) return r;
       try{ if (!(D.periodos(s) || []).length && !s.jdd?.soc) return r; const w = document.createElement("div"); w.id = "aa-dos"; w.innerHTML = html(s, resumo(s)); b.prepend(w); bind(w, s, () => { const x = document.querySelector("[data-x]"); if (x) x.click(); }); }catch(e){ console.warn(e); } return r; }; }
-  window.KT_ANAUTO = {resumo, rodar, html, bind, abrir};
+  /* ---------- análise individual de um documento ---------- */
+  const cnpjF = c => String(c).replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+  async function individual(s, e){
+    const bl = await (await fetch(e.url)).blob(), r = await KT_DOCS.ler(new File([bl], e.nome || "documento", {type:e.mime || bl.type})), t = String(r.texto || ""), L = [];
+    const nomeT = {balanco:"Balanço patrimonial", dre:"DRE", balancete:"Balancete", contrato_social:"Contrato social", cartao_cnpj:"Cartão CNPJ", nda:"NDA", mandato:"Mandato", spa:"SPA", mou:"MOU / LOI"}[r.tipo] || (r.tipo ? String(r.tipo).replace(/_/g, " ") : "");
+    L.push(["Tipo identificado", r.tipo ? `${nomeT}${r.formato ? ` (${r.formato})` : ""} · pelo ${r.como || "sistema"}` : "não identificado: classifique o documento"]);
+    if (r.cnpjs?.length){ const dg = String(s.doc || "").replace(/\D/g, ""); L.push(["CNPJ no documento", r.cnpjs.map(cnpjF).join(", ") + (dg && !r.cnpjs.includes(dg) ? " · difere do cadastro" : "")]); }
+    if (r.periodo) L.push(["Período", `${dBR(r.periodo.ini)} a ${dBR(r.periodo.fim)}${r.multi ? ` · ${r.multi.length} período(s)` : ""}`]);
+    const contas = r.contas || [], cDRE = r.contasDRE || [];
+    if (contas.length || cDRE.length){ const K = D.calc({contas:[...contas, ...cDRE], meses:12}); L.push(["Contas lidas", String(contas.length + cDRE.length)]);
+      if (K.AT) L.push(["Ativo total / patrimônio líquido", `${mi(K.AT)} / ${mi(K.PL)}${K.fecha ? " · balanço fecha" : " · confira: ativo e passivo não fecham"}`]);
+      if (K.recLiq) L.push(["Receita líquida / EBITDA / lucro", `${mi(K.recLiq)} / ${mi(K.ebitda)} / ${mi(K.ll)}${K.naoOp ? ` · resultado não operacional ${mi(K.naoOp)} fora do EBITDA` : ""}`]);
+      if (K.dl || K.caixa) L.push(["Dívida líquida", mi(K.dl)]); }
+    if (r.tipo === "contrato_social" && window.KT_JAUTO){ const X = KT_JAUTO.lerSocietario(t); L.push(["Sócios", (X.socios || []).map(p => p.nome + (p.pct ? ` (${fmt(p.pct * 100, 0)}%)` : "")).join("; ") || "não identificados"]);
+      if (X.capital) L.push(["Capital social", "R$ " + X.capital]); if (X.administracao) L.push(["Administração", X.administracao]); if ((X.clausulas || []).length) L.push(["Cláusulas relevantes", X.clausulas.join(", ")]); }
+    if (/certid|cnd/i.test(`${r.tipo} ${e.tipo} ${e.nome}`) || /certid[aã]o/i.test(t.slice(0, 600))){ const n = t.replace(/\s+/g, " ");
+      const sit = /positiva com efeitos? de negativa/i.test(n) ? "Positiva com efeitos de negativa" : /certid[aã]o negativa|nada consta|n[aã]o constam/i.test(n) ? "Negativa (sem débitos)" : /positiva/i.test(n) ? "Positiva (há débitos)" : "não identificada";
+      const val = (n.match(/v[aá]lid[ao][^0-9]{0,40}(\d{2}\/\d{2}\/\d{4})/i) || [])[1]; const venc = val && new Date(val.split("/").reverse().join("-") + "T23:59") < new Date(); L.push(["Situação da certidão", sit + (val ? ` · válida até ${val}${venc ? " · VENCIDA: pedir certidão atualizada" : ""}` : "")]); }
+    if (["spa", "mou", "nda", "mandato"].includes(r.tipo) && window.KT_CONTRATO && t.length > 200){ const a = KT_CONTRATO.analisar(t, s.lado === "compra" ? "compra" : "venda"), ruins = a.itens.filter(x => x.st !== "ok");
+      L.push(["Cláusulas", `${ruins.length} desfavorável(is) ou ausente(s) de ${a.itens.length}${ruins.length ? ": " + ruins.slice(0, 4).map(x => x.t).join("; ") : ""}`]); }
+    return {r, L};
+  }
+  /* ---------- dossiê, aba Documentos (depois do checklist): automático sim/não e análise de um documento por vez ---------- */
+  function quadroDossie(s){ const on = s.anaAutoOn !== false, L = docs(s).filter(e => e.url), ed = Store.me?.canWrite !== false;
+    return `<div class="card" id="aa-doc" style="display:flex;flex-direction:column;gap:10px;margin-top:12px"><div><div class="eyebrow">Análise dos documentos importados</div><h3 style="margin:0;font-size:16px">Analisar automaticamente</h3>
+        <p class="sub" style="margin:2px 0 0;font-size:12.5px">Com "Sim", cada importação já faz as consultas públicas, as análises financeiras e leva os números e documentos ao valuation, à Due Diligence, ao PPA e ao jurídico. Também dá para analisar um documento por vez.</p></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="sub" style="margin:0;font-size:12.5px">Analisar documentos importados de forma automática:</span><button type="button" class="fbtn" data-aaon="1" aria-pressed="${on}" ${ed ? "" : "disabled"}>Sim</button><button type="button" class="fbtn" data-aaon="0" aria-pressed="${!on}" ${ed ? "" : "disabled"}>Não, analisar um por vez</button></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn sm primary" data-aatodos>Analisar todos agora</button>${s.anaAuto?.em ? `<span class="sub" style="font-size:12px;align-self:center">última análise em ${dBR(s.anaAuto.em)}</span>` : ""}</div>
+      <div id="aa-todos"></div>
+      ${L.length ? `<details ${on ? "" : "open"}><summary style="cursor:pointer;font-size:13.5px;font-weight:600">Analisar um documento (${L.length})</summary><div class="tbl" style="margin-top:6px"><table><tbody>${L.map(e => `<tr><td style="font-size:12.5px;word-break:break-word">${esc(fixMoji(e.nome || "documento"))}<div class="sub" style="margin:0;font-size:11px">${esc(e.tipo || "")}</div><div data-aaind="${e.id}"></div></td><td style="text-align:right;white-space:nowrap"><button type="button" class="btn sm ghost" data-aaone="${e.id}">Analisar</button></td></tr>`).join("")}</tbody></table></div></details>` : `<p class="sub" style="margin:0;font-size:12.5px">Nenhum documento no dossiê ainda.</p>`}</div>`; }
+  function bindDossie(b, s){
+    $$("[data-aaon]", b).forEach(x => x.onclick = () => Store.update("suppliers", s.id, {anaAutoOn:x.dataset.aaon === "1"}).then(() => toast(x.dataset.aaon === "1" ? "Análise automática ligada" : "Análise automática desligada: analise um documento por vez")).catch(() => {}));
+    const t = $("[data-aatodos]", b); if (t) t.onclick = async () => { const box = $("#aa-todos", b); t.disabled = true; t.textContent = "Analisando…"; box.innerHTML = `<div class="result">Consultas públicas, análises financeiras, Due Diligence, valuation, PPA e jurídico…</div>`;
+      try{ const o = await rodar(s); (S._aaRes ||= {})[s.id] = o; mostraRes(); }catch(e){ console.error(e); const bx = document.querySelector("#aa-todos") || box; bx.innerHTML = `<div class="result">Análise não concluída: ${esc(e.message || "erro")}</div>`; }
+      const t2 = document.querySelector("[data-aatodos]") || t; t2.disabled = false; t2.textContent = "Analisar todos agora"; };
+    /* o dossiê é redesenhado quando a análise é gravada: o resultado fica guardado e volta a aparecer */
+    function mostraRes(){ const o = S._aaRes?.[s.id], bx = document.querySelector("#aa-todos"); if (!o || !bx) return; bx.innerHTML = html(supById(s.id) || s, o); bind(bx, supById(s.id) || s, () => { const x = document.querySelector("[data-x]"); if (x) x.click(); }); }
+    mostraRes();
+    $$("[data-aaone]", b).forEach(x => x.onclick = async () => { const e = S.evidences.find(v => v.id === x.dataset.aaone), out = b.querySelector(`[data-aaind="${e.id}"]`); x.disabled = true; x.textContent = "Lendo…";
+      try{ const {r, L} = await individual(supById(s.id) || s, e);
+        out.innerHTML = `<div style="margin-top:6px;display:flex;flex-direction:column;gap:3px">${L.map(([k, v]) => `<div style="font-size:12px"><span class="sub" style="margin:0">${esc(k)}:</span> ${esc(v)}</div>`).join("")}${r.tipo && Store.me?.canWrite !== false ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px"><button type="button" class="btn sm" data-aaapl="${e.id}">Levar às análises</button></div>` : ""}</div>`;
+        const ap = out.querySelector("[data-aaapl]"); if (ap) ap.onclick = async () => { ap.disabled = true; ap.textContent = "Aplicando…"; try{ const f = await KT_DOCS.aplicar(supById(s.id) || s, r, {semArquivo:true}); ap.textContent = "Aplicado"; toast(f.join(" · ").slice(0, 160)); }catch(err){ ap.disabled = false; ap.textContent = "Levar às análises"; toast("Não foi possível aplicar"); } };
+      }catch(err){ console.error(err); out.innerHTML = `<div class="sub" style="font-size:12px">Não foi possível ler: ${esc(err.message || "erro")}</div>`; }
+      x.disabled = false; x.textContent = "Analisar"; }); }
+  if (typeof EXT_DOCS !== "undefined") EXT_DOCS.push((s, b) => { if (s.nivel !== "N3" || b.querySelector("#aa-doc")) return; const w = document.createElement("div"); w.innerHTML = quadroDossie(s); b.appendChild(w.firstElementChild); bindDossie(b, s); });
+  window.KT_ANAUTO = {resumo, rodar, html, bind, abrir, individual, quadroDossie};
 })();
