@@ -317,6 +317,7 @@ if (window.KT_DD) (() => {
       if (!pre && window.KT_FINX && D.temBal(s)) KT_FINX.secoesPdf(P, s, t => secT(t, 220), {semAjustes:true});
       secT("Tese de investimento", 260); cartoes(P, Z.tese);
       secT("Setor e mercado", 200); marcadores(P, Z.mercado); paresG();
+      if (window.KT_MERC) KT_MERC.secaoPdf(P, s, t => secT(t, 220));
       if (!pre && Z.noticias.length){ P.h2("Notícias do segmento"); Z.noticias.forEach(n2 => bl(`${n2.titulo} (${n2.fonte || ""} ${n2.data || ""})`, {size:9})); }
       if (!pre && Z.pesquisa){ P.h2("Pesquisa sobre a empresa, o setor e a região"); par(P, Z.pesquisa); }
       if (!pre && Z.materiais.length){ P.h2("Materiais do vendedor no data room"); Z.materiais.forEach(m => bl(m)); }
@@ -379,6 +380,7 @@ if (window.KT_DD) (() => {
     liqG();
     let nA = 3; if (window.KT_DEM) KT_DEM.historico(P, s, {aprovados:true, sec:t => sec(P, ++nA, t)});
     if (window.KT_FINX) KT_FINX.secoesPdf(P, s, t => sec(P, ++nA, t));
+    if (window.KT_MERC) KT_MERC.secaoPdf(P, s, t => sec(P, ++nA, t));
     sec(P, ++nA, "Limitações"); par(P, "As análises são calculadas sobre os saldos dos balancetes fornecidos e não constituem auditoria das demonstrações financeiras. Os ajustes refletem a Due Diligence na data de emissão e dependem do OK do consultor responsável. Quando o workbook do auditor for importado, ele passa a ser a base dos números. Relatório confidencial, destinado às partes autorizadas pela Kinsey Capital.");
     await rptSave(P.out(`Análises financeiras · ${nome}`, T(`Kinsey Capital · Análises financeiras · ${nome} · ${db} · confidencial`)), arq(s, "analises_financeiras", "pdf"), "application/pdf");
   }

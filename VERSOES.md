@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v2.85 — 2026-11-18 · Indicadores de mercado e barra do topo em movimento
+- Análises financeiras: quadro "Mercado e indicadores macroeconômicos" com Ibovespa, small caps, IFIX, dólar, euro, S&P 500, Nasdaq, petróleo Brent, ouro e bitcoin (com a variação do dia), Selic, CDI, IPCA 12 meses e Treasury de 10 anos; expectativas do Focus (Selic, IPCA e PIB); as 5 maiores empresas listadas do setor da empresa consultada (ação, preço, variação e valor de mercado); maiores altas e baixas do dia entre as maiores da B3
+- Servidor: nova rotina "bolsa" a cada 30 minutos no pregão (9h às 18h, dias úteis), com cotações do Yahoo Finance (atraso de até 15 minutos) e as empresas da CVM/B3
+- Relatórios: a seção "Indicadores macroeconômicos e mercado" entra no relatório de análises financeiras e no teaser e na apresentação (prospecção)
+- Barra de mercado do topo corre em movimento contínuo com os indicadores (pausa ao passar o dedo ou o mouse; parada para quem prefere menos movimento)
+
 ## v2.84 — 2026-11-18 · Valuation: apuração da dívida líquida no lugar de "Outras"
 - Abas: Síntese, Base, FCD, Múltiplos e outras (as outras avaliações passam para dentro de Múltiplos), Dívida líquida, Relatório
 - Dívida líquida apurada pelo balancete: empréstimos de curto e longo prazo, (−) caixa e equivalentes, parcelamentos tributários, partes relacionadas pelo líquido (mútuos no passivo menos mútuos no ativo), provisões para contingências, contingências prováveis da diligência jurídica não provisionadas (sem contar em dobro com a Due Diligence) e, para o consultor marcar, contingências possíveis e fornecedores acima do prazo usual (prazo médio de pagamento acima de 90 dias)

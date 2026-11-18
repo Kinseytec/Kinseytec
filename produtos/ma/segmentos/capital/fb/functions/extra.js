@@ -94,6 +94,23 @@ module.exports = ({db, logger, onSchedule, F}) => {
     await db.doc("cotacoes/comparaveis").set({em:new Date().toISOString(), ano, fonte:"CVM · dados abertos (cadastro, FCA e DFP) e cotação pública", lista, erros:erros.slice(0, 30)});
     logger.info("comparáveis", {n:lista.length, erros:erros.length}); return {companhias:lista.length, ano, erros:erros.length};
   }
+  /* ---------------- bolsa: índices, moedas, commodities e ações por setor (Yahoo Finance, com atraso) ---------------- */
+  async function cot(sym){ const j = await json(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=5d&interval=1d`), m = j.chart.result[0].meta, v = m.regularMarketPrice, a = m.chartPreviousClose ?? m.previousClose;
+    return {v, var:a ? v / a - 1 : null, em:m.regularMarketTime ? new Date(m.regularMarketTime * 1000).toISOString() : null}; }
+  const INDICES = [["ibov", "^BVSP", "Ibovespa"], ["smll", "SMLL.SA", "Small caps (SMLL)"], ["ifix", "IFIX.SA", "IFIX"], ["usd", "USDBRL=X", "Dólar"], ["eur", "EURBRL=X", "Euro"], ["spx", "^GSPC", "S&P 500"], ["ndx", "^IXIC", "Nasdaq"], ["brent", "BZ=F", "Petróleo Brent"], ["ouro", "GC=F", "Ouro"], ["btc", "BTC-USD", "Bitcoin"]];
+  async function gravarBolsa(){
+    const erros = [], tenta = async (k, fn) => { try{ return await fn(); }catch(e){ erros.push(k + ": " + e.message); return null; } }, espera = ms => new Promise(r => setTimeout(r, ms));
+    const indices = {}; for (const [k, sym, nome] of INDICES){ const c = await tenta(k, () => cot(sym)); if (c) indices[k] = {...c, nome, sym}; await espera(150); }
+    const comp = (await db.doc("cotacoes/comparaveis").get()).data()?.lista || [], porSeg = {}, escolhidas = new Map();
+    comp.forEach(c => (porSeg[c.seg] ||= []).push(c));
+    Object.values(porSeg).forEach(L => L.sort((a, b) => (b.mcap || 0) - (a.mcap || 0)).slice(0, 5).forEach(c => escolhidas.set(c.ticker, c)));
+    comp.slice().sort((a, b) => (b.mcap || 0) - (a.mcap || 0)).slice(0, 40).forEach(c => escolhidas.set(c.ticker, c));
+    const acoes = []; for (const c of escolhidas.values()){ const q = await tenta(c.ticker, () => cot(c.ticker + ".SA")); if (q) acoes.push({ticker:c.ticker, nome:c.nome, seg:c.seg, preco:q.v, var:q.var, mcap:c.preco ? c.mcap / c.preco * q.v : c.mcap}); await espera(120); }
+    const setores = {}; acoes.forEach(a => (setores[a.seg] ||= []).push(a)); Object.keys(setores).forEach(k => { setores[k] = setores[k].sort((a, b) => (b.mcap || 0) - (a.mcap || 0)).slice(0, 5); });
+    const ord = acoes.filter(a => a.var != null).sort((a, b) => b.var - a.var);
+    await db.doc("cotacoes/bolsa").set({em:new Date().toISOString(), fonte:"Yahoo Finance (cotações com atraso de até 15 minutos), CVM e B3", indices, setores, altas:ord.slice(0, 5), baixas:ord.slice(-5).reverse(), erros:erros.slice(0, 20)});
+    logger.info("bolsa", {indices:Object.keys(indices).length, acoes:acoes.length, erros:erros.length}); return {indices:Object.keys(indices).length, acoes:acoes.length, erros:erros.length};
+  }
   /* ---------------- consulta de empresa (N1 e N3) ---------------- */
   let CAD = null, cadEm = 0;
   async function cadastroCVM(){
@@ -202,9 +219,10 @@ module.exports = ({db, logger, onSchedule, F}) => {
         const {id, url} = req.data || {}; if (!id || !url) throw new HttpsError("invalid-argument", "Informe a empresa e o site.");
         try{ return await lerSite(String(id), String(url)); }catch(e){ if (e instanceof HttpsError) throw e; throw new HttpsError("unavailable", e.message || "site indisponível"); } }),
       mercado:onSchedule({schedule:"40 7 * * *", timeZone:"America/Sao_Paulo", memory:"512MiB", timeoutSeconds:300}, () => gravarMercado()),
-      comparaveis:onSchedule({schedule:"20 6 5 * *", timeZone:"America/Sao_Paulo", memory:"2GiB", timeoutSeconds:540}, () => gravarComparaveis())
+      comparaveis:onSchedule({schedule:"20 6 5 * *", timeZone:"America/Sao_Paulo", memory:"2GiB", timeoutSeconds:540}, () => gravarComparaveis()),
+      bolsa:onSchedule({schedule:"*/30 9-18 * * 1-5", timeZone:"America/Sao_Paulo", memory:"512MiB", timeoutSeconds:300}, () => gravarBolsa())
     },
-    tipos:{mercado:gravarMercado, comparaveis:gravarComparaveis},
-    _interno:{gravarMercado, gravarComparaveis, focus, ipcaAnual, serie, rss}
+    tipos:{mercado:gravarMercado, comparaveis:gravarComparaveis, bolsa:gravarBolsa},
+    _interno:{gravarBolsa, gravarMercado, gravarComparaveis, focus, ipcaAnual, serie, rss}
   };
 };
