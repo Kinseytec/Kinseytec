@@ -191,6 +191,7 @@ if (window.KT_DD) (() => {
         ...D.ajustes(s, ult || "").filter(a => !a.manual).map(a => [a.titulo, D.areaNome(a.area), ult, D.efeitoTxt(a)]), ...RT.filter(p => p.st === "achado").map(p => [p.titulo, D.areaNome(p.area), ult, String(p.resultado || "").slice(0, 300)])]},
       {nome:"Exposições registradas", larguras:[50, 16, 20, 14], linhas:[...cab0("Exposições já registradas no sistema (informativo)"), [H("Exposição registrada"), H("Área"), H("Faixa (MR$)"), H("Avaliação")],
         ...EX.map(e => { const c = KT_EXP.calc(e, +(String(ult || "").slice(0, 4)) || new Date().getFullYear()); return [e.titulo, e.area, `${c.min != null ? Math.round(c.min / 1e3) : "NQ"} a ${c.max != null ? Math.round(c.max / 1e3) : "NQ"}`, e.aval || ""]; })]}];
+    if (window.KT_RA){ try{ abas.splice(3, 0, ...KT_RA.abas(s)); }catch(e){ console.error(e); } } /* revisão analítica: anual, por período e alertas para o consultor */
     await rptSave(KT_XLSX.gerar(abas), KT_REL.arq(s, "workbook_due_diligence_modelo", "xlsx"), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
   }
   /* ---------------- telas ---------------- */

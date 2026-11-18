@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v2.76 — 2026-11-18 · Revisão analítica dos balancetes na Due Diligence
+- Due Diligence: nova aba "Revisão analítica" com as contas de resultado ano a ano (3 a 5 exercícios; aviso quando há menos de 3) e período a período no ano (balancetes acumulados viram o movimento de cada mês ou trimestre)
+- Alertas automáticos: picos e quedas fora do padrão nas contas que mexem no EBITDA (ex.: aluguel de 200 mil por mês que vira 500 mil em abril: alto risco de ajuste de EBITDA), variações acima de 30% (revisar) ou de 100% e contas novas (alto risco), saldo credor em conta de despesa, e contas de natureza sensível (gastos de sócios, pró-labore, despesas diversas, brindes, viagens, consultorias, multas, indenizações, não recorrentes); potencial de ajuste de EBITDA somado
+- Workbook da Due Diligence já preenchido com a base dos balanços e três abas novas: "Revisão analítica anual", "Revisão analítica mensal" (células em amarelo para revisar e em vermelho para alto risco) e "Alertas para o consultor" (documentos a pedir, conclusão do consultor e ajuste proposto)
+
 ## v2.75 — 2026-11-18 · Análises financeiras com os documentos já importados, PPA estimado e pontos da diligência
 - Balanços, DRE e balancetes que já estavam no dossiê (importados antes da leitura automática) são lidos de novo, sozinhos, ao abrir Análises financeiras, Due Diligence ou Valuation, e viram os balancetes de cada período (balanço e DRE do mesmo período juntos), sem duplicar os arquivos
 - Análises financeiras: novo quadro "Valor, PPA estimado e pontos da diligência", com faixa de valuation, FCD com WACC e beta do setor, PPA estimado numa aquisição (marca, carteira de clientes, contratos e goodwill, pelos critérios do PPA Kinsey) e os principais pontos da diligência (achados automáticos, ajustes de EBITDA, exposições e contingências jurídicas)
