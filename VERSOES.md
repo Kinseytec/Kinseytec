@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v3.09 — 2026-11-19 · Valuation usa os balanços que já estão no dossiê
+- O card "Relatório de valuation" não pede mais para importar de novo: mostra quantos documentos financeiros já estão no dossiê, analisa sozinho ao abrir e tem o botão "Analisar documentos do dossiê". "Importar outro balanço" fica como alternativa; em trabalho novo (fora da Órbita), continua "Importar balanços".
+- Análises financeiras e Due Diligence sem balancete mostram o mesmo aviso, com o botão de análise.
+- Quando algum documento não abre, o card diz o motivo; se a causa for a função do servidor não publicada, avisa para republicar com as funções.
+
 ## v3.08 — 2026-11-19 · Fechar a tela em todo lugar
 - Todas as áreas (Base inicial, Prospecção, Due Diligence, Análises financeiras, Valuation, Avaliação de ativos, Jurídico, Pós-aquisição, Impairment, Apresentação) têm um × no topo à direita, que fica visível ao rolar (na faixa "Em consulta" quando há empresa escolhida), e o botão "Fechar esta tela" no fim. Fechar volta para a tela de onde veio; sem histórico, volta para a Órbita.
 - Todas as janelas têm o × no topo e, quando não tinham botão de fechar embaixo, ganham "Fechar" no fim.

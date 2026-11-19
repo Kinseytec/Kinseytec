@@ -52,6 +52,12 @@ if (window.KT_DD && window.KT_DOCS) (() => {
         toast(nf ? `${nf} documento(s) não abriram: veja o sininho em Importação de documentos` : `Documentos de ${s.nome} analisados`); renderView(); })
       .catch(e => { S_R[s.id] = false; ban.textContent = "Não foi possível analisar os documentos do dossiê: " + (e?.message || "erro"); });
   }
+  function avisoSemBal(view){ const host = $("#" + view), s = D.alvoSel(); if (!host || !s || D.temBal(s) || host.querySelector("#fx-ini") || host.querySelector("#vx-topo")) return;
+    const di = docsInicio(s); if (!di.n) return; const col = host.querySelector(".dd-split > div:last-child") || host, el = document.createElement("div"); el.id = "fx-ini";
+    el.innerHTML = di.html.replace("</div>", Store.me?.canWrite !== false ? `<div><button type="button" class="btn sm primary" data-fxini>Analisar documentos do dossiê</button></div></div>` : "</div>"); col.prepend(el);
+    const bt = el.querySelector("[data-fxini]"); if (bt) bt.onclick = async () => { bt.disabled = true; bt.textContent = "Analisando…"; S_R[s.id] = true; try{ if (window.KT_ANAUTO && s.anaAutoOn !== false) await KT_ANAUTO.rodar(s, {consultar:false}); await reprocessar(supById(s.id) || s, true, true); }catch(e){ toast("Análise não concluída: " + (e.message || "erro")); } S_R[s.id] = false; renderView(); }; }
+  ["financas", "auditoria"].forEach(v => { if (v === "auditoria" && typeof renderAuditoria === "function"){ const _a = renderAuditoria; renderAuditoria = function(){ const r = _a.apply(this, arguments); try{ avisoSemBal("auditoria"); }catch(e){} return r; }; }
+    else if (EXT_VIEWS[v]){ const _v = EXT_VIEWS[v]; EXT_VIEWS[v] = function(){ const r = _v.apply(this, arguments); try{ avisoSemBal(v); }catch(e){} return r; }; } });
   ["financas", "auditoria", "valuation", "juridico", "pos", "impairment"].forEach(v => { if (v === "auditoria" && typeof renderAuditoria === "function"){ const _a = renderAuditoria; renderAuditoria = function(){ const r = _a.apply(this, arguments); try{ auto("auditoria"); }catch(e){} return r; }; }
     else if (EXT_VIEWS[v]){ const _v = EXT_VIEWS[v]; EXT_VIEWS[v] = function(){ const r = _v.apply(this, arguments); try{ auto(v); }catch(e){} return r; }; } });
 
@@ -93,9 +99,17 @@ if (window.KT_DD && window.KT_DOCS) (() => {
         <p class="sub" style="margin:4px 0 0;font-size:12px">Caixa e aplicações entram com sinal negativo. Para incluir, excluir ou ajustar itens (parcelamentos, mútuos, provisões, caixa mínimo), use a aba "Dívida líquida".</p></details>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button type="button" class="btn primary" data-vxr="pdf" ${ok ? "" : "disabled"}>Relatório de valuation (PDF)</button><button type="button" class="btn" data-vxr="pptx" ${ok ? "" : "disabled"}>Relatório de valuation (PowerPoint)</button>${ok ? "" : `<button type="button" class="btn sm ghost" data-vxr="pend">${nb} ponto(s) a resolver antes de emitir</button>`}</div></div>`;
   }
+  /* situação dos documentos financeiros que já estão no dossiê (importados no início): o valuation usa esses, sem importar de novo */
+  function docsInicio(s){
+    s = supById(s.id) || s; const C = candidatos(s), fal = Object.entries(s.dd?.lerFalha || {}).filter(([id, v]) => v && C.some(e => e.id === id)).map(([, v]) => v), lendo = !!S_R[s.id];
+    if (!C.length) return {n:0, html:""};
+    return {n:C.length, html:`<div class="banner" style="font-size:13px;display:flex;flex-direction:column;gap:4px"><b>${C.length} documento(s) financeiro(s) já estão no dossiê de ${esc(s.nome)}</b>
+      <span>${lendo ? "Analisando agora: os balanços vão para a Due Diligence e o valuation sai sozinho." : fal.length ? `<span style="color:var(--bad)">${fal.length} não abriram: ${esc(fal[0].motivo)}.</span> ${/fun[cç][aã]o|servidor|republique/i.test(fal[0].motivo) ? "Republique o sistema com as funções (tutorial de republicação)." : "Confira o arquivo no dossiê ou importe outra versão."}` : "Toque em Analisar documentos do dossiê: não é preciso importar de novo."}</span></div>`};
+  }
   function semBalVal(s){
-    return `<div class="card" id="vx-topo" style="display:flex;flex-direction:column;gap:8px"><h3 style="margin:0">Relatório de valuation</h3><p class="sub" style="margin:0">O valuation completo (fluxo de caixa descontado, múltiplos de mercado, dívida líquida pelo balancete e equity value) e o relatório em PDF e PowerPoint saem sozinhos assim que os balanços de ${esc(s.nome)} estiverem no sistema.</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">${Store.me?.canWrite !== false ? `<button type="button" class="btn primary" data-vxr="imp">Importar balanços</button>` : ""}<button type="button" class="btn" disabled>Relatório (PDF)</button><button type="button" class="btn" disabled>Relatório (PowerPoint)</button></div></div>`;
+    const di = docsInicio(s), ed = Store.me?.canWrite !== false, novo = !!s.trabalho;
+    return `<div class="card" id="vx-topo" style="display:flex;flex-direction:column;gap:8px"><h3 style="margin:0">Relatório de valuation</h3><p class="sub" style="margin:0">O valuation completo (fluxo de caixa descontado, múltiplos de mercado, dívida líquida pelo balancete e equity value) e o relatório em PDF e PowerPoint saem sozinhos a partir dos balanços de ${esc(s.nome)} que já estão no sistema${novo ? " (trabalho novo: importe os balanços deste trabalho)" : ""}.</p>${di.html}
+      <div style="display:flex;gap:8px;flex-wrap:wrap">${ed && di.n ? `<button type="button" class="btn primary" data-vxr="ana">Analisar documentos do dossiê</button>` : ""}${ed ? `<button type="button" class="btn ${di.n ? "ghost" : "primary"}" data-vxr="imp">${di.n ? "Importar outro balanço" : "Importar balanços"}</button>` : ""}<button type="button" class="btn" disabled>Relatório (PDF)</button><button type="button" class="btn" disabled>Relatório (PowerPoint)</button></div></div>`;
   }
   if (EXT_VIEWS.valuation){ const _vv = EXT_VIEWS.valuation; EXT_VIEWS.valuation = function(){ const r = _vv.apply(this, arguments); const host = $("#valuation"), s = D.alvoSel();
       if (!host || !s || S.valTab === "base" || $("#vx-topo", host)) return r;
@@ -103,6 +117,7 @@ if (window.KT_DD && window.KT_DOCS) (() => {
         const w = document.createElement("div"); w.innerHTML = html; const el = w.firstElementChild, first = col.firstElementChild; if (temB && first) first.after(el); else col.prepend(el);
         $$("[data-vxr]", el).forEach(b => b.onclick = async () => { const k = b.dataset.vxr;
           if (k === "imp") return window.KT_DOCS?.importar(s.id); if (k === "pend"){ S.valTab = "sintese"; renderView(); return; }
+          if (k === "ana"){ b.disabled = true; b.textContent = "Analisando…"; S_R[s.id] = true; try{ if (window.KT_ANAUTO && s.anaAutoOn !== false) await KT_ANAUTO.rodar(s, {consultar:false}); await reprocessar(supById(s.id) || s, true, true); }catch(e){ toast("Análise não concluída: " + (e.message || "erro")); } S_R[s.id] = false; renderView(); return; }
           const R = KT_VAL.resumo(s), emite = async md => { await KT_REL.valuation(s, k, md); await D.up(s, {dd:{vl:{emissoes:{["e" + Date.now().toString(36)]:{em:nowISO(), fmt:k, por:Store.me?.email || "", faixa:`${mi(R.rec[0])} a ${mi(R.rec[1])}`}}}}}); };
           try{ if (k === "pdf" && window.KT_GRAF) KT_GRAF.modo("Valuation · " + s.nome, emite); else await emite("completo"); }catch(e){ console.error(e); toast("Não foi possível gerar o relatório."); } }); }catch(e){ console.error(e); }
       return r; }; }
