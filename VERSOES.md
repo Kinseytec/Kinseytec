@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v3.05 — 2026-11-19 · Órbita: linha pontilhada entre target e investidor
+- No mapa da Órbita, cada target fica ligado por linha pontilhada animada a cada investidor indicado (2 ou 3 investidores = 2 ou 3 linhas), direto, sem passar pelo intermediador (em geral a própria Kinsey). A linha aparece sempre, sem precisar ligar as rotas.
+- Ao escolher um target ou um investidor, as linhas dele ficam em destaque e as demais esmaecem.
+- Tocar na linha abre o par "Target ↔ investidor" com os botões "Dossiê do target" e "Dossiê do investidor".
+
 ## v3.04 — 2026-11-19 · Prospecção: segmento empresarial, região e estado
 - Cada empresa da prospecção tem "Segmento empresarial" (Agro, Alimentos, Construção, Educação, Industrial, Logística, Saúde, Serviços, Tecnologia, Varejo, Outros). Em branco, o sistema sugere pela atividade, CNAE ou tese; a equipe confirma ou troca na ficha da empresa e no cadastro de prospecção.
 - Filtros no topo da lista: segmento empresarial, região do Brasil e estado (com a quantidade de empresas em cada um), além da busca por nome ou CNPJ. "Limpar filtros" volta para a lista completa.

@@ -61,18 +61,50 @@ if (typeof MA_MODELOS !== "undefined") (() => {
   /* ligações da rede: N1 investidor → N2 intermediador (ou a própria Kinsey Capital) → N3 target.
      O núcleo desenha N3 → N2 (quem trouxe o target); aqui o M&A desenha N1 → N2 para cada investidor indicado ao target
      (ou N1 → N3 quando o target não tem intermediador). Ao selecionar um ponto, a cadeia inteira dele fica em destaque. */
+  /* linha pontilhada target ↔ investidor: sempre visível (sem passar pelo intermediador, que em geral é a própria Kinsey).
+     Um target pode ter 2 ou 3 investidores: uma linha para cada. Tocar na linha abre o target e mostra os dois lados. */
+  window.ORB_LINKS = [];
   EXT_ORB.push((ctx, now, list) => {
-    if (!S.lv.rotas || !S.lv.N1) return; const vis = new Set(list.map(s => s.id)), feitos = new Set();
-    ctx.setLineDash([3, 5]); ctx.lineDashOffset = G.reduce ? 0 : now / 80;
-    list.filter(t => t.nivel === "N3" && t.etapa !== "descartada" && (t.investidores || []).length).forEach(t => {
-      const n2 = t.parentId && vis.has(t.parentId) ? supById(t.parentId) : null;
-      t.investidores.forEach(id => { const v = supById(id); if (!v || v.lat == null || !vis.has(id)) return; const alvo = n2 || t, k = id + "|" + alvo.id, on = !!S.sel && [id, t.id, alvo.id].includes(S.sel);
-        if (feitos.has(k) && !on) return; feitos.add(k);
-        ctx.beginPath(); G.path({type:"LineString", coordinates:[[v.lng, v.lat], [alvo.lng, alvo.lat]]});
-        ctx.strokeStyle = on ? "rgba(242,193,78,.95)" : S.sel ? "rgba(242,193,78,.12)" : "rgba(242,193,78,.42)"; ctx.lineWidth = on ? 2 : 1.1; ctx.stroke();
-        if (on && n2){ ctx.beginPath(); G.path({type:"LineString", coordinates:[[n2.lng, n2.lat], [t.lng, t.lat]]}); ctx.stroke(); } }); });
-    ctx.setLineDash([]);
+    const L = window.ORB_LINKS = []; if (S.lv.N1 === false || S.lv.N3 === false) return; const vis = new Set(list.map(s => s.id));
+    ctx.save(); ctx.setLineDash([4, 5]); ctx.lineDashOffset = G.reduce ? 0 : -now / 80;
+    list.filter(t => t.nivel === "N3" && t.etapa !== "descartada" && (t.investidores || []).length && t.lat != null).forEach(t => {
+      [...new Set(t.investidores)].forEach(id => { const v = supById(id); if (!v || v.lat == null || !vis.has(id)) return;
+        const on = !!S.sel && (S.sel === t.id || S.sel === id);
+        ctx.beginPath(); G.path({type:"LineString", coordinates:[[v.lng, v.lat], [t.lng, t.lat]]});
+        ctx.strokeStyle = on ? "rgba(242,193,78,.98)" : S.sel ? "rgba(242,193,78,.18)" : "rgba(242,193,78,.6)"; ctx.lineWidth = on ? 2.4 : 1.5; ctx.stroke();
+        /* pontos da linha na tela, para o toque */
+        const ip = d3.geoInterpolate([v.lng, v.lat], [t.lng, t.lat]), P = [];
+        for (let k = 0; k <= 16; k++){ const c = ip(k / 16); if (visible(c[0], c[1])) P.push(G.proj(c)); }
+        if (P.length > 1) L.push({t, v, P}); }); });
+    ctx.restore();
   });
+  /* toque na linha (fora dos pontos): seleciona o target e mostra o par target ↔ investidor com atalho para os dossiês */
+  (function tocarLinha(){ if (!G.canvas){ setTimeout(tocarLinha, 400); return; }
+    let x0 = 0, y0 = 0;
+    G.canvas.addEventListener("pointerdown", e => { x0 = e.clientX; y0 = e.clientY; });
+    G.canvas.addEventListener("pointerup", e => {
+      if (Math.hypot(e.clientX - x0, e.clientY - y0) > 8) return; const r = G.canvas.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+      if ((G.hits || []).some(h => Math.hypot(h.x - x, h.y - y) < 22)) return; /* tocou num ponto: o núcleo trata */
+      const dseg = (p, a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy || 1, u = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2)); return Math.hypot(p[0] - a[0] - u * dx, p[1] - a[1] - u * dy); };
+      let best = null, bd = 14; (window.ORB_LINKS || []).forEach(l => { for (let k = 1; k < l.P.length; k++){ const d = dseg([x, y], l.P[k - 1], l.P[k]); if (d < bd){ bd = d; best = l; } } });
+      if (!best) return; e.stopPropagation(); mostraPar(best.t, best.v); }, true);
+  })();
+  function mostraPar(t, v){
+    selectSup(t.id, false);
+    $("#orb-par")?.remove(); const d = document.createElement("div"); d.id = "orb-par"; d.className = "card";
+    d.style.cssText = "position:fixed;left:50%;transform:translateX(-50%);top:calc(130px + env(safe-area-inset-top));z-index:40;width:min(420px,calc(100vw - 32px));display:flex;flex-direction:column;gap:8px;padding:12px 14px;box-shadow:0 12px 40px rgba(0,0,0,.45)";
+    const nome = x => esc(String(x.nome || "").replace(/^EXEMPLO /, ""));
+    d.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="font-size:13px">Target ↔ investidor</b><button type="button" class="x" data-x aria-label="Fechar" style="width:30px;height:30px">×</button></div>
+      <div style="font-size:13px;display:flex;flex-direction:column;gap:2px"><span><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${LVC.N3};margin-right:6px"></i>${nome(t)}${t.uf ? ` <span class="sub">· ${esc(t.uf)}</span>` : ""}</span>
+        <span style="color:rgba(242,193,78,.95);font-size:12px;padding-left:2px">┆ apresentado a</span>
+        <span><i style="display:inline-block;width:9px;height:9px;background:${LVC.N1};transform:rotate(45deg);margin-right:6px"></i>${nome(v)}${v.uf ? ` <span class="sub">· ${esc(v.uf)}</span>` : ""}</span></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn sm primary" data-dt>Dossiê do target</button><button type="button" class="btn sm" data-dv>Dossiê do investidor</button></div>`;
+    document.body.appendChild(d);
+    d.querySelector("[data-x]").onclick = () => d.remove();
+    d.querySelector("[data-dt]").onclick = () => { d.remove(); openSupplier(t.id); };
+    d.querySelector("[data-dv]").onclick = () => { d.remove(); openSupplier(v.id); };
+    setTimeout(() => { const f = ev => { if (!d.contains(ev.target)){ d.remove(); document.removeEventListener("pointerdown", f, true); } }; document.addEventListener("pointerdown", f, true); }, 50);
+  }
   /* cartão da órbita: resumo M&A da empresa */
   EXT_TARGET.push((s, el) => {
     const box = document.createElement("div"); box.style.cssText = "grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--muted)";
