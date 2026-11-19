@@ -1,5 +1,8 @@
 # Registro de versões
 
+## v3.14 — 2026-11-19 · Menu lateral com barra de rolagem no computador
+- No computador, o menu do lado esquerdo rola quando os itens não cabem na altura da janela, com barra de rolagem amarela visível: dá para chegar até Apresentação, o último item. Em telas mais baixas, os itens ficam um pouco mais compactos. No celular, o menu de baixo continua igual.
+
 ## v3.13 — 2026-11-19 · Faixa do mercado com PIB, Ibovespa, Bitcoin e ações do setor
 - Faixa do topo: PIB realizado (variação real do último ano, IBGE via Banco Central) e PIB projetado do ano (Focus), além de Ibovespa, dólar, Selic, CDI, IPCA e Bitcoin (com fonte reserva quando a principal falhar).
 - Com uma empresa em consulta, a faixa mostra as 5 principais ações do setor dela, com preço e variação do dia. O setor é identificado pela atividade: frigoríficos (JBS, MBRF, Minerva), laticínios e bebidas, hospitais e planos (Hapvida, Rede D'Or, Odontoprev…), farmácias e medicamentos, diagnósticos, terceirização e facilities, além dos setores gerais (alimentos, saúde, agro, indústria, tecnologia, serviços, logística, educação, construção, varejo, energia, financeiro, óleo e gás, mineração).
