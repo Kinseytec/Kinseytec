@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v3.16 — 2026-11-19 · Prospecção em abas e política de faturamento mínimo
+- Prospecção com abas: Prospecção (lista e controle), Cadastros gerais de times (sócios, time de M&A, novos negócios e SDR, com "Editar equipe" e "Regras de mérito"), Importações gerais (importar listas, prospectar para investidor, consulta rápida e o histórico das listas importadas) e Fora da política.
+- Política Kinsey nas importações: empresa com faturamento abaixo de R$ 15 milhões não entra na prospecção; vai para "Fora da política" (standby), fora das listas e dos contadores do time. Sem faturamento informado, a empresa entra e o time confere.
+- O standby só volta para a prospecção com a autorização de um sócio cadastrado na equipe (escolhido em "Sou"), com o motivo da exceção registrado. Também é possível excluir.
+- Revisão da base: as empresas importadas antes da regra, abaixo de R$ 15 mi e ainda sem abordagem, podem ser movidas para o standby com um toque.
+
 ## v3.15 — 2026-11-19 · Convites enviados por e-mail e WhatsApp
 - Antes o convite só era gravado: nenhum e-mail saía, e a pessoa dependia de receber o link à mão e criar a conta em "Primeiro acesso" (com mais um e-mail de confirmação).
 - Agora "Salvar e enviar convite" cria o acesso no servidor (função convidar, só para administradores, com o e-mail já confirmado) e o Firebase envia o e-mail para a pessoa criar a senha. A tela mostra se o e-mail saiu e, se não saiu, o motivo.
