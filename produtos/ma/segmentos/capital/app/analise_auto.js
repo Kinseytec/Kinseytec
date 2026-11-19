@@ -30,6 +30,7 @@ if (window.KT_DD && window.KT_DOCS) (() => {
     s = supById(s.id) || s; let rep = null;
     if (op.consultar !== false && window.KT_CNPJ?.consultarTudo && s.doc) await Promise.race([KT_CNPJ.consultarTudo(s.id).catch(() => {}), new Promise(r => setTimeout(r, 8000))]); /* Receita, listas oficiais, notícias */
     if (op.reler !== false && window.KT_FINX?.reprocessar) rep = await KT_FINX.reprocessar(s).catch(() => null);
+    if (op.reler !== false && window.KT_FINX?.lerOutros) await KT_FINX.lerOutros(s).catch(() => 0); /* contrato social, cartão CNPJ e certidões do início */
     if (s.jdd?.soc && window.KT_JAUTO?.aplicar) await Promise.resolve(KT_JAUTO.aplicar(supById(s.id) || s)).catch(() => {});
     if (window.KT_JDOCS) await KT_JDOCS.autoVincula(supById(s.id) || s).catch(() => {}); /* documentos do questionário jurídico */
     const res = resumo(supById(s.id) || s); res.reproc = rep;

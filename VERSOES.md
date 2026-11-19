@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v3.06 — 2026-11-19 · Due Diligence puxa e analisa os documentos do início
+- Ao abrir Due Diligence, Análises financeiras, Valuation, Jurídico, Pós-aquisição ou Impairment, tudo o que foi importado no início e ainda não foi analisado passa sozinho pela análise automática completa: balanços, DRE, balancetes e ECD/ECF viram períodos da Due Diligence (e seguem para valuation e análises); contrato social, cartão CNPJ e certidões vão para o jurídico, o cadastro e o checklist.
+- Documentos enviados por qualquer caminho (Importação de documentos, Evidências, dossiê) entram nessa leitura. Trabalho novo (fora da Órbita) é outro cadastro e usa só os próprios documentos.
+- Quadro "Balanços, balancetes e relatórios" da Due Diligence: mostra quantos documentos financeiros do início ainda não viraram balancete e o motivo quando algum não abriu; botão "Analisar documentos do início".
+
 ## v3.05 — 2026-11-19 · Órbita: linha pontilhada entre target e investidor
 - No mapa da Órbita, cada target fica ligado por linha pontilhada animada a cada investidor indicado (2 ou 3 investidores = 2 ou 3 linhas), direto, sem passar pelo intermediador (em geral a própria Kinsey). A linha aparece sempre, sem precisar ligar as rotas.
 - Ao escolher um target ou um investidor, as linhas dele ficam em destaque e as demais esmaecem.

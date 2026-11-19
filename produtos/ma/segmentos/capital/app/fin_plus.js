@@ -28,14 +28,31 @@ if (window.KT_DD && window.KT_DOCS) (() => {
     if (avisar) toast(n ? `${n} documento(s) financeiro(s) do dossiê levados à Due Diligence` : "Nenhum balanço, DRE ou balancete legível entre os documentos do dossiê");
     return {lidos:L.length, aplicados:n};
   }
-  function auto(view){
-    const host = $("#" + view), s = D.alvoSel(); if (!host || !s || S_R[s.id]) return;
-    const L = novos(s); if (!L.length) return; S_R[s.id] = true;
-    const ban = document.createElement("div"); ban.className = "banner"; ban.id = "fx-reproc"; ban.innerHTML = `<b>Lendo ${L.length} documento(s) já guardados no dossiê de ${esc(s.nome)}</b> (balanço, DRE e balancetes) para montar as análises…`;
-    (host.querySelector(".dd-split > div:last-child") || host).prepend(ban);
-    reprocessar(s, true).then(() => renderView()).catch(() => { ban.textContent = "Não foi possível ler os documentos do dossiê."; });
+  /* demais documentos do início (contrato social, cartão CNPJ, certidões): lidos uma vez e levados ao jurídico, ao cadastro e ao checklist */
+  const outrosNovos = s => { const lid = s.dd?.lidosV2 || {}; return S.evidences.filter(e => e.supplierId === s.id && (e.url || e.assetId) && !lid[e.id] && !/\.(jpe?g|png|heic)$/i.test(e.nome || "")
+    && /contrato social|estatuto|altera[cç][aã]o contratual|cart[aã]o cnpj|certid|\bcnd|cndt|\bcrf\b/i.test(`${e.tipo || ""} ${e.nome || ""}`)).slice(0, 15); };
+  async function lerOutros(s){
+    s = supById(s.id) || s; const L = outrosNovos(s); if (!L.length) return 0; const ok = {}, fal = {}; let n = 0;
+    for (const e of L){ try{ const bl = await ktBaixar(e), r = await KT_DOCS.ler(new File([bl], e.nome || "documento", {type:e.mime || bl.type})); ok[e.id] = nowISO(); fal[e.id] = null;
+        if (["contrato_social", "cartao_cnpj"].includes(r.tipo) || /^(cnd|cndt|crf|certid)/.test(r.tipo || "")){ await KT_DOCS.aplicar(supById(s.id) || s, r, {semArquivo:true}); n++; } }
+      catch(err){ fal[e.id] = {nome:e.nome || "documento", motivo:String(err?.message || err).replace(/^não foi possível abrir o arquivo: /, ""), em:nowISO()}; } }
+    await Store.update("suppliers", s.id, {dd:{lidosV2:ok, lerFalha:fal}}).catch(() => {}); return n;
   }
-  ["financas", "auditoria", "valuation"].forEach(v => { if (v === "auditoria" && typeof renderAuditoria === "function"){ const _a = renderAuditoria; renderAuditoria = function(){ const r = _a.apply(this, arguments); try{ auto("auditoria"); }catch(e){} return r; }; }
+  /* ao abrir Due Diligence, Análises, Valuation, Jurídico, PPA ou Impairment: tudo o que entrou no início e ainda não foi analisado
+     passa pela análise automática completa (financeiro → DD → valuation; contrato social → jurídico). Trabalho novo (fora da Órbita)
+     é outro cadastro e só usa os próprios documentos. */
+  const tent = {};
+  function auto(view){
+    const host = $("#" + view), s = D.alvoSel(); if (!host || !s || S_R[s.id] || Store.me?.canWrite === false) return;
+    const L = [...novos(s), ...outrosNovos(s)].filter(e => !tent[e.id]); if (!L.length) return; L.forEach(e => tent[e.id] = 1); S_R[s.id] = true;
+    const ban = document.createElement("div"); ban.className = "banner"; ban.id = "fx-reproc"; ban.innerHTML = `<b>Analisando ${L.length} documento(s) importados no início para ${esc(s.nome)}</b>: balanços, DRE e balancetes vão para a Due Diligence, o valuation e as análises; contrato social e certidões vão para o jurídico e o checklist…`;
+    (host.querySelector(".dd-split > div:last-child") || host).prepend(ban);
+    const vai = window.KT_ANAUTO && s.anaAutoOn !== false ? KT_ANAUTO.rodar(s, {consultar:false}) : reprocessar(s, true).then(() => lerOutros(s));
+    vai.then(() => { S_R[s.id] = false; const ss = supById(s.id) || s, nf = Object.values(ss.dd?.lerFalha || {}).filter(Boolean).length;
+        toast(nf ? `${nf} documento(s) não abriram: veja o sininho em Importação de documentos` : `Documentos de ${s.nome} analisados`); renderView(); })
+      .catch(e => { S_R[s.id] = false; ban.textContent = "Não foi possível analisar os documentos do dossiê: " + (e?.message || "erro"); });
+  }
+  ["financas", "auditoria", "valuation", "juridico", "pos", "impairment"].forEach(v => { if (v === "auditoria" && typeof renderAuditoria === "function"){ const _a = renderAuditoria; renderAuditoria = function(){ const r = _a.apply(this, arguments); try{ auto("auditoria"); }catch(e){} return r; }; }
     else if (EXT_VIEWS[v]){ const _v = EXT_VIEWS[v]; EXT_VIEWS[v] = function(){ const r = _v.apply(this, arguments); try{ auto(v); }catch(e){} return r; }; } });
 
   /* ---------- pontos da diligência e PPA estimado ---------- */
@@ -101,5 +118,5 @@ if (window.KT_DD && window.KT_DOCS) (() => {
     renderSupBody = function(){ const r = _r.apply(this, arguments); try{ const s = supById(S.openSup), b = $("#sup-body"); if (!s || !b || s.nivel !== "N3" || S_R[s.id] || Store.me?.canWrite === false) return r;
       const L = novos(s); if (!L.length) return r; S_R[s.id] = true; const ban = document.createElement("div"); ban.className = "banner"; ban.id = "fx-reproc-dos"; ban.innerHTML = `<b>Lendo ${L.length} documento(s) do dossiê</b> (balanços, DRE e balancetes) para o resumo, as análises, a Due Diligence e o valuation…`; b.prepend(ban);
       reprocessar(s, true).then(() => { if (S.openSup === s.id){ try{ renderSupBody(); }catch(e){} } }).catch(() => { ban.textContent = "Não foi possível ler os documentos do dossiê."; }); }catch(e){} return r; }; }
-  window.KT_FINX = {reprocessar, novos, candidatos, pontos, ppa, secoesPdf};
+  window.KT_FINX = {reprocessar, novos, candidatos, lerOutros, outrosNovos, pontos, ppa, secoesPdf};
 })();
