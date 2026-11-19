@@ -60,6 +60,11 @@ if (window.KT_DD) (() => {
 .fbtn[aria-pressed="true"],.dd-tabs .fbtn[aria-pressed="true"]{color:#1b1300 !important;background:#F2C14E !important;border-color:#F2C14E !important;box-shadow:0 0 0 1px rgba(242,193,78,.35),0 0 14px rgba(242,193,78,.25)}
 .stabs button{border-bottom-color:transparent}.stabs button[aria-selected="true"]{color:#F2C14E;border-bottom-color:#F2C14E}
 .fbtn:disabled{opacity:.45}`;
+  css.textContent += `nav.tabs [data-go="pos"] svg{stroke:#4FB0F5;color:#4FB0F5}nav.tabs [data-go="impairment"] svg{stroke:#FF8A65;color:#FF8A65}`;
+  /* abas de uma mesma área: contorno amarelo, mas cada aba com a sua cor (PPA, Impairment, Base de modelos…) para identificar melhor */
+  { const COR = ["#4FB0F5", "#36D399", "#C39BFF", "#FF8A65", "#2DD4BF", "#F472B6", "#F2C14E", "#93C5FD", "#A3E635", "#FDBA74"];
+    css.textContent += COR.map((c, i) => `.dd-tabs > .fbtn:nth-child(${COR.length}n+${i + 1}){color:${c};background:${c}14;border-color:rgba(242,193,78,.55)}
+.dd-tabs > .fbtn:nth-child(${COR.length}n+${i + 1})[aria-pressed="true"]{background:${c} !important;color:#0b1730 !important;border-color:#F2C14E !important;box-shadow:0 0 0 2px rgba(242,193,78,.55),0 0 14px ${c}55}`).join("\n"); }
   css.textContent += `.vw-top{display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:6;margin:-4px 0 8px;padding:6px 0;background:linear-gradient(var(--bg,#011F4B) 70%,transparent)}
 .vw-top .sub{font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin:0}.alv-bar .vw-x{flex:none;margin-left:2px}
 .vw-fim{display:flex;justify-content:center;padding:18px 0 calc(18px + env(safe-area-inset-bottom,0px))}.vw-fim .btn{min-width:200px}`;

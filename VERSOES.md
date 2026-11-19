@@ -1,5 +1,9 @@
 # Registro de versões
 
+## v3.12 — 2026-11-19 · Abas com cores diferentes
+- Abas de cada área mantêm o contorno amarelo, mas cada uma tem a sua cor (ex.: PPA azul, Base de modelos verde; no Valuation, Síntese, Base, FCD, Múltiplos e Dívida líquida em cores distintas). A aba escolhida fica preenchida com a sua cor e contorno amarelo.
+- No menu, Pós-aquisição (PPA) com ícone azul e Impairment com ícone coral.
+
 ## v3.11 — 2026-11-19 · Jurídico mais prático e celular sem tela "congelada"
 - Parecer por documento (e validações de NDA e contratos): só Aprovar, Aprovar com ressalvas ou Reprovar, com a explicação; sem nome e OAB do advogado. Nome e OAB ficam só no Parecer do advogado final, que consolida todos os pontos.
 - Celular: as faixas presas no topo deixam de ficar fixas; o cabeçalho (marca, cliente e faixa do mercado) some ao rolar para baixo e volta ao rolar para cima, liberando a tela.
