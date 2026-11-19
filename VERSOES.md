@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v3.15 — 2026-11-19 · Convites enviados por e-mail e WhatsApp
+- Antes o convite só era gravado: nenhum e-mail saía, e a pessoa dependia de receber o link à mão e criar a conta em "Primeiro acesso" (com mais um e-mail de confirmação).
+- Agora "Salvar e enviar convite" cria o acesso no servidor (função convidar, só para administradores, com o e-mail já confirmado) e o Firebase envia o e-mail para a pessoa criar a senha. A tela mostra se o e-mail saiu e, se não saiu, o motivo.
+- Envio por WhatsApp: campo com DDD e botão "Enviar por WhatsApp", com a mensagem pronta e o link para criar a senha (válido por 1 hora; depois, "Esqueci a senha"). Também "Copiar mensagem".
+- Lista de usuários: "Reenviar" para convites ainda não aceitos, com a data do último envio.
+
 ## v3.14 — 2026-11-19 · Menu lateral com barra de rolagem no computador
 - No computador, o menu do lado esquerdo rola quando os itens não cabem na altura da janela, com barra de rolagem amarela visível: dá para chegar até Apresentação, o último item. Em telas mais baixas, os itens ficam um pouco mais compactos. No celular, o menu de baixo continua igual.
 

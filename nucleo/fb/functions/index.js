@@ -75,4 +75,24 @@ exports.lerArquivo = onCall({memory: "1GiB", timeoutSeconds: 120}, async req => 
   const [buf] = await f.download();
   return {b64: buf.toString("base64"), mime: meta.contentType || "application/octet-stream", size: buf.length};
 });
+/* convidar: o administrador convida; a conta é criada com o e-mail já confirmado (só quem recebe o link define a senha) e o
+   link de "criar senha" volta para o sistema, que também dispara o e-mail do Firebase e oferece o envio por WhatsApp. */
+exports.convidar = onCall({memory: "256MiB", timeoutSeconds: 60}, async req => {
+  const me = String(req.auth?.token?.email || "").toLowerCase();
+  if (!req.auth || !req.auth.token.email_verified) throw new HttpsError("unauthenticated", "Entre no sistema.");
+  let ok = ADMINS.includes(me); if (!ok){ const u = await db.doc("users/" + req.auth.uid).get(); ok = u.exists && u.data().role === "admin"; }
+  if (!ok) throw new HttpsError("permission-denied", "Só o administrador convida usuários.");
+  const email = String(req.data?.email || "").trim().toLowerCase(), nome = String(req.data?.nome || "").trim().slice(0, 120);
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new HttpsError("invalid-argument", "E-mail inválido.");
+  const inv = await db.doc("invites/" + email).get(); if (!inv.exists) throw new HttpsError("failed-precondition", "Salve o convite antes de enviar.");
+  let url = String(req.data?.url || ""); if (!/^https:\/\/[a-z0-9.-]+(\/[\w./-]*)?$/i.test(url)) url = "";
+  let u = null, criado = false;
+  try{ u = await admin.auth().getUserByEmail(email); }
+  catch(e){ if (e.code !== "auth/user-not-found") throw new HttpsError("internal", e.message); u = await admin.auth().createUser({email, emailVerified: true, ...(nome ? {displayName: nome} : {})}); criado = true; }
+  if (!u.emailVerified) await admin.auth().updateUser(u.uid, {emailVerified: true});
+  let link; try{ link = await admin.auth().generatePasswordResetLink(email, url ? {url} : undefined); }
+  catch(e){ if (!url) throw new HttpsError("internal", e.message); link = await admin.auth().generatePasswordResetLink(email); } /* domínio do site fora dos autorizados: link sem retorno automático */
+  await db.doc("invites/" + email).set({enviadoEm: new Date().toISOString(), enviadoPor: me, contaCriada: true}, {merge: true});
+  return {link, criado};
+});
 module.exports._interno = {gravarCotacoes, gravarListas};

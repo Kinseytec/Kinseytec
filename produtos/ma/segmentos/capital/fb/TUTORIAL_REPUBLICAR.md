@@ -1,8 +1,8 @@
-# KinseyTec – M&A · tutorial para republicar (versão 3.14)
+# KinseyTec – M&A · tutorial para republicar (versão 3.15)
 
 O sistema já está publicado. Republicar **substitui** a versão no ar e **não apaga nenhum dado**: empresas, documentos, balancetes, análises e usuários continuam. Tempo: cerca de 10 minutos, tudo no navegador.
 
-Arquivo: **KinseyTec_MA_Firebase.zip** (está dentro do pacote KinseyTec_MA_publicacao_v3.14.zip; não envie o pacote inteiro, só este arquivo).
+Arquivo: **KinseyTec_MA_Firebase.zip** (está dentro do pacote KinseyTec_MA_publicacao_v3.15.zip; não envie o pacote inteiro, só este arquivo).
 
 ## Republicar agora (passo a passo)
 1. Entre em **console.cloud.google.com** com a conta da Kinsey e escolha o projeto **kinsey-capital-ma** no topo.
@@ -24,7 +24,7 @@ npx -y firebase-tools@13 deploy --project kinsey-capital-ma
 
 5. Pronto quando aparecer **Deploy complete!**. Atualize a página do sistema; no celular, feche e abra o aplicativo.
 
-## Importante nesta versão (3.14, inclui as versões 3.03 a 3.13)
+## Importante nesta versão (3.15, inclui as versões 3.03 a 3.14)
 Esta versão corrige o problema de os documentos não serem reconhecidos nem analisados no sistema publicado. **As funções precisam ser publicadas junto** (o comando de deploy acima já publica tudo): a leitura dos arquivos agora passa por uma função nova do servidor, chamada **lerArquivo**. Se o deploy das funções falhar, me envie a mensagem: sem ela, a análise automática continua sem conseguir abrir os documentos guardados.
 
 **Não é problema de assinatura.** O plano Blaze já está ativo (as funções agendadas de mercado e cotações só rodam nele). O que acontecia:
@@ -34,9 +34,17 @@ Esta versão corrige o problema de os documentos não serem reconhecidos nem ana
 **Opcional (deixa a leitura um pouco mais rápida):** liberar o download direto do Storage para o endereço do sistema. No mesmo Cloud Shell, rode:
 
 ```bash
-echo '[{"origin":["https://kinsey-capital-ma.web.app","https://kinsey-capital-ma.firebaseapp.com"],"method":["GET"],"maxAgeSeconds":3600}]' > cors.json && gcloud storage buckets update gs://$(gcloud storage buckets list --project kinsey-capital-ma --format="value(name)" | grep -E "firebasestorage.app|appspot.com" | head -1) --cors-file=cors.json
+echo '[{"origin":["https://kinseytec-ma.web.app","https://kinseytec-ma.firebaseapp.com","https://kinsey-capital-ma.web.app","https://kinsey-capital-ma.firebaseapp.com"],"method":["GET"],"maxAgeSeconds":3600}]' > cors.json && gcloud storage buckets update gs://$(gcloud storage buckets list --project kinsey-capital-ma --format="value(name)" | grep -E "firebasestorage.app|appspot.com" | head -1) --cors-file=cors.json
 ```
 (Se o sistema for acessado por outro domínio, me avise para incluir. Sem este passo o sistema funciona do mesmo jeito, pelo servidor.)
+
+## Convites por e-mail (configurar uma vez no Firebase)
+O e-mail do convite é enviado pelo próprio Firebase. No console do Firebase (console.firebase.google.com › kinsey-capital-ma):
+1. **Authentication › Sign-in method:** "E-mail/senha" precisa estar **ativado**.
+2. **Authentication › Configurações › Domínios autorizados:** confira se **kinseytec-ma.web.app** está na lista; se não estiver, toque em "Adicionar domínio" e inclua.
+3. **Authentication › Modelos (Templates) › Redefinição de senha:** escolha o idioma **português** e, se quiser, troque o assunto para "Crie sua senha de acesso ao KinseyTec".
+4. O e-mail sai de **noreply@kinsey-capital-ma.firebaseapp.com**. Em e-mails corporativos ele pode cair em quarentena ou spam: peça para a pessoa procurar por "kinsey-capital-ma" e marcar como confiável. Para sair do domínio da Kinsey (melhor entrega), em **Modelos › Configurações de SMTP** informe o servidor de e-mail da empresa (o próprio administrador digita a senha do e-mail no console; nunca envie por mensagem).
+5. Se o e-mail não chegar, use **Enviar por WhatsApp** na mesma tela: a mensagem leva o link para criar a senha.
 
 ## Se aparecer alguma pergunta
 - **"Would you like to proceed with deletion?"** (apagar funções antigas): responda **N**.
@@ -48,6 +56,7 @@ npx -y firebase-tools@13 deploy --project kinsey-capital-ma --only hosting,fires
 ```
 
 ## Conferência (2 minutos)
+- **Usuários e convites:** convide um e-mail de teste; a tela mostra "E-mail enviado" e o botão "Enviar por WhatsApp".
 - **Faixa do mercado:** PIB, Ibovespa e Bitcoin; com a Tallenty ou a Futura em consulta, aparecem as 5 principais ações do setor. As cotações das ações são gravadas pelo servidor a cada 30 minutos no pregão; para atualizar na hora, use Indicadores › Atualizar agora (administrador).
 - **Valuation da Tallenty:** sem pedir importação; aparece o valor da empresa a partir dos balanços do dossiê (ou o botão "Analisar documentos do dossiê").
 - **Fechar:** em qualquer área, × no canto superior direito e "Fechar esta tela" no fim.

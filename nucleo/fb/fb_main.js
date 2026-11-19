@@ -172,14 +172,15 @@ const KT_FB = !KT_AUTH ? null : {
           <div class="form"><div class="fld"><label for="kt-ie">E-mail</label><input id="kt-ie" type="email" placeholder="nome@empresa.com"></div>
           <div class="fld"><label for="kt-in">Nome</label><input id="kt-in"></div>
           <div class="fld"><label for="kt-ic">Empresa</label><input id="kt-ic" placeholder="Cliente, Kinsey BR, fornecedor…"></div>
+          <div class="fld"><label for="kt-itel">WhatsApp (DDD + número)</label><input id="kt-itel" inputmode="tel" placeholder="(11) 98765-4321"></div>
           <div class="fld"><label for="kt-icli">Cliente</label><select id="kt-icli">${(KT_FB.clientes || []).map(c => `<option value="${c.id}" ${c.id === KT_FB.cid ? "selected" : ""}>${esc(c.nome || c.id)}</option>`).join("")}<option value="">— Kinsey BR (administrador de todos os clientes) —</option></select></div>
           <div class="fld"><label for="kt-ir">Perfil</label><select id="kt-ir">${Object.entries(KT_ROLES).map(([k,l]) => `<option value="${k}" ${k==="editor"?"selected":""}>${l}</option>`).join("")}</select></div></div>
           <p class="err" id="kt-ierr" hidden></p>
-          <button type="submit" class="btn primary" style="align-self:flex-start">Salvar convite</button></form>
+          <button type="submit" class="btn primary" style="align-self:flex-start">Salvar e enviar convite</button><div id="kt-envio"></div></form>
         <div class="card" style="display:flex;flex-direction:column;gap:8px"><h3>Links para enviar</h3>
           <p style="font-size:13.5px;margin:0">Cliente e equipe Kinsey: <b class="mono" style="user-select:all">${origin}</b></p>
           <p style="font-size:13.5px;margin:0">Fornecedores (Portal do Fornecedor): <b class="mono" style="user-select:all">${origin}/portal.html</b></p>
-          <p class="sub" style="margin:0">Depois de salvar o convite, envie o link por e-mail ou WhatsApp. A pessoa entra com Google, ou cria a senha em "Primeiro acesso" e confirma o e-mail.</p></div>
+          <p class="sub" style="margin:0">Ao salvar, o sistema cria o acesso e envia o e-mail para a pessoa criar a senha. Também dá para mandar o mesmo link por WhatsApp (válido por 1 hora; depois, a pessoa usa "Esqueci a senha" na tela de entrada) ou reenviar pela lista abaixo.</p></div>
         <div><div class="eyebrow" style="margin-bottom:8px">Convites e usuários</div><div class="tbl"><table class="ptable" id="kt-ul"><tr><td style="color:var(--muted)">Carregando…</td></tr></table></div></div>
         <div class="card" style="display:flex;flex-direction:column;gap:8px"><h3>Dados de demonstração</h3><p class="sub" style="margin:0">Carrega os fornecedores e contratos marcados EXEMPLO para o teste. Podem ser excluídos depois.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn sm" id="kt-seed">Carregar dados de exemplo</button><button type="button" class="btn sm ghost" id="kt-unseed">Apagar dados de exemplo</button></div></div>
         <div class="card" id="kt-mig" style="display:flex;flex-direction:column;gap:8px" hidden><h3>Registros sem cliente</h3><div id="kt-mig-b" class="sub" style="margin:0"></div></div>
@@ -208,12 +209,35 @@ const KT_FB = !KT_AUTH ? null : {
       const active = new Set(us.docs.map(d => (d.data().email || "").toLowerCase()));
       const rows = inv.docs.map(d => ({email:d.id, ...d.data()}));
       us.docs.forEach(d => { const u = d.data(); if (!rows.some(r => r.email === u.email)) rows.push({...u, _uid:d.id}); });
-      $("#kt-ul").innerHTML = `<thead><tr><th>E-mail</th><th>Cliente</th><th>Perfil</th><th>Situação</th><th></th></tr></thead><tbody>${rows.map(r => `<tr><td><b>${esc(r.nome || "")}</b><div class="mono" style="font-size:12px">${esc(r.email)}</div><div style="font-size:11.5px;color:var(--muted)">${esc(r.empresa || "")}</div></td><td style="font-size:12.5px">${r.role === "admin" ? "Kinsey BR (todos)" : r.clienteId ? esc(((KT_FB.clientes || []).find(c => c.id === r.clienteId) || {}).nome || r.clienteNome || "—") : '<span style="color:var(--warn)">sem cliente: salve o convite de novo escolhendo o cliente</span>'}</td><td>${esc(KT_ROLES[r.role] || r.role || "—")}</td><td>${active.has(r.email) ? '<span class="pill r-baixo">Ativo</span>' : '<span class="pill r-pend">Convidado</span>'}</td><td>${KT_ADMINS.includes(r.email) ? "" : `<button type="button" class="btn sm bad" data-rm="${esc(r.email)}">Remover</button>`}</td></tr>`).join("") || `<tr><td colspan="5" style="color:var(--muted)">Nenhum convite ainda.</td></tr>`}</tbody>`;
+      $("#kt-ul").innerHTML = `<thead><tr><th>E-mail</th><th>Cliente</th><th>Perfil</th><th>Situação</th><th></th></tr></thead><tbody>${rows.map(r => `<tr><td><b>${esc(r.nome || "")}</b><div class="mono" style="font-size:12px">${esc(r.email)}</div><div style="font-size:11.5px;color:var(--muted)">${esc(r.empresa || "")}</div></td><td style="font-size:12.5px">${r.role === "admin" ? "Kinsey BR (todos)" : r.clienteId ? esc(((KT_FB.clientes || []).find(c => c.id === r.clienteId) || {}).nome || r.clienteNome || "—") : '<span style="color:var(--warn)">sem cliente: salve o convite de novo escolhendo o cliente</span>'}</td><td>${esc(KT_ROLES[r.role] || r.role || "—")}</td><td>${active.has(r.email) ? '<span class="pill r-baixo">Ativo</span>' : '<span class="pill r-pend">Convidado</span>'}</td><td>${KT_ADMINS.includes(r.email) ? "" : `${active.has(r.email) ? "" : `<button type="button" class="btn sm" data-reinv="${esc(r.email)}" data-nome="${esc(r.nome || "")}" data-tel="${esc(r.tel || "")}" style="margin-right:6px">Reenviar</button>`}<button type="button" class="btn sm bad" data-rm="${esc(r.email)}">Remover</button>`}${r.enviadoEm ? `<div class="sub" style="font-size:11px;margin:4px 0 0">enviado ${new Date(r.enviadoEm).toLocaleString("pt-BR", {dateStyle:"short", timeStyle:"short"})}</div>` : ""}</td></tr>`).join("") || `<tr><td colspan="5" style="color:var(--muted)">Nenhum convite ainda.</td></tr>`}</tbody>`;
       $$("[data-rm]", $("#kt-ul")).forEach(b => b.onclick = () => confirmBox(`Remover o acesso de ${b.dataset.rm}?`, "Remover", async () => {
         await db.collection("invites").doc(b.dataset.rm).delete().catch(() => {});
         const q = await db.collection("users").where("email", "==", b.dataset.rm).get(); await Promise.all(q.docs.map(d => d.ref.delete()));
         toast("Acesso removido"); listU(); }));
+      $$("[data-reinv]", $("#kt-ul")).forEach(b => b.onclick = () => enviarConvite(b.dataset.reinv, b.dataset.nome, b.dataset.tel));
     };
+    /* envio do convite: cria a conta no servidor, dispara o e-mail do Firebase e oferece WhatsApp e cópia do link */
+    const telFmt = t => { const d = String(t || "").replace(/\D/g, ""); return d.length >= 10 && d.length <= 11 ? "55" + d : d.length >= 12 ? d : ""; };
+    async function enviarConvite(email, nome, tel){
+      const box = $("#kt-envio") || document.body; box.innerHTML = `<div class="banner" style="font-size:13px">Enviando o convite para <b>${esc(email)}</b>…</div>`; box.scrollIntoView?.({block:"nearest"});
+      const app = location.origin + "/", nm = (nome || "").split(" ")[0];
+      let link = "", erroFn = "", emailOk = false, erroMail = "";
+      try{ const r = await firebase.app().functions("southamerica-east1").httpsCallable("convidar", {timeout:60000})({email, nome, url:app}); link = r.data?.link || ""; }
+      catch(e){ const c = String(e?.code || ""); erroFn = /not-found/.test(c) ? "a função convidar ainda não foi publicada (republique o sistema com as funções)" : /permission/.test(c) ? "só o administrador envia convites" : (e?.message || "falha no servidor"); }
+      try{ await KT_AUTH.auth.sendPasswordResetEmail(email, {url:app}).catch(e => { if (/continue-uri|unauthorized|invalid-continue/i.test(String(e?.code || ""))) return KT_AUTH.auth.sendPasswordResetEmail(email); throw e; }); emailOk = true; }
+      catch(e){ const c = String(e?.code || ""); erroMail = /user-not-found/.test(c) ? "a conta ainda não existe (o servidor não criou o acesso)" : /too-many|quota/.test(c) ? "limite de e-mails do Firebase atingido; tente mais tarde ou use o WhatsApp" : (e?.message || "falha no envio"); }
+      const msg = `Olá${nm ? ", " + nm : ""}! Você foi convidado(a) para acessar o KinseyTec – M&A.\n\n` + (link ? `1) Crie sua senha neste link (válido por 1 hora):\n${link}\n\n2) Depois entre em ${app} com o e-mail ${email} e a senha criada.` : `Entre em ${app} com o e-mail ${email}: toque em "Primeiro acesso" para criar a senha (ou "Esqueci a senha", se já tiver conta).`) + `\n\nSe o link expirar, use "Esqueci a senha" na tela de entrada.`;
+      const t = telFmt(tel);
+      box.innerHTML = `<div class="card" style="display:flex;flex-direction:column;gap:8px;padding:12px;border-color:${emailOk ? "var(--ok)" : "var(--warn)"}">
+        <div style="font-size:13.5px">${emailOk ? `<b style="color:var(--ok)">✓ E-mail enviado</b> para ${esc(email)}: a pessoa recebe "Redefina sua senha" e cria a senha de acesso. Peça para olhar também o spam e a aba Promoções.` : `<b style="color:var(--warn)">E-mail não enviado:</b> ${esc(erroMail)}.`}</div>
+        ${erroFn ? `<div class="sub" style="margin:0;font-size:12.5px">Link de senha indisponível: ${esc(erroFn)}. A mensagem de WhatsApp leva o endereço do sistema e o passo a passo.</div>` : ""}
+        <div class="fld" style="margin:0"><label for="kt-wtel">WhatsApp (DDD + número)</label><input id="kt-wtel" inputmode="tel" value="${esc(tel || "")}" placeholder="(11) 98765-4321"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn sm primary" id="kt-wa">Enviar por WhatsApp</button><button type="button" class="btn sm" id="kt-cp">Copiar mensagem</button>${emailOk ? "" : `<button type="button" class="btn sm" id="kt-re">Tentar o e-mail de novo</button>`}</div></div>`;
+      $("#kt-wa").onclick = () => { const n = telFmt($("#kt-wtel").value); if (!n){ toast("Informe o WhatsApp com DDD"); return; } if (n !== t) db.collection("invites").doc(email).set({tel:$("#kt-wtel").value.trim()}, {merge:true}).catch(() => {}); window.open(`https://wa.me/${n}?text=${encodeURIComponent(msg)}`, "_blank", "noopener"); };
+      $("#kt-cp").onclick = () => { navigator.clipboard?.writeText(msg).then(() => toast("Mensagem copiada"), () => toast("Não foi possível copiar")); };
+      const re = $("#kt-re"); if (re) re.onclick = () => enviarConvite(email, nome, $("#kt-wtel").value);
+      listU();
+    }
     listU();
     $("#kt-inv").onsubmit = async e => { e.preventDefault();
       const email = $("#kt-ie").value.trim().toLowerCase(), role = $("#kt-ir").value;
@@ -221,9 +245,10 @@ const KT_FB = !KT_AUTH ? null : {
       const clienteId = role === "admin" ? "" : $("#kt-icli").value, cli = (KT_FB.clientes || []).find(c => c.id === clienteId);
       if (role !== "admin" && !clienteId){ $("#kt-ierr").textContent = "Escolha o cliente deste usuário (só administradores ficam sem cliente)."; $("#kt-ierr").hidden = false; return; }
       $("#kt-ierr").hidden = true;
-      await db.collection("invites").doc(email).set({role, nome:$("#kt-in").value.trim(), empresa:$("#kt-ic").value.trim() || (cli ? cli.nome : ""), clienteId, clienteNome: cli ? cli.nome : "", em:new Date().toISOString(), por:KT_FB.me.email});
+      const tel = ($("#kt-itel")?.value || "").trim(), nomeI = $("#kt-in").value.trim();
+      await db.collection("invites").doc(email).set({role, nome:nomeI, empresa:$("#kt-ic").value.trim() || (cli ? cli.nome : ""), clienteId, clienteNome: cli ? cli.nome : "", ...(tel ? {tel} : {}), em:new Date().toISOString(), por:KT_FB.me.email}, {merge:true});
       const q = await db.collection("users").where("email", "==", email).get(); await Promise.all(q.docs.map(d => d.ref.set({role, clienteId, clienteNome: cli ? cli.nome : ""}, {merge:true})));
-      toast("Convite salvo. Envie o link à pessoa."); $("#kt-ie").value = ""; $("#kt-in").value = ""; $("#kt-ic").value = ""; listU(); };
+      $("#kt-ie").value = ""; $("#kt-in").value = ""; $("#kt-ic").value = ""; if ($("#kt-itel")) $("#kt-itel").value = ""; listU(); enviarConvite(email, nomeI, tel); };
     $("#kt-seed").onclick = async () => { const b = $("#kt-seed"); b.disabled = true; b.textContent = "Carregando…";
       if (!KT_FB.cid){ toast("Cadastre ou escolha um cliente antes."); b.disabled = false; b.textContent = "Carregar dados de exemplo"; return; }
       const pre = KT_FB.cid + "_", SEEDS = (window.SEED || []).map(([c, id, body]) => { const x = JSON.parse(JSON.stringify(body).replace(/"(ex-[^"]*)"/g, (m, v) => '"' + pre + v + '"')); if (KT_FB.SCOPED.includes(c)) x.clienteId = KT_FB.cid; return [c, c === "config" ? id + "__" + KT_FB.cid : (String(id).startsWith("ex-") ? pre + id : id), x]; });
