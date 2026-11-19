@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v3.07 — 2026-11-19 · Workbook de Due Diligence já montado com as informações do sistema
+- O workbook exportado segue a estrutura dos relatórios de diligência Kinsey e já vem preenchido desde o cadastro: Sumário (reportado × ajustado de receita, EBITDA, dívida líquida, capital de giro, PL e lucro), Posição patrimonial comparativa, DRE comparativa, Análise do EBITDA (do reportado ao ajustado, ajuste por ajuste), Capital de giro (NCG, prazos, ciclo e média mensal para o peg), Endividamento (dívida bancária, itens equivalentes a dívida, DL/EBITDA e cobertura de juros), Revisão analítica, balancetes, Ajustes, Contingências, Conferências e Pontos.
+- Ajustes, contingências e pontos do sistema já vêm nas abas de trabalho, com as colunas Situação e Ref. sistema: o consultor mantém, altera o valor ou escreve "Excluir"; linhas novas entram como ajustes do workbook. Na importação, cada linha atualiza o registro de origem, sem duplicar.
+- Períodos só com balanço (sem DRE) ficam em branco nas linhas de resultado. Contingências ficam à parte do EBITDA e da dívida.
+
 ## v3.06 — 2026-11-19 · Due Diligence puxa e analisa os documentos do início
 - Ao abrir Due Diligence, Análises financeiras, Valuation, Jurídico, Pós-aquisição ou Impairment, tudo o que foi importado no início e ainda não foi analisado passa sozinho pela análise automática completa: balanços, DRE, balancetes e ECD/ECF viram períodos da Due Diligence (e seguem para valuation e análises); contrato social, cartão CNPJ e certidões vão para o jurídico, o cadastro e o checklist.
 - Documentos enviados por qualquer caminho (Importação de documentos, Evidências, dossiê) entram nessa leitura. Trabalho novo (fora da Órbita) é outro cadastro e usa só os próprios documentos.
