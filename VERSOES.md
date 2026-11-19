@@ -1,5 +1,9 @@
 # Registro de versões
 
+## v3.18 — 2026-11-19 · Nova ordem do menu
+- Menu na ordem do trabalho: Prospecção, Base inicial, Órbita, Análises financeiras, Valuation, Due Diligence, Jurídico, PPA, Avaliação de ativos, Impairment e Relatórios.
+- "Pós-aquisição" aparece como "PPA" e "Apresentação" como "Relatórios" (a tela que consolida todos os relatórios, teaser e apresentação).
+
 ## v3.17 — 2026-11-19 · Prospecção com filtros recolhidos
 - A busca por nome ou CNPJ fica à vista; segmento, região, estado, tipo, origem, investidor, responsável e "Sou" ficam dentro do botão "Filtros", que abre e fecha e mostra quantos filtros estão em uso.
 - No celular, as abas de situação (Ativos, Livres, Novos…) e de modo (Lista, Consulta geral, Consulta rápida) ficam numa linha só, que rola para o lado.

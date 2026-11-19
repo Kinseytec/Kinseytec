@@ -86,5 +86,16 @@ body.kt-compacto .topbar,body.kt-compacto .pricebar{display:none !important}}`;
   { const _rv2 = renderView; renderView = function(){ const r = _rv2.apply(this, arguments); try{ botoesFechar(); setTimeout(() => { try{ botoesFechar(); }catch(e){} }, 0); }catch(e){} return r; }; }
   if (typeof renderAuditoria === "function"){ const _ra2 = renderAuditoria; renderAuditoria = function(){ const r = _ra2.apply(this, arguments); try{ botoesFechar(); }catch(e){} return r; }; }
   if (typeof renderJuridico === "function"){ const _rj2 = renderJuridico; renderJuridico = function(){ const r = _rj2.apply(this, arguments); try{ botoesFechar(); }catch(e){} return r; }; }
+  /* ordem do menu: Prospecção, Base inicial, Órbita, Análises financeiras, Valuation, Due Diligence, Jurídico, PPA
+     (Pós-aquisição), Avaliação de ativos, Impairment e Relatórios (a Apresentação, que consolida todos os relatórios) */
+  const ORDEM = ["prospeccao", "cadeia", "orbita", "financas", "valuation", "auditoria", "juridico", "pos", "ativos", "impairment", "apresentacao"];
+  function ordenaMenu(){ const nav = $("nav.tabs"); if (!nav) return; let mudou = false;
+    ORDEM.forEach(v => { const b = nav.querySelector(`[data-go="${v}"]`); if (b){ nav.appendChild(b); mudou = true; } });
+    [...nav.children].forEach(b => { if (!ORDEM.includes(b.dataset?.go)) nav.appendChild(b); }); /* ocultos ficam no fim */
+    const ap = nav.querySelector('[data-go="apresentacao"]'); if (ap && !ap.dataset.rot){ ap.dataset.rot = "1"; const t = [...ap.childNodes].find(n => n.nodeType === 3 && n.textContent.trim()); if (t) t.textContent = "Relatórios"; ap.title = "Relatórios e apresentação"; }
+    const pos = nav.querySelector('[data-go="pos"]'); if (pos && !pos.dataset.rot){ pos.dataset.rot = "1"; const t = [...pos.childNodes].find(n => n.nodeType === 3 && n.textContent.trim()); if (t) t.textContent = "PPA"; pos.title = "Pós-aquisição · PPA"; }
+    return mudou; }
+  ordenaMenu(); setTimeout(ordenaMenu, 0); setTimeout(ordenaMenu, 1600);
+  { const _ra3 = renderAll; renderAll = function(){ const r = _ra3.apply(this, arguments); try{ ordenaMenu(); }catch(e){} return r; }; }
   window.KT_ALVO = {usar, trocar, fecharTela, get atual(){ return alvo; }};
 })();
