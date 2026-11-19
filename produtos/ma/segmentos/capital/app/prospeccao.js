@@ -804,5 +804,24 @@ if (window.KT_DD) (() => {
       $$("[data-pfdel]", host).forEach(x => x.onclick = () => { const p = S.prospects.find(q => q.id === x.dataset.pfdel); if (p && confirm(`Excluir ${p.nome} do standby?`)) save(Store.del("prospects", p.id)).then(() => renderView()); });
     }; }
   function bindAbas(host){ $$("[data-praba]", host).forEach(x => x.onclick = () => { S.prosAba = x.dataset.praba; renderView(); }); }
+  /* tela mais limpa: a busca fica à vista; segmento, região, estado, tipo, origem, investidor, responsável e "Sou" ficam
+     dentro de "Filtros" (abre e fecha, mostrando quantos estão em uso); abas de situação e de modo em uma linha que rola. */
+  function compacta(host){
+    const fil = host.querySelector(".pr-filtros"), q = host.querySelector("#pr-q"); if (!fil || !q || host.querySelector(".pr-fbox")) return;
+    const linha = q.parentElement, F = S.prosF, n = ["seg", "rg", "uf", "tp", "or", "inv", "resp"].filter(k => F[k]).length;
+    const box = document.createElement("div"); box.className = "pr-fbox";
+    box.innerHTML = `<div class="pr-fbar"><div class="pr-qw"></div><button type="button" class="btn sm pr-ftog" aria-expanded="${S.prosFilAb ? "true" : "false"}">Filtros${n ? ` <span class="pr-fn">${n}</span>` : ""} <span aria-hidden="true">${S.prosFilAb ? "▲" : "▼"}</span></button></div><div class="pr-fcorpo" ${S.prosFilAb ? "" : "hidden"}></div>`;
+    fil.before(box); const corpo = box.querySelector(".pr-fcorpo"); box.querySelector(".pr-qw").appendChild(q);
+    corpo.appendChild(fil); const ativo = fil.nextElementSibling && fil.nextElementSibling !== linha && !fil.nextElementSibling.classList.contains("dd-tabs") ? fil.nextElementSibling : null; if (ativo) box.after(ativo);
+    const resto = document.createElement("div"); resto.className = "pr-fsel"; [...linha.children].forEach(c => resto.appendChild(c)); linha.remove(); corpo.appendChild(resto);
+    box.querySelector(".pr-ftog").onclick = () => { S.prosFilAb = !S.prosFilAb; const ab = S.prosFilAb; corpo.hidden = !ab; const t = box.querySelector(".pr-ftog"); t.setAttribute("aria-expanded", String(ab)); t.lastElementChild.textContent = ab ? "▲" : "▼"; };
+  }
+  { const _v2 = EXT_VIEWS.prospeccao; EXT_VIEWS.prospeccao = function(){ const r = _v2.apply(this, arguments); const host = $("#prospeccao"); if (host && S.prosAba === "pros"){ try{ compacta(host); }catch(e){ console.warn(e); } } return r; }; }
+  { const st2 = document.createElement("style"); st2.textContent = `.pr-fbar{display:flex;gap:8px;align-items:center}.pr-qw{flex:1;min-width:0}.pr-qw input{width:100%}
+.pr-ftog{flex:none;white-space:nowrap}.pr-fn{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:9px;background:#F2C14E;color:#1b1300;font-size:11px;font-weight:700;padding:0 5px}
+.pr-fcorpo{display:flex;flex-direction:column;gap:10px;margin-top:10px;padding:12px;border:1px solid rgba(242,193,78,.35);border-radius:12px;background:rgba(255,255,255,.02)}
+.pr-fsel{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;align-items:center}.pr-fsel select,.pr-fsel label{width:100%;min-width:0}
+@media (max-width:760px){#prospeccao .dd-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:2px}#prospeccao .dd-tabs::-webkit-scrollbar{display:none}#prospeccao .dd-tabs .fbtn{flex:0 0 auto;white-space:nowrap}
+.pr-fsel{grid-template-columns:1fr}}`; document.head.appendChild(st2); }
   window.KT_PROS = {PRES, frequencia, consultaGeral, consultaRapida, juntar, buscarLista, porMes, comparativo, painel, atividade, naOrbita, paraApresentar, ehInv, aderentes, paraInvestidor, cadencia, membros, incluir, deBase, promover, ficha, regras, equipe, meritoDe, livre, duplicado};
 })();

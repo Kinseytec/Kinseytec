@@ -1,5 +1,9 @@
 # Registro de versões
 
+## v3.17 — 2026-11-19 · Prospecção com filtros recolhidos
+- A busca por nome ou CNPJ fica à vista; segmento, região, estado, tipo, origem, investidor, responsável e "Sou" ficam dentro do botão "Filtros", que abre e fecha e mostra quantos filtros estão em uso.
+- No celular, as abas de situação (Ativos, Livres, Novos…) e de modo (Lista, Consulta geral, Consulta rápida) ficam numa linha só, que rola para o lado.
+
 ## v3.16 — 2026-11-19 · Prospecção em abas e política de faturamento mínimo
 - Prospecção com abas: Prospecção (lista e controle), Cadastros gerais de times (sócios, time de M&A, novos negócios e SDR, com "Editar equipe" e "Regras de mérito"), Importações gerais (importar listas, prospectar para investidor, consulta rápida e o histórico das listas importadas) e Fora da política.
 - Política Kinsey nas importações: empresa com faturamento abaixo de R$ 15 milhões não entra na prospecção; vai para "Fora da política" (standby), fora das listas e dos contadores do time. Sem faturamento informado, a empresa entra e o time confere.
