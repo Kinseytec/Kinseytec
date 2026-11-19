@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v3.13 — 2026-11-19 · Faixa do mercado com PIB, Ibovespa, Bitcoin e ações do setor
+- Faixa do topo: PIB realizado (variação real do último ano, IBGE via Banco Central) e PIB projetado do ano (Focus), além de Ibovespa, dólar, Selic, CDI, IPCA e Bitcoin (com fonte reserva quando a principal falhar).
+- Com uma empresa em consulta, a faixa mostra as 5 principais ações do setor dela, com preço e variação do dia. O setor é identificado pela atividade: frigoríficos (JBS, MBRF, Minerva), laticínios e bebidas, hospitais e planos (Hapvida, Rede D'Or, Odontoprev…), farmácias e medicamentos, diagnósticos, terceirização e facilities, além dos setores gerais (alimentos, saúde, agro, indústria, tecnologia, serviços, logística, educação, construção, varejo, energia, financeiro, óleo e gás, mineração).
+- As mesmas informações vão para o quadro de mercado das Análises financeiras, para a Apresentação (quadro "Mercado e setor") e para os relatórios em PDF (análises financeiras e apresentação pós-NDA).
+
 ## v3.12 — 2026-11-19 · Abas com cores diferentes
 - Abas de cada área mantêm o contorno amarelo, mas cada uma tem a sua cor (ex.: PPA azul, Base de modelos verde; no Valuation, Síntese, Base, FCD, Múltiplos e Dívida líquida em cores distintas). A aba escolhida fica preenchida com a sua cor e contorno amarelo.
 - No menu, Pós-aquisição (PPA) com ícone azul e Impairment com ícone coral.

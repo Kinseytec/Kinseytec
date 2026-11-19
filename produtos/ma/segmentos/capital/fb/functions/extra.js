@@ -54,6 +54,7 @@ module.exports = ({db, logger, onSchedule, F}) => {
     const erros = [], tenta = async (k, f) => { try{ return await f(); }catch(e){ erros.push(k + ": " + e.message); return null; } };
     const [selic, cdi, ipca12, ptax] = await Promise.all([432, 4389, 13522, 1].map(s => tenta("sgs" + s, () => serie(s))));
     const atual = {em:new Date().toISOString(), fonte:"Banco Central do Brasil (SGS e Focus)", selic:selic?.v, cdi:cdi?.v, ipca12:ipca12?.v, ipca12ref:ipca12?.data?.slice(3), ptax:ptax?.v, ust10:await tenta("treasury", treasury10)};
+    const pib = await tenta("pib", () => serie(7326)); if (pib) { atual.pib = pib.v; atual.pibRef = String(pib.data || "").slice(-4); }
     atual.ibov = await tenta("ibovespa", async () => Math.round((await json("https://query1.finance.yahoo.com/v8/finance/chart/%5EBVSP?range=5d&interval=1d")).chart.result[0].meta.regularMarketPrice));
     const segs = new Set(); (await db.collection("suppliers").where("nivel", "==", "N3").get()).forEach(d => { const s = d.data().perfil?.segmento || d.data().segmento; if (s) segs.add(s); });
     const noticias = (await tenta("noticias", async () => [...await rss("Copom Selic juros"), ...await rss("IPCA inflação expectativas"), ...await rss("dólar câmbio Banco Central", 4)])) || [];
@@ -98,15 +99,27 @@ module.exports = ({db, logger, onSchedule, F}) => {
   async function cot(sym){ const j = await json(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=5d&interval=1d`), m = j.chart.result[0].meta, v = m.regularMarketPrice, a = m.chartPreviousClose ?? m.previousClose;
     return {v, var:a ? v / a - 1 : null, em:m.regularMarketTime ? new Date(m.regularMarketTime * 1000).toISOString() : null}; }
   const INDICES = [["ibov", "^BVSP", "Ibovespa"], ["smll", "SMLL.SA", "Small caps (SMLL)"], ["ifix", "IFIX.SA", "IFIX"], ["usd", "USDBRL=X", "Dólar"], ["eur", "EURBRL=X", "Euro"], ["spx", "^GSPC", "S&P 500"], ["ndx", "^IXIC", "Nasdaq"], ["brent", "BZ=F", "Petróleo Brent"], ["ouro", "GC=F", "Ouro"], ["btc", "BTC-USD", "Bitcoin"]];
+  /* setores com as principais ações da B3 (lista fixa, revisável): garante as 5 maiores do setor mesmo sem a base da CVM.
+     Subsetores (frigoríficos, hospitais, farmácias…) são escolhidos pela atividade da empresa consultada. */
+  const SETORES_B3 = {
+    "Saúde":["HAPV3", "RDOR3", "ODPV3", "FLRY3", "QUAL3"], "Saúde · hospitais e planos":["HAPV3", "RDOR3", "ODPV3", "MATD3", "QUAL3"], "Saúde · farmácias e medicamentos":["RADL3", "PGMN3", "HYPE3", "BLAU3", "PNVL3"], "Saúde · diagnósticos":["FLRY3", "DASA3", "RDOR3", "HAPV3", "ODPV3"],
+    "Alimentos":["JBSS3", "MBRF3", "BEEF3", "CAML3", "MDIA3"], "Alimentos · frigoríficos e proteína animal":["JBSS3", "MBRF3", "BEEF3"], "Alimentos · laticínios e bebidas":["ABEV3", "MDIA3", "CAML3", "JBSS3", "MBRF3"],
+    "Agro":["SLCE3", "SMTO3", "AGRO3", "SOJA3", "TTEN3"], "Industrial":["WEGE3", "EMBR3", "RAPT4", "TUPY3", "KEPL3"], "Tecnologia":["TOTS3", "LWSA3", "POSI3", "INTB3", "CASH3"],
+    "Serviços":["GGPS3", "VLID3", "RENT3", "MOVI3", "VAMO3"], "Serviços · terceirização e facilities":["GGPS3", "VLID3", "ATMP3"], "Logística":["RAIL3", "JSLG3", "SIMH3", "VAMO3", "TGMA3"],
+    "Educação":["COGN3", "YDUQ3", "CSED3", "ANIM3", "SEER3"], "Construção":["CYRE3", "EZTC3", "MRVE3", "DIRR3", "CURY3"], "Varejo":["MGLU3", "LREN3", "ASAI3", "CRFB3", "RADL3"],
+    "Energia":["ELET3", "EQTL3", "CPFE3", "EGIE3", "CMIG4"], "Financeiro":["ITUB4", "BBDC4", "BBAS3", "BPAC11", "SANB11"], "Óleo e gás":["PETR4", "PRIO3", "VBBR3", "UGPA3", "RECV3"], "Mineração e siderurgia":["VALE3", "GGBR4", "CSNA3", "USIM5", "GOAU4"]};
   async function gravarBolsa(){
     const erros = [], tenta = async (k, fn) => { try{ return await fn(); }catch(e){ erros.push(k + ": " + e.message); return null; } }, espera = ms => new Promise(r => setTimeout(r, ms));
     const indices = {}; for (const [k, sym, nome] of INDICES){ const c = await tenta(k, () => cot(sym)); if (c) indices[k] = {...c, nome, sym}; await espera(150); }
+    if (!indices.btc){ const g = await tenta("btc coingecko", async () => (await json("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,brl&include_24hr_change=true")).bitcoin); if (g?.usd) indices.btc = {v:g.usd, brl:g.brl || null, var:g.usd_24h_change != null ? g.usd_24h_change / 100 : null, nome:"Bitcoin", sym:"coingecko"}; }
     const comp = (await db.doc("cotacoes/comparaveis").get()).data()?.lista || [], porSeg = {}, escolhidas = new Map();
     comp.forEach(c => (porSeg[c.seg] ||= []).push(c));
     Object.values(porSeg).forEach(L => L.sort((a, b) => (b.mcap || 0) - (a.mcap || 0)).slice(0, 5).forEach(c => escolhidas.set(c.ticker, c)));
     comp.slice().sort((a, b) => (b.mcap || 0) - (a.mcap || 0)).slice(0, 40).forEach(c => escolhidas.set(c.ticker, c));
+    const fixas = [...new Set(Object.values(SETORES_B3).flat())].filter(t => !escolhidas.has(t)); fixas.forEach(t => escolhidas.set(t, {ticker:t, nome:(comp.find(c => c.ticker === t) || {}).nome || t, seg:"", mcap:(comp.find(c => c.ticker === t) || {}).mcap || null, preco:null}));
     const acoes = []; for (const c of escolhidas.values()){ const q = await tenta(c.ticker, () => cot(c.ticker + ".SA")); if (q) acoes.push({ticker:c.ticker, nome:c.nome, seg:c.seg, preco:q.v, var:q.var, mcap:c.preco ? c.mcap / c.preco * q.v : c.mcap}); await espera(120); }
-    const setores = {}; acoes.forEach(a => (setores[a.seg] ||= []).push(a)); Object.keys(setores).forEach(k => { setores[k] = setores[k].sort((a, b) => (b.mcap || 0) - (a.mcap || 0)).slice(0, 5); });
+    const setores = {}; acoes.filter(a => a.seg).forEach(a => (setores[a.seg] ||= []).push(a)); Object.keys(setores).forEach(k => { setores[k] = setores[k].sort((a, b) => (b.mcap || 0) - (a.mcap || 0)).slice(0, 5); });
+    const porT = Object.fromEntries(acoes.map(a => [a.ticker, a])); Object.entries(SETORES_B3).forEach(([k, L]) => { const X = L.map(t => porT[t]).filter(Boolean); if (X.length >= Math.min(3, L.length)) setores[k] = X.slice(0, 5); });
     const ord = acoes.filter(a => a.var != null).sort((a, b) => b.var - a.var);
     await db.doc("cotacoes/bolsa").set({em:new Date().toISOString(), fonte:"Yahoo Finance (cotações com atraso de até 15 minutos), CVM e B3", indices, setores, altas:ord.slice(0, 5), baixas:ord.slice(-5).reverse(), erros:erros.slice(0, 20)});
     logger.info("bolsa", {indices:Object.keys(indices).length, acoes:acoes.length, erros:erros.length}); return {indices:Object.keys(indices).length, acoes:acoes.length, erros:erros.length};

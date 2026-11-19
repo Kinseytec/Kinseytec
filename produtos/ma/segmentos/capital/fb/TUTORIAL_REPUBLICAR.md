@@ -1,8 +1,8 @@
-# KinseyTec – M&A · tutorial para republicar (versão 3.12)
+# KinseyTec – M&A · tutorial para republicar (versão 3.13)
 
 O sistema já está publicado. Republicar **substitui** a versão no ar e **não apaga nenhum dado**: empresas, documentos, balancetes, análises e usuários continuam. Tempo: cerca de 10 minutos, tudo no navegador.
 
-Arquivo: **KinseyTec_MA_Firebase.zip** (está dentro do pacote KinseyTec_MA_publicacao_v3.12.zip; não envie o pacote inteiro, só este arquivo).
+Arquivo: **KinseyTec_MA_Firebase.zip** (está dentro do pacote KinseyTec_MA_publicacao_v3.13.zip; não envie o pacote inteiro, só este arquivo).
 
 ## Republicar agora (passo a passo)
 1. Entre em **console.cloud.google.com** com a conta da Kinsey e escolha o projeto **kinsey-capital-ma** no topo.
@@ -24,7 +24,7 @@ npx -y firebase-tools@13 deploy --project kinsey-capital-ma
 
 5. Pronto quando aparecer **Deploy complete!**. Atualize a página do sistema; no celular, feche e abra o aplicativo.
 
-## Importante nesta versão (3.12, inclui as versões 3.03 a 3.11)
+## Importante nesta versão (3.13, inclui as versões 3.03 a 3.12)
 Esta versão corrige o problema de os documentos não serem reconhecidos nem analisados no sistema publicado. **As funções precisam ser publicadas junto** (o comando de deploy acima já publica tudo): a leitura dos arquivos agora passa por uma função nova do servidor, chamada **lerArquivo**. Se o deploy das funções falhar, me envie a mensagem: sem ela, a análise automática continua sem conseguir abrir os documentos guardados.
 
 **Não é problema de assinatura.** O plano Blaze já está ativo (as funções agendadas de mercado e cotações só rodam nele). O que acontecia:
@@ -48,6 +48,7 @@ npx -y firebase-tools@13 deploy --project kinsey-capital-ma --only hosting,fires
 ```
 
 ## Conferência (2 minutos)
+- **Faixa do mercado:** PIB, Ibovespa e Bitcoin; com a Tallenty ou a Futura em consulta, aparecem as 5 principais ações do setor. As cotações das ações são gravadas pelo servidor a cada 30 minutos no pregão; para atualizar na hora, use Indicadores › Atualizar agora (administrador).
 - **Valuation da Tallenty:** sem pedir importação; aparece o valor da empresa a partir dos balanços do dossiê (ou o botão "Analisar documentos do dossiê").
 - **Fechar:** em qualquer área, × no canto superior direito e "Fechar esta tela" no fim.
 - **Due Diligence › Workbook preenchido (Excel):** a planilha já vem com Sumário, Posição patrimonial, DRE, Análise do EBITDA, Capital de giro, Endividamento e os ajustes do sistema.
