@@ -1,5 +1,8 @@
 # Registro de versões
 
+## v3.10 — 2026-11-19 · Abas e flags em amarelo
+- Abas e flags de todas as áreas (Síntese, Base, FCD, Múltiplos, Dívida líquida, Relatório; filtros e abas da Prospecção, da Due Diligence, do dossiê etc.) passam a usar o amarelo da marca: letra e contorno amarelos; a aba escolhida fica preenchida em amarelo com letra escura.
+
 ## v3.09 — 2026-11-19 · Valuation usa os balanços que já estão no dossiê
 - O card "Relatório de valuation" não pede mais para importar de novo: mostra quantos documentos financeiros já estão no dossiê, analisa sozinho ao abrir e tem o botão "Analisar documentos do dossiê". "Importar outro balanço" fica como alternativa; em trabalho novo (fora da Órbita), continua "Importar balanços".
 - Análises financeiras e Due Diligence sem balancete mostram o mesmo aviso, com o botão de análise.

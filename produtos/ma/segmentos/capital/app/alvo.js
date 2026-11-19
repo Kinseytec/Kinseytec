@@ -53,6 +53,12 @@ if (window.KT_DD) (() => {
     else host.appendChild(host.querySelector(":scope > .vw-fim")); /* sempre por último */
     $$(".vw-x", host).forEach(b => b.onclick = fecharTela);
   }
+  /* abas e flags (Síntese, Base, FCD, filtros…) com o amarelo da marca para destacar */
+  css.textContent += `.fbtn,.stabs button,.dd-tabs button.fbtn{color:#F2C14E;border-color:rgba(242,193,78,.45)}
+.fbtn:hover,.stabs button:hover{color:#FFD873;border-color:rgba(242,193,78,.8)}
+.fbtn[aria-pressed="true"],.dd-tabs .fbtn[aria-pressed="true"]{color:#1b1300 !important;background:#F2C14E !important;border-color:#F2C14E !important;box-shadow:0 0 0 1px rgba(242,193,78,.35),0 0 14px rgba(242,193,78,.25)}
+.stabs button{border-bottom-color:transparent}.stabs button[aria-selected="true"]{color:#F2C14E;border-bottom-color:#F2C14E}
+.fbtn:disabled{opacity:.45}`;
   css.textContent += `.vw-top{display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:6;margin:-4px 0 8px;padding:6px 0;background:linear-gradient(var(--bg,#011F4B) 70%,transparent)}
 .vw-top .sub{font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin:0}.alv-bar .vw-x{flex:none;margin-left:2px}
 .vw-fim{display:flex;justify-content:center;padding:18px 0 calc(18px + env(safe-area-inset-bottom,0px))}.vw-fim .btn{min-width:200px}`;
