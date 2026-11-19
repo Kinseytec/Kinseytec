@@ -1,8 +1,8 @@
-# KinseyTec – M&A · tutorial para republicar (versão 3.03)
+# KinseyTec – M&A · tutorial para republicar (versão 3.04)
 
 O sistema já está publicado. Republicar **substitui** a versão no ar e **não apaga nenhum dado**: empresas, documentos, balancetes, análises e usuários continuam. Tempo: cerca de 10 minutos, tudo no navegador.
 
-Arquivo: **KinseyTec_MA_Firebase.zip** (está dentro do pacote KinseyTec_MA_publicacao_v3.03.zip; não envie o pacote inteiro, só este arquivo).
+Arquivo: **KinseyTec_MA_Firebase.zip** (está dentro do pacote KinseyTec_MA_publicacao_v3.04.zip; não envie o pacote inteiro, só este arquivo).
 
 ## Republicar agora (passo a passo)
 1. Entre em **console.cloud.google.com** com a conta da Kinsey e escolha o projeto **kinsey-capital-ma** no topo.
@@ -24,7 +24,7 @@ npx -y firebase-tools@13 deploy --project kinsey-capital-ma
 
 5. Pronto quando aparecer **Deploy complete!**. Atualize a página do sistema; no celular, feche e abra o aplicativo.
 
-## Importante nesta versão (3.03)
+## Importante nesta versão (3.04, inclui a 3.03)
 Esta versão corrige o problema de os documentos não serem reconhecidos nem analisados no sistema publicado. **As funções precisam ser publicadas junto** (o comando de deploy acima já publica tudo): a leitura dos arquivos agora passa por uma função nova do servidor, chamada **lerArquivo**. Se o deploy das funções falhar, me envie a mensagem: sem ela, a análise automática continua sem conseguir abrir os documentos guardados.
 
 **Não é problema de assinatura.** O plano Blaze já está ativo (as funções agendadas de mercado e cotações só rodam nele). O que acontecia:
@@ -48,6 +48,7 @@ npx -y firebase-tools@13 deploy --project kinsey-capital-ma --only hosting,fires
 ```
 
 ## Conferência (2 minutos)
+- **Prospecção:** acima da busca, filtros "Segmento empresarial", "Região do Brasil" e "Estado (UF)"; na ficha da empresa, o segmento pode ser trocado.
 - **Base inicial → Importação de documentos:** escolha a Tallenty ou a Futura; aparece o **sininho** (amarelo: sem documentos; vermelho: documento com problema ou faltando; verde: tudo certo). Toque nele para ver os pontos; o botão **Analisar documentos** fica ao lado.
 - Na primeira abertura depois de republicar, os documentos já enviados são lidos de novo, uma vez, e os números aparecem no dossiê, na Due Diligence e no valuation.
 - O menu tem **Pós-aquisição** (PPA) e, logo depois, **Impairment**, com a pergunta "Cliente da Órbita?".
