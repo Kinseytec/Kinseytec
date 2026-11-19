@@ -1,5 +1,9 @@
 # Registro de versões
 
+## v3.08 — 2026-11-19 · Fechar a tela em todo lugar
+- Todas as áreas (Base inicial, Prospecção, Due Diligence, Análises financeiras, Valuation, Avaliação de ativos, Jurídico, Pós-aquisição, Impairment, Apresentação) têm um × no topo à direita, que fica visível ao rolar (na faixa "Em consulta" quando há empresa escolhida), e o botão "Fechar esta tela" no fim. Fechar volta para a tela de onde veio; sem histórico, volta para a Órbita.
+- Todas as janelas têm o × no topo e, quando não tinham botão de fechar embaixo, ganham "Fechar" no fim.
+
 ## v3.07 — 2026-11-19 · Workbook de Due Diligence já montado com as informações do sistema
 - O workbook exportado segue a estrutura dos relatórios de diligência Kinsey e já vem preenchido desde o cadastro: Sumário (reportado × ajustado de receita, EBITDA, dívida líquida, capital de giro, PL e lucro), Posição patrimonial comparativa, DRE comparativa, Análise do EBITDA (do reportado ao ajustado, ajuste por ajuste), Capital de giro (NCG, prazos, ciclo e média mensal para o peg), Endividamento (dívida bancária, itens equivalentes a dívida, DL/EBITDA e cobertura de juros), Revisão analítica, balancetes, Ajustes, Contingências, Conferências e Pontos.
 - Ajustes, contingências e pontos do sistema já vêm nas abas de trabalho, com as colunas Situação e Ref. sistema: o consultor mantém, altera o valor ou escreve "Excluir"; linhas novas entram como ajustes do workbook. Na importação, cada linha atualiza o registro de origem, sem duplicar.

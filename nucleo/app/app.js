@@ -458,6 +458,9 @@ function sheet(html, onClose){
   $("#layer").innerHTML = `<div class="scrim" id="scrim"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;
   const close = () => { $("#layer").innerHTML = ""; S.openSup = null; onClose && onClose(); };
   $("#scrim").addEventListener("click", e => { if (e.target.id==="scrim") close(); });
+  { const sh = $("#layer .sheet"), hd = sh && sh.querySelector(".sheet-h"), bd = sh && sh.querySelector(".sheet-b");
+    if (hd && !hd.querySelector("[data-x]")) hd.insertAdjacentHTML("beforeend", `<button type="button" class="x" data-x aria-label="Fechar">×</button>`);
+    if (bd && ![...sh.querySelectorAll("[data-x]")].some(b => !hd || !hd.contains(b))) bd.insertAdjacentHTML("beforeend", `<div class="sheet-fim"><button type="button" class="btn ghost" data-x>Fechar</button></div>`); }
   $$("#layer [data-x]").forEach(b => b.onclick = close);
   document.onkeydown = e => { if (e.key==="Escape" && $("#layer").innerHTML) close(); };
   return close;

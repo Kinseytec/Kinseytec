@@ -14,7 +14,7 @@ if (window.KT_DD) (() => {
   const _open = openSupplier; openSupplier = function(id){ usar(id, false); return _open.apply(this, arguments); };
 
   /* faixa "Em consulta" no topo das áreas */
-  const VIEWS = {auditoria:"#auditoria", financas:"#financas", valuation:"#valuation", apresentacao:"#apresentacao", juridico:"#juridico", pos:"#pos"};
+  const VIEWS = {auditoria:"#auditoria", financas:"#financas", valuation:"#valuation", apresentacao:"#apresentacao", juridico:"#juridico", pos:"#pos", impairment:"#impairment", ativos:"#ativos"};
   function trocar(){
     const L = D.targets().slice().sort((a, b) => (D.temBal(b) - D.temBal(a)) || String(a.nome).localeCompare(b.nome));
     const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Target em consulta</div><h2>Trocar de empresa</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
@@ -39,5 +39,25 @@ if (window.KT_DD) (() => {
   const _rv = renderView; renderView = function(){ const r = _rv.apply(this, arguments); try{ faixa(); }catch(e){} return r; };
   if (typeof renderAuditoria === "function"){ const _ra = renderAuditoria; renderAuditoria = function(){ const r = _ra.apply(this, arguments); try{ faixa(); }catch(e){} return r; }; }
   if (typeof renderJuridico === "function"){ const _rj = renderJuridico; renderJuridico = function(){ const r = _rj.apply(this, arguments); try{ faixa(); }catch(e){} return r; }; }
-  window.KT_ALVO = {usar, trocar, get atual(){ return alvo; }};
+  /* ---------- fechar a tela: × no topo à direita (fica visível ao rolar) e "Fechar esta tela" no fim ----------
+     Volta para a tela de onde veio; sem histórico, volta para a Órbita. */
+  const pilha = []; { const _go = go; go = function(v){ if (S.view && S.view !== v){ const i = pilha.indexOf(v); if (i >= 0) pilha.splice(i); else pilha.push(S.view); } return _go.apply(this, arguments); }; }
+  const NOMES = {cadeia:"Base inicial", prospeccao:"Prospecção", auditoria:"Due Diligence", financas:"Análises financeiras", valuation:"Valuation", ativos:"Avaliação de ativos", juridico:"Jurídico", pos:"Pós-aquisição", impairment:"Impairment", apresentacao:"Apresentação", evidencias:"Evidências", relatorio:"Relatórios"};
+  function fecharTela(){ let v = pilha.pop(); while (v && (v === S.view || !$(`main .view[data-view="${v}"]`))) v = pilha.pop(); go(v || "orbita"); window.scrollTo?.(0, 0); }
+  function botoesFechar(){
+    const v = S.view; if (!v || v === "orbita") return; const sec = $(`main .view[data-view="${v}"]`); if (!sec || sec.hidden) return; const host = sec.querySelector(":scope > .pad, :scope > div") || sec;
+    const bar = host.querySelector(".alv-bar");
+    if (bar){ if (!bar.querySelector(".vw-x")) bar.insertAdjacentHTML("beforeend", `<button type="button" class="x vw-x" aria-label="Fechar esta tela" title="Fechar esta tela">×</button>`); host.querySelector(":scope > .vw-top")?.remove(); }
+    else if (!host.querySelector(":scope > .vw-top")) host.insertAdjacentHTML("afterbegin", `<div class="vw-top"><span class="sub">${esc(NOMES[v] || "")}</span><button type="button" class="x vw-x" aria-label="Fechar esta tela" title="Fechar esta tela">×</button></div>`);
+    if (!host.querySelector(":scope > .vw-fim")) host.insertAdjacentHTML("beforeend", `<div class="vw-fim"><button type="button" class="btn ghost vw-x">Fechar esta tela</button></div>`);
+    else host.appendChild(host.querySelector(":scope > .vw-fim")); /* sempre por último */
+    $$(".vw-x", host).forEach(b => b.onclick = fecharTela);
+  }
+  css.textContent += `.vw-top{display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:6;margin:-4px 0 8px;padding:6px 0;background:linear-gradient(var(--bg,#011F4B) 70%,transparent)}
+.vw-top .sub{font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin:0}.alv-bar .vw-x{flex:none;margin-left:2px}
+.vw-fim{display:flex;justify-content:center;padding:18px 0 calc(18px + env(safe-area-inset-bottom,0px))}.vw-fim .btn{min-width:200px}`;
+  { const _rv2 = renderView; renderView = function(){ const r = _rv2.apply(this, arguments); try{ botoesFechar(); setTimeout(() => { try{ botoesFechar(); }catch(e){} }, 0); }catch(e){} return r; }; }
+  if (typeof renderAuditoria === "function"){ const _ra2 = renderAuditoria; renderAuditoria = function(){ const r = _ra2.apply(this, arguments); try{ botoesFechar(); }catch(e){} return r; }; }
+  if (typeof renderJuridico === "function"){ const _rj2 = renderJuridico; renderJuridico = function(){ const r = _rj2.apply(this, arguments); try{ botoesFechar(); }catch(e){} return r; }; }
+  window.KT_ALVO = {usar, trocar, fecharTela, get atual(){ return alvo; }};
 })();
