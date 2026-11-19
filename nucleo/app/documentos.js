@@ -226,7 +226,7 @@ const DOCAN = (() => {
     const pm = $("#pd-min"); if (pm) pm.onclick = () => { const L = [`PARECER SOBRE DOCUMENTO · ${x?.rotulo || e.tipo}`, `Fornecedor: ${s?.nome || "—"} (${s?.nivel || ""}) ${s?.doc ? "· CNPJ/CPF " + s.doc : ""} · Data: ${new Date().toLocaleDateString("pt-BR")}`, "", "1. Pontos identificados na pré-análise"];
       (A.length ? A : [{sev: "", txt: "Nenhuma inconsistência na leitura automática.", inv: "—"}]).forEach(a => L.push(`- [${SEV_TX[a.sev] || "—"}] ${a.txt} Providência: ${a.inv}`));
       L.push("", "2. Conclusão", nivelMax(A) === "alto" ? "Recomendação: REPROVAR ou condicionar a aprovação ao saneamento dos pontos acima." : nivelMax(A) === "medio" ? "Recomendação: APROVAR COM RESSALVAS, com as providências acima e prazo." : "Recomendação: APROVAR.", "",
-        "______________________________________", $("#pd-adv").value || "[Nome do advogado responsável]", oabFmt($("#pd-oab").value) || "OAB/UF nº [número]", "Advogado responsável");
+        ...($("#pd-adv") ? ["______________________________________", $("#pd-adv").value || "[Nome do advogado responsável]", oabFmt($("#pd-oab").value) || "OAB/UF nº [número]", "Advogado responsável"] : ["(Assinatura do advogado no parecer jurídico final.)"]));
       const ta = $("#pd-txt"); ta.value = (ta.value.trim() ? ta.value.trim() + "\n\n" : "") + L.join("\n"); ta.style.minHeight = "280px"; };
     $$("[data-pd]").forEach(b => b.onclick = async () => { const st = b.dataset.pd, txt = $("#pd-txt").value.trim();
       if (st !== "aprovado" && !txt){ $("#pd-err").textContent = "Escreva a análise explicando as ressalvas ou a reprovação."; $("#pd-err").hidden = false; return; }

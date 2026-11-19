@@ -1050,13 +1050,16 @@ function advPadrao(){
   const meus = Object.values(S.pareceres).filter(p => p.por && p.por === Store.me.id && p.advogado?.nome).sort((a, b) => String(b.em).localeCompare(String(a.em)));
   return meus[0]?.advogado || {nome:"", oab:""};
 }
+/* produtos em que o advogado só assina o parecer final (ex.: M&A): os pareceres por documento não pedem nome nem OAB */
+const advSoFinal = () => window.KT_ADV_POR_DOC === false;
 function advLer(pre){
+  if (advSoFinal() && !$("#" + pre + "-adv")) return {nome: "", oab: "", por: Store.me?.email || "", porDoc: true};
   const nome = $("#" + pre + "-adv").value.trim().replace(/\s+/g, " "), oab = oabFmt($("#" + pre + "-oab").value);
   if (nome.split(" ").length < 2 || nome.length < 5 || !oab) return null;
   const a = {nome, oab}; try{ localStorage.setItem("kt-adv", JSON.stringify(a)); }catch(e){} return a;
 }
 const advTxt = a => a && a.nome ? a.nome + (a.oab ? " · " + a.oab : "") : "";
-const advCampos = (pre, a, dis) => `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
+const advCampos = (pre, a, dis) => advSoFinal() ? `<p class="sub" style="margin:0;font-size:12px">O nome e a OAB do advogado entram só no parecer jurídico final.</p>` : `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
   <div class="fld"><label for="${pre}-adv">Advogado responsável</label><input id="${pre}-adv" autocomplete="name" placeholder="Nome completo" value="${esc(a.nome || "")}" ${dis ? "disabled" : ""}></div>
   <div class="fld"><label for="${pre}-oab">OAB (UF e número)</label><input id="${pre}-oab" placeholder="OAB/SP 123.456" value="${esc(a.oab || "")}" ${dis ? "disabled" : ""}></div></div>`;
 const ADV_ERR = "Informe o nome completo e a OAB do advogado responsável (ex.: OAB/SP 123.456).";

@@ -4,6 +4,7 @@
    topo "Em consulta: <empresa>" com o botão Trocar; trocar em qualquer área vale para as outras. */
 if (window.KT_DD) (() => {
   const D = KT_DD;
+  window.KT_ADV_POR_DOC = false; /* M&A: nome e OAB só no parecer jurídico final */
   /* uma só seleção: S.ddSel (áreas financeiras) e S.jurAlvo (jurídico) apontam para o mesmo target */
   let alvo = S.ddSel || S.jurAlvo || "";
   const define = k => { try{ delete S[k]; }catch(e){} Object.defineProperty(S, k, {get:() => alvo, set:v => { if (v && v !== alvo){ alvo = v; S.ddPer = ""; try{ localStorage.setItem("kt-alvo", v); }catch(e){} } }, configurable:true, enumerable:true}); };
@@ -62,6 +63,16 @@ if (window.KT_DD) (() => {
   css.textContent += `.vw-top{display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:6;margin:-4px 0 8px;padding:6px 0;background:linear-gradient(var(--bg,#011F4B) 70%,transparent)}
 .vw-top .sub{font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin:0}.alv-bar .vw-x{flex:none;margin-left:2px}
 .vw-fim{display:flex;justify-content:center;padding:18px 0 calc(18px + env(safe-area-inset-bottom,0px))}.vw-fim .btn{min-width:200px}`;
+  /* celular: nada fica "congelado" na tela. As faixas presas viram parte da página e o cabeçalho (marca, cliente e
+     faixa do mercado) some ao rolar para baixo e volta ao rolar para cima. */
+  css.textContent += `@media (max-width:900px){.alv-bar,.vw-top{position:static !important;backdrop-filter:none}.sheet-b .head[style*="sticky"]{position:static !important;margin-top:0 !important}
+#v-orbita .target .acts{position:static !important}
+body.kt-compacto .topbar,body.kt-compacto .pricebar{display:none !important}}`;
+  { const mq = window.matchMedia ? matchMedia("(max-width:900px)") : {matches:false}, ult = new WeakMap();
+    document.addEventListener("scroll", e => { const t = e.target; if (!mq.matches || !t || !t.classList || !t.classList.contains("view")) return;
+      const st = t.scrollTop, a = ult.get(t) ?? 0; ult.set(t, st);
+      if (st < 40 || st < a - 14) document.body.classList.remove("kt-compacto"); else if (st > 90 && st > a + 8) document.body.classList.add("kt-compacto"); }, true);
+    const _go2 = go; go = function(){ document.body.classList.remove("kt-compacto"); return _go2.apply(this, arguments); }; }
   { const _rv2 = renderView; renderView = function(){ const r = _rv2.apply(this, arguments); try{ botoesFechar(); setTimeout(() => { try{ botoesFechar(); }catch(e){} }, 0); }catch(e){} return r; }; }
   if (typeof renderAuditoria === "function"){ const _ra2 = renderAuditoria; renderAuditoria = function(){ const r = _ra2.apply(this, arguments); try{ botoesFechar(); }catch(e){} return r; }; }
   if (typeof renderJuridico === "function"){ const _rj2 = renderJuridico; renderJuridico = function(){ const r = _rj2.apply(this, arguments); try{ botoesFechar(); }catch(e){} return r; }; }

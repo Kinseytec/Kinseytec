@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v3.11 — 2026-11-19 · Jurídico mais prático e celular sem tela "congelada"
+- Parecer por documento (e validações de NDA e contratos): só Aprovar, Aprovar com ressalvas ou Reprovar, com a explicação; sem nome e OAB do advogado. Nome e OAB ficam só no Parecer do advogado final, que consolida todos os pontos.
+- Celular: as faixas presas no topo deixam de ficar fixas; o cabeçalho (marca, cliente e faixa do mercado) some ao rolar para baixo e volta ao rolar para cima, liberando a tela.
+- Abas do Jurídico seguem o padrão amarelo (v3.10). Texto do card do workbook atualizado.
+
 ## v3.10 — 2026-11-19 · Abas e flags em amarelo
 - Abas e flags de todas as áreas (Síntese, Base, FCD, Múltiplos, Dívida líquida, Relatório; filtros e abas da Prospecção, da Due Diligence, do dossiê etc.) passam a usar o amarelo da marca: letra e contorno amarelos; a aba escolhida fica preenchida em amarelo com letra escura.
 
