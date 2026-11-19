@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v3.04 — 2026-11-19 · Prospecção: segmento empresarial, região e estado
+- Cada empresa da prospecção tem "Segmento empresarial" (Agro, Alimentos, Construção, Educação, Industrial, Logística, Saúde, Serviços, Tecnologia, Varejo, Outros). Em branco, o sistema sugere pela atividade, CNAE ou tese; a equipe confirma ou troca na ficha da empresa e no cadastro de prospecção.
+- Filtros no topo da lista: segmento empresarial, região do Brasil e estado (com a quantidade de empresas em cada um), além da busca por nome ou CNPJ. "Limpar filtros" volta para a lista completa.
+- O segmento aparece em destaque em cada linha da lista, para a conversa no celular ("qual é o seu segmento?").
+
 ## v3.03 — 2026-11-19 · Documentos reconhecidos e analisados também na versão publicada
 - Causa 1 (Firebase Storage): no sistema publicado os arquivos ficam no Storage, que não libera o download direto para o navegador (CORS). Toda releitura (análise automática, reprocessar, analisar individual, jurídico) falhava em silêncio. Agora a leitura segue: arquivo ainda na memória (acabou de ser importado) → download direto → nova função lerArquivo no servidor, com as mesmas regras de acesso do Storage.
 - Causa 2 (limite de 1 MB do Firestore): os balancetes ficavam dentro do registro da empresa; um ECD mês a mês estoura o limite de 1 MB e, a partir daí, nenhuma gravação da empresa passava. Cada período passa a ter registro próprio (ddbal); os períodos antigos são migrados sozinhos na primeira abertura, sem perda.
