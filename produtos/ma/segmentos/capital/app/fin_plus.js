@@ -11,15 +11,19 @@ if (window.KT_DD && window.KT_DOCS) (() => {
   /* ---------- reprocessar os documentos do dossiê ---------- */
   const candidatos = s => S.evidences.filter(e => e.supplierId === s.id && e.url && /pdf|sheet|excel|csv|xml|text/i.test(`${e.mime || ""} ${e.nome || ""}`) && !/\.(jpe?g|png|heic)$/i.test(e.nome || "")
     && !/nda|mandato|contrato social|certid|cnd|alvar|licen|spa|mou|procura/i.test(`${e.tipo || ""} ${e.nome || ""}`)).slice(0, 25);
-  const novos = s => { const lid = s.dd?.lidos || {}; return candidatos(s).filter(e => !lid[e.id]); };
+  /* lidosV2: só documentos que de fato abriram (a versão anterior marcava como lidos também os que o navegador não conseguiu baixar) */
+  const novos = s => { const lid = s.dd?.lidosV2 || {}; return candidatos(s).filter(e => !lid[e.id]); };
   async function reprocessar(s, avisar, todos){
     s = supById(s.id) || s; const L = todos ? candidatos(s) : novos(s); if (!L.length) return {lidos:0, aplicados:0};
     const R = [];
-    for (const e of L){ try{ const r0 = await fetch(e.url); if (!r0.ok) continue; const blob = await r0.blob(), nome = e.nome || `documento.${/pdf/.test(blob.type) ? "pdf" : "xlsx"}`;
-        const r = await KT_DOCS.ler(new File([blob], nome, {type:e.mime || blob.type})); if (FIN.includes(r.tipo) && (r.contas || r.contasDRE)) R.push(r); }catch(err){ console.warn("reprocessar", e.nome, err); } }
+    const abertos = {}, falhas = {};
+    for (const e of L){ try{ const blob = await ktBaixar(e), nome = e.nome || `documento.${/pdf/.test(blob.type) ? "pdf" : "xlsx"}`; abertos[e.id] = nowISO(); falhas[e.id] = null;
+        const r = await KT_DOCS.ler(new File([blob], nome, {type:e.mime || blob.type})); if (FIN.includes(r.tipo) && (r.contas || r.contasDRE)) R.push(r); }catch(err){ falhas[e.id] = {nome:e.nome || "documento", motivo:String(err?.message || err).replace(/^não foi possível abrir o arquivo: /, ""), em:nowISO()}; console.warn("reprocessar", e.nome, err); } }
     const ordem = {balancete:0, balanco:1, dre:2}; R.sort((a, b) => ordem[a.tipo] - ordem[b.tipo] || String(a.periodo?.fim || "").localeCompare(String(b.periodo?.fim || "")));
     let n = 0; for (const r of R){ try{ await KT_DOCS.aplicar(supById(s.id) || s, r, {semArquivo:true}); n++; }catch(err){ console.warn(err); } }
-    await Store.update("suppliers", s.id, {dd:{reproc:{em:nowISO(), lidos:L.length, aplicados:n}, lidos:Object.fromEntries(L.map(e => [e.id, nowISO()]))}}).catch(() => {});
+    const nf = Object.values(falhas).filter(Boolean).length;
+    await Store.update("suppliers", s.id, {dd:{reproc:{em:nowISO(), lidos:L.length - nf, aplicados:n, falhas:nf}, lidosV2:abertos, lerFalha:falhas}}).catch(() => {});
+    if (nf && avisar) toast(`${nf} documento(s) não abriram: ${Object.values(falhas).filter(Boolean)[0].motivo}`);
     if (n && S.ddSel === s.id) S.ddPer = ""; /* abre no período mais recente */
     if (avisar) toast(n ? `${n} documento(s) financeiro(s) do dossiê levados à Due Diligence` : "Nenhum balanço, DRE ou balancete legível entre os documentos do dossiê");
     return {lidos:L.length, aplicados:n};

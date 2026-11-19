@@ -80,7 +80,7 @@ if (window.KT_DD) (() => {
     return {flags:f, trechos:tr, prazo:pz ? pz[2] + " " + pz[3] : "", valor:vl ? vl[1] : "", em:nowISO()};
   }
   async function textoEvid(e){
-    if (!e?.url) return ""; const buf = await (await fetch(e.url)).arrayBuffer(), nome = (e.nome || "").toLowerCase(), mime = e.mime || "";
+    if (!e?.url && !e?.assetId) return ""; const buf = await (await ktBaixar(e)).arrayBuffer(), nome = (e.nome || "").toLowerCase(), mime = e.mime || "";
     if (/pdf/.test(mime) || /\.pdf$/.test(nome)) return (await IMP.lerPDF(buf)).map(r => r.join(" ")).join("\n");
     if (/word|officedocument/.test(mime) || /\.docx$/.test(nome)){ const d = await IMP.lerDOCX(buf); return [...(d.linhas || []), ...(d.tabela || []).map(r => r.join(" "))].join("\n"); }
     return "";

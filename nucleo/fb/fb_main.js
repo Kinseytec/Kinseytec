@@ -38,11 +38,45 @@ const KT_FB = !KT_AUTH ? null : {
     Store.update = (col, id, patch) => {
       if (col === "config" && id === "cliente") return KT_FB.salvarCliente(patch);
       if (SCOPED.includes(col)) patch = {...patch, clienteId: cid};
+      if (col === "suppliers" && patch?.dd?.bal && typeof patch.dd.bal === "object") return balUpdate(id, patch);
       return db.collection(col).doc(col === "config" ? mapCfg(id) : id).set(patch, {merge: true});
     };
+    /* ---------- balancetes da Due Diligence em registros próprios: ddbal/{empresa}__{período} ----------
+       O Firestore aceita no máximo 1 MiB por registro. Um ECD mês a mês (12 balancetes com centenas de contas) estoura esse
+       limite no registro da empresa e, a partir daí, nenhuma gravação da empresa passa. Cada período fica no seu registro;
+       o sistema continua vendo s.dd.bal como antes. Os períodos antigos, gravados dentro da empresa, são migrados na abertura. */
+    const FV = firebase.firestore.FieldValue, BAL = {}, LEG = {}; let balPronto = false; const migrados = new Set();
+    const balRef = (id, per) => db.collection("ddbal").doc(id + "__" + String(per).replace(/[\/]/g, "-"));
+    async function balUpdate(id, patch){
+      const bal = patch.dd.bal, dd = {...patch.dd}, del = {}; delete dd.bal;
+      const ops = Object.entries(bal).map(async ([per, v]) => { del[per] = FV.delete(); const ref = balRef(id, per);
+        if (v == null) return ref.delete();
+        const leg = LEG[id]?.[per]; if (leg && !BAL[id]?.[per]) await ref.set({clienteId: cid, sup: id, per, b: leg});
+        return ref.set({clienteId: cid, sup: id, per, b: v}, {merge: true}); });
+      await Promise.all(ops);
+      return db.collection("suppliers").doc(id).set({...patch, dd: {...dd, bal: del}}, {merge: true});
+    }
+    async function migraBal(sup){
+      if (!balPronto || Store.me?.canWrite === false) return;
+      for (const s of sup){ const L = LEG[s.id]; if (!L || migrados.has(s.id) || !Object.keys(L).length) continue; migrados.add(s.id);
+        try{ for (const [per, b] of Object.entries(L)) if (b && !BAL[s.id]?.[per]) await balRef(s.id, per).set({clienteId: cid, sup: s.id, per, b});
+          await db.collection("suppliers").doc(s.id).set({dd: {bal: Object.fromEntries(Object.keys(L).map(p => [p, FV.delete()]))}}, {merge: true}); }
+        catch(e){ console.warn("migração dos balancetes", s.id, e); } } }
+    { const baseSet = Store.set, baseDel = Store.del.bind(Store);
+      Store.set = (col, id, obj) => { if (col === "suppliers" && obj?.dd?.bal && typeof obj.dd.bal === "object"){ const bal = obj.dd.bal, dd = {...obj.dd}; delete dd.bal;
+          return Promise.all(Object.entries(bal).filter(([, v]) => v).map(([per, v]) => balRef(id, per).set({clienteId: cid, sup: id, per, b: v}))).then(() => baseSet(col, id, {...obj, dd})); }
+        return baseSet(col, id, obj); };
+      Store.del = async (col, id) => { if (col === "suppliers" && cid){ try{ const q = await db.collection("ddbal").where("clienteId", "==", cid).where("sup", "==", id).get(); await Promise.all(q.docs.map(d => d.ref.delete())); }catch(e){} } return baseDel(col, id); }; }
     { const baseListen = Store.listen.bind(Store);
       Store.listen = (col, cb) => {
         const err = e => console.warn(col, e);
+        if (col === "suppliers" && cid){ let sup = [];
+          const emit = () => cb(sup.map(s => { const B = BAL[s.id], L = LEG[s.id]; if (!B && !L) return s; return {...s, dd: {...(s.dd || {}), bal: {...(L || {}), ...(B || {})}}}; }));
+          db.collection("suppliers").where("clienteId", "==", cid).onSnapshot(q => { sup = q.docs.map(d => ({id: d.id, ...d.data()}));
+            sup.forEach(s => { const L = s.dd?.bal; if (L && typeof L === "object" && Object.keys(L).length) LEG[s.id] = L; else delete LEG[s.id]; }); emit(); migraBal(sup); }, err);
+          db.collection("ddbal").where("clienteId", "==", cid).onSnapshot(q => { Object.keys(BAL).forEach(k => delete BAL[k]);
+            q.docs.forEach(d => { const x = d.data(); if (x.sup && x.per && x.b) (BAL[x.sup] = BAL[x.sup] || {})[x.per] = x.b; }); balPronto = true; emit(); migraBal(sup); }, e => { balPronto = false; err(e); });
+          return; }
         if (SCOPED.includes(col)){ if (!cid){ cb([]); return; } db.collection(col).where("clienteId", "==", cid).onSnapshot(q => cb(q.docs.map(d => ({id: d.id, ...d.data()}))), err); return; }
         if (col === "config"){ if (!cid){ cb([]); return; } const st = {}, emit = () => cb(Object.values(st));
           CFGS.forEach(id => db.collection("config").doc(id + "__" + cid).onSnapshot(d => { if (d.exists) st[id] = {...d.data(), id}; else delete st[id]; emit(); }, err));

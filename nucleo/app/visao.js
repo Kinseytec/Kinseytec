@@ -503,7 +503,7 @@ const VISAO = (() => {
     $$("[data-acb]", el).forEach(bt => bt.onclick = async () => { const id = bt.dataset.acb, v = $(`[data-acs="${id}"]`, el).value; if (!v){ toast("Escolha o tipo do documento"); return; }
       const e = S.evidences.find(x => x.id === id); bt.disabled = true;
       try{ await Store.update("evidences", id, {tipo: v, aClassificar: false, classificadoPor: Store.me.id || "", classificadoEm: nowISO(), obs: String(e?.obs || "").replace("aguardando classificação do revisor", "classificado pelo revisor")}); toast("Documento classificado");
-        if (/nota fiscal|contrat|social|cnpj|certid|licen|procura|CAR/i.test(v) && e?.url){ try{ const blob = await (await fetch(e.url)).blob(); EXT_EVID.forEach(f => { try{ f(id, blob, {...e, tipo: v}); }catch(x){} }); }catch(x){} } }
+        if (/nota fiscal|contrat|social|cnpj|certid|licen|procura|CAR/i.test(v) && e?.url){ try{ const blob = await ktBaixar(e); EXT_EVID.forEach(f => { try{ f(id, blob, {...e, tipo: v}); }catch(x){} }); }catch(x){ toast(String(x.message || x)); } } }
       catch(x){ toast("Não foi possível classificar"); bt.disabled = false; } });
   };
 
@@ -735,7 +735,7 @@ const VISAO = (() => {
     for (let i = 0; i < L.length; i++){ const e = L[i], s = supById(e.supplierId); if (btn) btn.textContent = `Baixando ${i + 1}/${L.length}…`;
       let nome = e.nome || (e.tipo + (/pdf/.test(e.mime || "") ? ".pdf" : /image/.test(e.mime || "") ? ".jpg" : "")); const pasta = `${s ? s.nivel + " - " + limpaNome(s.nome) : "Sem fornecedor"}/${limpaNome(e.tipo)}`;
       let cam = `${pasta}/${limpaNome(nome)}`, k = 2; while (usados.has(cam)) cam = `${pasta}/${k++}_${limpaNome(nome)}`; usados.add(cam);
-      try{ if (!e.url) throw 0; const r = await fetch(e.url); if (!r.ok) throw 0; arqs.push({nome: cam, dados: new Uint8Array(await r.arrayBuffer())}); e._cam = cam; }
+      try{ if (!e.url && !e.assetId) throw 0; const bl = await ktBaixar(e); arqs.push({nome: cam, dados: new Uint8Array(await bl.arrayBuffer())}); e._cam = cam; }
       catch(x){ falhas.push(`${cam}\t${e.url || "(sem arquivo)"}`); e._cam = "não baixado (ver arquivos_nao_baixados.txt)"; } }
     const q = v => `"${fixMoji(v).replace(/"/g, '""')}"`, ST = {aprovado: "Aprovado", ressalvas: "Aprovado com ressalvas", reprovado: "Reprovado"};
     const linhas = [["Nível", "Fornecedor", "CNPJ/CPF", "Tipo", "Arquivo no zip", "Enviado em", "Origem", "Pré-análise (pontos)", "Parecer do Jurídico", "Advogado (OAB)"].map(q).join(";"),

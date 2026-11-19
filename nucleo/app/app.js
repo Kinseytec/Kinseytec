@@ -509,6 +509,36 @@ function openImport(){
 function dataURLtoBlob(u){ const [h, b] = u.split(","); const mime = h.slice(5, h.indexOf(";")); const bin = atob(b); const a = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return new Blob([a], {type:mime}); }
 /* grava a evidência e avisa os módulos (pré-análise do documento, nota fiscal → operações) */
 async function salvarEvid(id, body, blob){ await Store.set("evidences", id, body); EXT_EVID.forEach(f => { try{ f(id, blob || null, body); }catch(e){} }); }
+/* ---------- leitura dos arquivos guardados ----------
+   No Firebase os arquivos ficam no Storage; o navegador só consegue baixá-los direto se o bucket tiver CORS liberado
+   para o domínio do sistema (não vem liberado). Por isso a leitura segue, nesta ordem: arquivo ainda na memória (acabou
+   de ser importado) → download direto → função lerArquivo no servidor (sem CORS, com as mesmas regras de acesso). */
+const KT_ARQ = {cache: new Map(), tam: 0, diretoBloq: false, falhas: {}, via: {memoria: 0, direto: 0, servidor: 0}};
+function ktGuardaArq(k, blob){ if (!k || !blob || !blob.size || blob.size > 40e6) return; if (KT_ARQ.cache.has(k)) return;
+  KT_ARQ.cache.set(k, blob); KT_ARQ.tam += blob.size;
+  while (KT_ARQ.tam > 200e6 && KT_ARQ.cache.size > 1){ const [k0, b0] = KT_ARQ.cache.entries().next().value; KT_ARQ.cache.delete(k0); KT_ARQ.tam -= b0.size; } }
+function ktCaminhoArq(e){ if (e?.assetId) return String(e.assetId); const m = String(e?.url || "").match(/\/o\/([^?#]+)/); return m ? decodeURIComponent(m[1]) : ""; }
+async function ktBaixar(e){
+  if (!e) throw new Error("documento não encontrado");
+  const k = e.id || e.url, u = String(e.url || "");
+  if (k && KT_ARQ.cache.has(k)){ KT_ARQ.via.memoria++; return KT_ARQ.cache.get(k); }
+  if (u && KT_ARQ.cache.has(u)){ KT_ARQ.via.memoria++; return KT_ARQ.cache.get(u); }
+  let blob = null, motivo = "";
+  const nuvem = /^https?:\/\/(firebasestorage\.googleapis\.com|[^/]*\.firebasestorage\.app|storage\.googleapis\.com)\//.test(u);
+  if (u && !(nuvem && KT_ARQ.diretoBloq)){
+    try{ const r = await fetch(u); if (r.ok){ blob = await r.blob(); KT_ARQ.via.direto++; } else motivo = "o arquivo respondeu " + r.status + (r.status === 403 ? " (sem permissão)" : r.status === 404 ? " (arquivo não está mais no Storage)" : ""); }
+    catch(x){ motivo = "download direto bloqueado pelo navegador (CORS do Storage)"; if (nuvem) KT_ARQ.diretoBloq = true; } }
+  if (!blob){ const p = ktCaminhoArq(e);
+    if (p && window.firebase?.app && firebase.app().functions){
+      try{ const r = await firebase.app().functions("southamerica-east1").httpsCallable("lerArquivo", {timeout: 120000})({path: p}), d = r.data || {};
+        const bin = atob(d.b64 || ""), a = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i);
+        blob = new Blob([a], {type: d.mime || e.mime || "application/octet-stream"}); KT_ARQ.via.servidor++; }
+      catch(x){ const c = String(x?.code || ""); motivo = (motivo ? motivo + "; " : "") + (/not-found/.test(c) && /lerArquivo|function/i.test(String(x?.message || "")) ? "função lerArquivo não publicada (republique as funções)" : /not-found/.test(c) ? "arquivo não encontrado no Storage" : /permission/.test(c) ? "sem permissão para este arquivo" : /unauthenticated/.test(c) ? "entre no sistema de novo" : /internal|unavailable|deadline/.test(c) ? "servidor indisponível (confira o plano Blaze e as funções no Firebase)" : (x?.message || "falha no servidor")); } } }
+  if (!blob){ if (k) KT_ARQ.falhas[k] = motivo || "arquivo sem endereço"; throw new Error("não foi possível abrir o arquivo: " + (motivo || "arquivo sem endereço")); }
+  if (k) delete KT_ARQ.falhas[k]; ktGuardaArq(k, blob); return blob;
+}
+window.ktBaixar = ktBaixar; window.KT_ARQ = KT_ARQ;
+EXT_EVID.push((id, blob, body) => { if (blob) ktGuardaArq(id, blob); });
 function openFicha(){
   const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Portal do Fornecedor</div><h2>Importar ficha do fornecedor</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
     <div class="sheet-b">
@@ -791,7 +821,9 @@ function renderSupBody(){
   }
   stepNav(b);
 }
-const save = p => p.catch(() => toast("Não foi possível salvar. Seu acesso pode ser apenas de leitura."));
+const save = p => p.catch(e => { const m = String(e?.message || e || ""), c = String(e?.code || "");
+  console.warn("salvar", e); window.KT_ULT_ERRO = {em: new Date().toISOString(), code: c, msg: m};
+  toast(/exceeds the maximum|maximum allowed size|too large|1048576/i.test(m) ? "Não foi possível salvar: o registro passou do limite de 1 MB do Firebase" : /permission/i.test(c + m) ? "Não foi possível salvar: sem permissão (regras do Firebase ou acesso apenas de leitura)" : /quota|resource-exhausted/i.test(c + m) ? "Não foi possível salvar: cota do Firebase esgotada (confira o plano)" : /unavailable|network|offline/i.test(c + m) ? "Não foi possível salvar: sem conexão com o Firebase" : "Não foi possível salvar. Seu acesso pode ser apenas de leitura."); });
 
 /* ---------- classificação do analista ---------- */
 function classifyForm(s, r){
@@ -1159,7 +1191,7 @@ function openEvidence(id){
       <div style="display:flex;justify-content:space-between;gap:8px"><button type="button" class="btn sm ghost" id="ev-sup">Abrir dossiê do fornecedor</button><button type="button" class="btn sm bad" id="ev-del">Excluir</button></div>
     </div>`);
   EXT_EVVIEW.forEach(f => f(e, close));
-  if ($("#ev-ia")) $("#ev-ia").onclick = async () => { const b = $("#ev-ia"); b.disabled = true; b.textContent = "Lendo…"; try{ const blob = await (await fetch(e.url)).blob(); await readWithAI(e.id, blob, s); close(); openEvidence(e.id); }catch(x){ b.textContent = "Não foi possível ler a imagem"; } };
+  if ($("#ev-ia")) $("#ev-ia").onclick = async () => { const b = $("#ev-ia"); b.disabled = true; b.textContent = "Lendo…"; try{ const blob = await ktBaixar(e); await readWithAI(e.id, blob, s); close(); openEvidence(e.id); }catch(x){ b.textContent = "Não foi possível ler a imagem"; } };
   $("#ev-sup").onclick = () => openSupplier(e.supplierId, "docs");
   $("#ev-del").onclick = () => confirmBox("Excluir esta evidência?", "Excluir", async () => { await Store.del("evidences", id).catch(()=>{}); if (e.assetId && Store.assets) Store.assets.delete(e.assetId).catch(()=>{}); close(); toast("Evidência excluída"); });
 }

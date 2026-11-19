@@ -76,7 +76,7 @@ if (window.KT_DD && window.KT_DOCS) (() => {
     const mostra = async s => { $("#aa-res").innerHTML = ""; $("#aa-q").value = s.nome; const D0 = $("#aa-docs"), O = $("#aa-out");
       const ligaDocs = () => { D0.innerHTML = docsHtml(supById(s.id) || s); bind(D0, s, close);
         $$("[data-aaler]", D0).forEach(b => b.onclick = async () => { const e = S.evidences.find(x => x.id === b.dataset.aaler), m = D0.querySelector(`[data-aamsg="${e.id}"]`); b.disabled = true; b.textContent = "Lendo…";
-          try{ const bl = await (await fetch(e.url)).blob(), r = await KT_DOCS.ler(new File([bl], e.nome || "documento", {type:e.mime || bl.type}));
+          try{ const bl = await ktBaixar(e), r = await KT_DOCS.ler(new File([bl], e.nome || "documento", {type:e.mime || bl.type}));
             if (!r.tipo){ m.innerHTML = `<b style="color:var(--warn)">Não identificado.</b> Use Importar novo documento e escolha o tipo.`; }
             else { const feito = await KT_DOCS.aplicar(supById(s.id) || s, r, {semArquivo:true}); m.textContent = feito.join(" · "); await analisa(); } }catch(err){ console.error(err); m.textContent = "Não foi possível ler: " + (err.message || "erro"); }
           b.disabled = false; b.textContent = "Ler documento"; });
@@ -86,7 +86,7 @@ if (window.KT_DD && window.KT_DOCS) (() => {
           const refazer = new Set(); Object.entries(ss.dd?.bal || {}).forEach(([p, v]) => { const arq = v?.arquivos || (v?.arquivo ? [v.arquivo] : []); if (arq.includes(e.nome)){ up[p] = null; arq.filter(a => a !== e.nome).forEach(a => refazer.add(a)); } });
           await Store.del("evidences", e.id).catch(() => {}); if (Object.keys(up).length) await Store.update("suppliers", s.id, {dd:{bal:up}}).catch(() => {});
           let n = 0; for (const nome of refazer){ const ev = S.evidences.find(x => x.supplierId === s.id && x.nome === nome && x.url); if (!ev) continue;
-            try{ const bl = await (await fetch(ev.url)).blob(), r = await KT_DOCS.ler(new File([bl], nome, {type:ev.mime || bl.type})); if (r.tipo){ await KT_DOCS.aplicar(supById(s.id) || s, r, {semArquivo:true}); n++; } }catch(err){ console.warn(err); } }
+            try{ const bl = await ktBaixar(ev), r = await KT_DOCS.ler(new File([bl], nome, {type:ev.mime || bl.type})); if (r.tipo){ await KT_DOCS.aplicar(supById(s.id) || s, r, {semArquivo:true}); n++; } }catch(err){ console.warn(err); } }
           toast(`Documento excluído${Object.keys(up).length ? ` · ${Object.keys(up).length} período(s) refeito(s) com ${n} documento(s) restante(s)` : ""}`); setTimeout(() => { ligaDocs(); analisa(); }, 300); })); };
       const analisa = async () => { O.innerHTML = `<div class="result">Analisando ${esc(s.nome)}…</div>`; try{ const o = await rodar(s); O.innerHTML = html(supById(s.id) || s, o); bind(O, supById(s.id) || s, close); }catch(e){ console.error(e); O.innerHTML = `<div class="result">Análise não concluída: ${esc(e.message || "erro")}</div>`; } };
       ligaDocs(); await analisa(); };
@@ -103,7 +103,7 @@ if (window.KT_DD && window.KT_DOCS) (() => {
   /* ---------- análise individual de um documento ---------- */
   const cnpjF = c => String(c).replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
   async function individual(s, e){
-    const bl = await (await fetch(e.url)).blob(), r = await KT_DOCS.ler(new File([bl], e.nome || "documento", {type:e.mime || bl.type})), t = String(r.texto || ""), L = [];
+    const bl = await ktBaixar(e), r = await KT_DOCS.ler(new File([bl], e.nome || "documento", {type:e.mime || bl.type})), t = String(r.texto || ""), L = [];
     const nomeT = {balanco:"Balanço patrimonial", dre:"DRE", balancete:"Balancete", contrato_social:"Contrato social", cartao_cnpj:"Cartão CNPJ", nda:"NDA", mandato:"Mandato", spa:"SPA", mou:"MOU / LOI"}[r.tipo] || (r.tipo ? String(r.tipo).replace(/_/g, " ") : "");
     L.push(["Tipo identificado", r.tipo ? `${nomeT}${r.formato ? ` (${r.formato})` : ""} · pelo ${r.como || "sistema"}` : "não identificado: classifique o documento"]);
     if (r.cnpjs?.length){ const dg = String(s.doc || "").replace(/\D/g, ""); L.push(["CNPJ no documento", r.cnpjs.map(cnpjF).join(", ") + (dg && !r.cnpjs.includes(dg) ? " · difere do cadastro" : "")]); }

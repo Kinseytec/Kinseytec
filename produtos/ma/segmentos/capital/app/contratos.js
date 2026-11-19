@@ -65,7 +65,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     return {tipo, lado, itens, em:nowISO(), chars:t.length};
   }
   async function textoDoArquivo(k){
-    if (!k.file?.url) return ""; const buf = await (await fetch(k.file.url)).arrayBuffer(), nome = (k.file.nome || "").toLowerCase(), mime = k.file.mime || "";
+    if (!k.file?.url && !k.file?.assetId) return ""; const buf = await (await ktBaixar({id:"c_" + (k.id || ""), ...k.file})).arrayBuffer(), nome = (k.file.nome || "").toLowerCase(), mime = k.file.mime || "";
     if (/pdf/.test(mime) || /\.pdf$/.test(nome)) return (await IMP.lerPDF(buf)).map(r => r.join(" ")).join("\n");
     if (/word|officedocument/.test(mime) || /\.docx$/.test(nome)){ const d = await IMP.lerDOCX(buf); return [...(d.linhas || []), ...(d.tabela || []).map(r => r.join(" "))].join("\n"); }
     return "";

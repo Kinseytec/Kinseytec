@@ -1,5 +1,12 @@
 # Registro de versões
 
+## v3.03 — 2026-11-19 · Documentos reconhecidos e analisados também na versão publicada
+- Causa 1 (Firebase Storage): no sistema publicado os arquivos ficam no Storage, que não libera o download direto para o navegador (CORS). Toda releitura (análise automática, reprocessar, analisar individual, jurídico) falhava em silêncio. Agora a leitura segue: arquivo ainda na memória (acabou de ser importado) → download direto → nova função lerArquivo no servidor, com as mesmas regras de acesso do Storage.
+- Causa 2 (limite de 1 MB do Firestore): os balancetes ficavam dentro do registro da empresa; um ECD mês a mês estoura o limite de 1 MB e, a partir daí, nenhuma gravação da empresa passava. Cada período passa a ter registro próprio (ddbal); os períodos antigos são migrados sozinhos na primeira abertura, sem perda.
+- Documentos que não abriram deixam de ser marcados como lidos: voltam para a análise automática na próxima abertura (os já importados na versão publicada são relidos uma vez).
+- Sininho na Importação de documentos, ao escolher a empresa: amarelo (nenhum documento), vermelho (documento que não abriu, sem tipo, DRE, balanço/balancete ou contrato social faltando, análise não rodada, gravação recusada pelo Firebase) e verde (tudo certo). Toque para ver os pontos; botão "Analisar documentos" sempre disponível.
+- Mensagem de erro ao gravar diz o motivo real (limite de 1 MB, permissão, cota do plano, sem conexão).
+
 ## v3.02 — 2026-11-18 · Impairment em pasta própria
 - O Impairment sai do Pós-aquisição e ganha item próprio no menu, logo depois do Pós-aquisição; o Pós-aquisição fica com o PPA e a base de modelos.
 - "Cliente da Órbita?": Sim usa os números e documentos das análises automáticas; "Não, trabalho novo" cria uma base nova, sem as informações automáticas, com o cadastro básico do projeto (CNPJ ou cartão CNPJ, razão social, data-base, finalidade, local, contratante e balanços ou balancetes).

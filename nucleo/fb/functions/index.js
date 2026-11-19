@@ -57,4 +57,22 @@ exports.atualizarAgora = onCall({memory: "2GiB", timeoutSeconds: 540}, async req
   for (const [k, fn] of Object.entries(EXTRA_TIPOS)) if (tipo === "tudo" || tipo === k) out[k] = await fn();
   return out;
 });
+/* lerArquivo: devolve um arquivo do Storage ao sistema (o navegador não baixa direto do bucket sem CORS liberado).
+   Mesmas regras do storage.rules: administrador vê tudo; editor e colaborador só os arquivos do próprio cliente. */
+exports.lerArquivo = onCall({memory: "1GiB", timeoutSeconds: 120}, async req => {
+  if (!req.auth || !req.auth.token.email_verified) throw new HttpsError("unauthenticated", "Entre no sistema.");
+  const path = String(req.data?.path || "");
+  if (!/^(evidences|fichas)\/[^\0]+$/.test(path) || path.includes("..")) throw new HttpsError("invalid-argument", "Arquivo inválido.");
+  const email = String(req.auth.token.email || "").toLowerCase();
+  if (!ADMINS.includes(email)){
+    const u = await db.doc("users/" + req.auth.uid).get(), d = u.exists ? u.data() : null, p = path.split("/");
+    if (!d || !["admin", "editor", "colaborador"].includes(d.role)) throw new HttpsError("permission-denied", "Sem acesso a este arquivo.");
+    if (d.role !== "admin" && p[0] === "evidences" && p.length > 2 && String(d.clienteId || "") !== p[1]) throw new HttpsError("permission-denied", "Arquivo de outro cliente.");
+  }
+  const f = admin.storage().bucket().file(path), [ex] = await f.exists();
+  if (!ex) throw new HttpsError("not-found", "Arquivo não encontrado no Storage.");
+  const [meta] = await f.getMetadata(); if (Number(meta.size || 0) > 20 * 1024 * 1024) throw new HttpsError("out-of-range", "Arquivo maior que 20 MB para leitura automática.");
+  const [buf] = await f.download();
+  return {b64: buf.toString("base64"), mime: meta.contentType || "application/octet-stream", size: buf.length};
+});
 module.exports._interno = {gravarCotacoes, gravarListas};

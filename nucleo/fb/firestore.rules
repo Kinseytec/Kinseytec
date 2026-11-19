@@ -51,6 +51,12 @@ service cloud.firestore {
       allow create: if doCliente(cliDe(request.resource.data));
       allow update: if doCliente(cliDe(resource.data)) && (isAdmin() || cliDe(request.resource.data) == cliDe(resource.data));
     }
+    // balancetes da Due Diligence, um registro por empresa e período (ddbal/{empresa}__{período})
+    match /ddbal/{id} {
+      allow read, delete: if doCliente(cliDe(resource.data));
+      allow create: if doCliente(cliDe(request.resource.data));
+      allow update: if doCliente(cliDe(resource.data)) && (isAdmin() || cliDe(request.resource.data) == cliDe(resource.data));
+    }
     match /evidences/{id} {
       allow read, delete: if doCliente(cliDe(resource.data));
       allow create: if doCliente(cliDe(request.resource.data));

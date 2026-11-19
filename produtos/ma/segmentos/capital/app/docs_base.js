@@ -141,8 +141,8 @@ if (window.KT_DD) (() => {
     if ((r.tipo === "spa" || r.tipo === "mou") && window.KT_OPDOC && r.texto){ try{ await KT_OPDOC.registrar(supById(s.id) || s, r.tipo.toUpperCase(), "investidor", r.texto.split(/\n+/).map(x => x.trim()).filter(Boolean), r.f.name); feito.push("Jurídico: análise pró-vendedor (SPA e MOU)"); }catch(e){} }
     /* arquivo no dossiê (na releitura de um documento que já está lá, não duplica) */
     if (!o.semArquivo) try{ const blob = r.f.type?.startsWith("image/") && typeof shrink === "function" ? await shrink(r.f) : r.f, up = await Store.upload(blob);
-      await salvarEvid(uid(), {supplierId:s.id, tipo:evTipo(r.tipo), obs:`Importação de documentos · ${rotulo(r.tipo)}${r.como ? " (identificado pelo " + r.como + ")" : ""}`, ...up, mime:blob.type || r.f.type, nome:fixMoji(r.f.name), criadoEm:nowISO(), criadoPor:Store.me?.id || "", origem:"Importação de documentos", tipoDoc:r.tipo || ""}, blob);
-      feito.push("arquivo guardado no dossiê"); }catch(e){ feito.push("arquivo não guardado: " + (e.message || "erro")); }
+      const eid = uid(); await salvarEvid(eid, {supplierId:s.id, tipo:evTipo(r.tipo), obs:`Importação de documentos · ${rotulo(r.tipo)}${r.como ? " (identificado pelo " + r.como + ")" : ""}`, ...up, mime:blob.type || r.f.type, nome:fixMoji(r.f.name), criadoEm:nowISO(), criadoPor:Store.me?.id || "", origem:"Importação de documentos", tipoDoc:r.tipo || ""}, blob);
+      feito.push("arquivo guardado no dossiê"); Store.update("suppliers", s.id, {dd:{lidosV2:{[eid]:nowISO()}, lerFalha:{[eid]:null}}}).catch(() => {}); }catch(e){ feito.push("arquivo não guardado: " + (e.message || "erro")); }
     /* checklist documental */
     const L = DOCS[s.nivel] || [], re = ITEM[r.tipo], i = re ? L.findIndex(x => re.test(x)) : -1, ss = supById(s.id) || s;
     if (i >= 0 && !ss.docsObs?.["d" + i]?.manual && ss.docs?.["d" + i] !== "ok"){ await save(Store.update("suppliers", s.id, {docs:{["d" + i]:"ok"}, docsObs:{["d" + i]:{txt:`${rotulo(r.tipo)} apresentado (${r.f.name}).`, auto:true, doc:r.f.name, em:nowISO()}}})); feito.push(`checklist: "${L[i]}"`); }
@@ -160,6 +160,41 @@ if (window.KT_DD) (() => {
   const planilhaEstranha = r => { if (!/planilha/.test(r.como || "") || r.multi) return false; const C = r.contas || []; if (C.length < 5) return true;
     const ok = C.filter(c => /^\d{1,2}([.\-]\d{1,6}){0,7}$/.test(String(c[0]).trim()) || /^\d{1,8}$/.test(String(c[0]).trim())).length; return ok / C.length < .6; };
   const duvida = r => !r.tipo || !!r.erro || r.tipo === "outro" || (["balanco", "dre", "balancete"].includes(r.tipo) && (!((r.contas || []).length || (r.contasDRE || []).length || (r.multi || []).length) || planilhaEstranha(r)));
+  /* ---------- sininho: situação dos documentos da empresa ----------
+     amarelo: nenhum documento importado · vermelho: documento com problema ou documento essencial faltando · verde: tudo certo */
+  function statusDocs(s){
+    if (!s) return null; s = supById(s.id) || s;
+    const E = S.evidences.filter(e => e.supplierId === s.id), bal = Object.keys(s.dd?.bal || {}), itens = [], ok = [];
+    if (!E.length && !bal.length) return {cor:"amarelo", tit:"Nenhum documento importado", itens:["Importe balanço e DRE (ou balancete / ECD), ECF e contrato social: as análises automáticas começam sozinhas."], ok};
+    const fal = {}; Object.entries(s.dd?.lerFalha || {}).forEach(([id, v]) => { if (v && E.some(e => e.id === id)) fal[id] = v; });
+    E.forEach(e => { const m = window.KT_ARQ?.falhas?.[e.id]; if (m && !fal[e.id]) fal[e.id] = {nome:e.nome, motivo:m}; });
+    Object.values(fal).forEach(v => itens.push(`${fixMoji(v.nome || "documento")} não abriu: ${v.motivo}`));
+    const acl = E.filter(e => e.aClassificar || /a classificar/i.test(e.tipo || "")); if (acl.length) itens.push(`${acl.length} documento(s) sem tipo reconhecido, aguardando classificação (Evidências)`);
+    const finEnv = E.filter(e => /demonstra|balan|dre|balancete|sped|ecd|ecf/i.test(`${e.tipo} ${e.nome}`));
+    const lid = s.dd?.lidosV2 || {}, naoLidos = finEnv.filter(e => !lid[e.id] && !fal[e.id]);
+    if (!bal.length) itens.push(finEnv.length ? `Os ${finEnv.length} documento(s) financeiro(s) enviados ainda não chegaram à Due Diligence${naoLidos.length ? ": toque em Analisar documentos" : ""}` : "Falta balanço, DRE, balancete ou ECD: sem eles não há Due Diligence, valuation, PPA nem impairment");
+    else { const comDRE = bal.filter(p => { try{ const K = KT_DD.calc(s.dd.bal[p]); return Math.abs(K.recLiq || K.rec || 0) > 0; }catch(e){ return (s.dd.bal[p].contas || []).some(c => /^3/.test(String(c[0]))); } });
+      ok.push(`${bal.length} período(s) na Due Diligence (${bal.sort().slice(-1)[0].split("-").reverse().join("/")} o mais recente)`);
+      if (!comDRE.length) itens.push("Falta a DRE: os períodos importados só têm balanço patrimonial"); else ok.push(`DRE em ${comDRE.length} período(s)`);
+      if (naoLidos.length) itens.push(`${naoLidos.length} documento(s) financeiro(s) ainda não lido(s) pelas análises`); }
+    if (s.nivel === "N3"){ const cs = E.some(e => /contrato social|estatuto|altera[cç][aã]o contratual/i.test(`${e.tipo} ${e.nome}`)) || s.jdd?.societario || s.docs && Object.entries(s.docsObs || {}).some(([k, v]) => /contrato social/i.test(v?.txt || ""));
+      if (!cs) itens.push("Falta o contrato social (diligência jurídica e partes dos contratos)"); else ok.push("Contrato social recebido"); }
+    if (s.anaAuto?.em) ok.push(`Análise automática feita em ${dBR(String(s.anaAuto.em).slice(0, 10))}`); else if (bal.length) itens.push("A análise automática ainda não rodou nesta empresa");
+    const ue = window.KT_ULT_ERRO; if (ue && Date.now() - new Date(ue.em).getTime() < 30 * 60e3) itens.push("Última gravação no Firebase falhou: " + (ue.msg || ue.code).slice(0, 160));
+    const A = window.KT_ARQ; if (A && A.via.servidor) ok.push("Arquivos lidos pelo servidor (o Storage não libera download direto ao navegador)");
+    return {cor:itens.length ? "vermelho" : "verde", tit:itens.length ? `${itens.length} ponto(s) a resolver` : "Documentos em ordem", itens, ok};
+  }
+  const COR_SINO = {amarelo:"#F2C14E", vermelho:"var(--bad,#E5484D)", verde:"var(--ok,#2FB574)"};
+  function sinoHTML(s, aberto){ const st = statusDocs(s); if (!st) return "";
+    const c = COR_SINO[st.cor];
+    return `<div class="card" id="dc-sino" style="padding:10px 12px;display:flex;flex-direction:column;gap:8px;border-color:${c}">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><button type="button" id="dc-sino-b" aria-expanded="${aberto ? "true" : "false"}" aria-label="Situação dos documentos: ${esc(st.tit)}" style="background:none;border:0;padding:0;display:flex;align-items:center;gap:8px;cursor:pointer;color:inherit;font:inherit;text-align:left;flex:1;min-width:180px">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="${c}" stroke="${c}" stroke-width="1.5" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0" fill="none"/></svg>
+        <span><b style="font-size:14px">${esc(st.tit)}</b><span class="sub" style="display:block;font-size:11.5px">${st.cor === "amarelo" ? "nenhum documento" : st.cor === "vermelho" ? "documento com problema ou faltando" : "tudo certo"} · toque para ver</span></span></button>
+        ${window.KT_ANAUTO ? `<button type="button" class="btn sm" id="dc-sino-a">Analisar documentos</button>` : ""}</div>
+      <div id="dc-sino-d" ${aberto ? "" : "hidden"} style="font-size:12.5px;display:flex;flex-direction:column;gap:4px">${st.itens.map(t => `<div style="color:${st.cor === "amarelo" ? "inherit" : COR_SINO.vermelho}">• ${esc(t)}</div>`).join("")}${st.ok.map(t => `<div style="color:${COR_SINO.verde}">✓ ${esc(t)}</div>`).join("")}</div></div>`; }
+  function bindSino(host, s, close){ const b = $("#dc-sino-b", host); if (b) b.onclick = () => { const d = $("#dc-sino-d", host), ab = d.hidden; d.hidden = !ab; b.setAttribute("aria-expanded", String(ab)); };
+    const a = $("#dc-sino-a", host); if (a) a.onclick = () => { if (close) close(); KT_ANAUTO.abrir(s.id); }; }
   function importar(pre){
     const L0 = S.suppliers.slice().sort((a, b) => a.nivel.localeCompare(b.nivel) || (a.nome || "").localeCompare(b.nome || "", "pt"));
     const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Base inicial</div><h2>Importação de documentos</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>
@@ -167,15 +202,17 @@ if (window.KT_DD) (() => {
         <p class="sub" style="margin:0">Selecione vários documentos de uma vez (ou um .zip). O sistema reconhece cada um, acha a empresa pelo CNPJ e leva ao lugar certo: balanço, DRE e balancete para a Due Diligence; contrato social para a diligência jurídica; mandato, MOU e SPA para o Jurídico; certidões e demais para o checklist do dossiê. O cartão CNPJ não precisa ser enviado: o sistema consulta a Receita.</p>
         <div class="fld"><label for="dc-q">Empresa</label><input type="search" id="dc-q" autocomplete="off" placeholder="Digite o nome ou o CNPJ" value="${esc(supById(pre)?.nome || "")}"><input type="hidden" id="dc-sup" value="${esc(pre || "")}">
           <div id="dc-qres" style="display:flex;flex-direction:column;gap:4px;margin-top:4px"></div><span class="hint" id="dc-qsel">${pre && supById(pre) ? `✓ ${esc(supById(pre).nome)}` : "Em branco: o sistema acha a empresa pelo CNPJ de cada documento."}</span></div>
+        <div id="dc-sinow"></div>
         <div class="fld"><label>Como importar</label><div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="fbtn" data-dcm="varios" aria-pressed="true">Vários documentos (o sistema identifica)</button><button type="button" class="fbtn" data-dcm="tipo" aria-pressed="false">Um tipo de documento</button></div></div>
         <div class="fld" id="dc-tw" hidden><label for="dc-tipo">Tipo de documento</label><select id="dc-tipo">${OPCOES.map(([k, l]) => `<option value="${k}">${esc(l)}</option>`).join("")}</select><span class="hint">Todos os arquivos escolhidos entram com este tipo.</span></div>
         <label class="btn primary" style="align-self:flex-start;min-height:46px;display:flex;align-items:center">Escolher documentos<input type="file" id="dc-f" multiple accept=".pdf,.docx,.xlsx,.xlsm,.csv,.ods,.txt,.xml,.zip,image/*" hidden></label>
         <div id="dc-prev"></div><p class="err" id="dc-err" hidden></p>
         <div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="btn ghost" data-x>Fechar</button><button type="button" class="btn primary" id="dc-go" disabled>Importar</button></div></div>`);
     let R = [], modo = "varios"; const abertos = new Set(), urls = new Map();
+    const sino = (aberto) => { const w = $("#dc-sinow"); if (!w) return; const s = supById($("#dc-sup").value); w.innerHTML = s ? sinoHTML(s, aberto) : ""; if (s) bindSino(w, s, close); };
     const nq = t => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    const escolhe = x => { $("#dc-sup").value = x ? x.id : ""; $("#dc-q").value = x ? x.nome : ""; $("#dc-qres").innerHTML = ""; $("#dc-qsel").innerHTML = x ? `✓ ${esc(x.nome)} <span class="sub">(${x.nivel}${x.doc ? " · " + esc(x.doc) : ""})</span>` : "Em branco: o sistema acha a empresa pelo CNPJ de cada documento."; desenha(); };
-    $("#dc-q").oninput = () => { const q = nq($("#dc-q").value.trim()), d = dig($("#dc-q").value); if ($("#dc-sup").value) $("#dc-sup").value = "";
+    const escolhe = x => { $("#dc-sup").value = x ? x.id : ""; $("#dc-q").value = x ? x.nome : ""; $("#dc-qres").innerHTML = ""; $("#dc-qsel").innerHTML = x ? `✓ ${esc(x.nome)} <span class="sub">(${x.nivel}${x.doc ? " · " + esc(x.doc) : ""})</span>` : "Em branco: o sistema acha a empresa pelo CNPJ de cada documento."; sino(false); desenha(); };
+    $("#dc-q").oninput = () => { const q = nq($("#dc-q").value.trim()), d = dig($("#dc-q").value); if ($("#dc-sup").value){ $("#dc-sup").value = ""; sino(false); }
       if (q.length < 2 && d.length < 3){ $("#dc-qres").innerHTML = ""; $("#dc-qsel").textContent = "Em branco: o sistema acha a empresa pelo CNPJ de cada documento."; desenha(); return; }
       const L = L0.filter(x => nq([x.nome, x.razao, x.receita?.razao, x.receita?.fantasia, x.mandato?.codinome].join(" ")).includes(q) || (d.length >= 3 && dig(x.doc).includes(d))).slice(0, 8);
       $("#dc-qres").innerHTML = L.length ? L.map(x => `<button type="button" class="btn sm ghost" data-dcq="${x.id}" style="justify-content:flex-start;text-align:left">${esc(x.nome)} <span class="sub" style="margin-left:6px;font-size:11.5px">${x.nivel}${x.doc ? " · " + esc(x.doc) : ""}</span></button>`).join("") : `<span class="sub" style="font-size:12.5px">${d.length === 14 ? "CNPJ não cadastrado: deixe em branco e o sistema cadastra a empresa pelo CNPJ dos documentos, ou cadastre antes em Cadastro da empresa." : "Nenhuma empresa encontrada."}</span>`;
@@ -217,7 +254,9 @@ if (window.KT_DD) (() => {
       if (window.KT_ANAUTO){ go.textContent = "Analisando…"; const box = document.createElement("div"); box.style.cssText = "display:flex;flex-direction:column;gap:10px;margin-top:10px"; $("#dc-prev").appendChild(box);
         for (const id of tocados){ const s = supById(id); if (!s) continue; if (s.anaAutoOn === false){ const el0 = document.createElement("div"); el0.innerHTML = `<div class="result">${esc(s.nome)}: análise automática desligada. Analise um documento por vez no dossiê (aba Documentos).</div>`; box.appendChild(el0); continue; } const el = document.createElement("div"); el.innerHTML = `<div class="result">Análise automática de ${esc(s.nome)}…</div>`; box.appendChild(el);
           try{ const res = await KT_ANAUTO.rodar(s, {reler:false}); el.innerHTML = KT_ANAUTO.html(supById(id) || s, res, {compacto:true}); KT_ANAUTO.bind(el, supById(id) || s, close); }catch(e){ console.error(e); el.innerHTML = `<div class="result">Análise de ${esc(s.nome)} não concluída: ${esc(e.message || "erro")}</div>`; } }
-        go.textContent = "Importado"; renderAll(); } };
+        go.textContent = "Importado"; renderAll(); }
+      sino(true); };
+    sino(false);
   }
 
   /* Base inicial: botão "Importação de documentos" */
@@ -234,5 +273,5 @@ if (window.KT_DD) (() => {
       $$("#doc-add", b).forEach(x => x.remove()); $$("button", head).filter(x => /importar vários documentos/i.test(x.textContent)).forEach(x => x.remove()); $$("[data-anx]", b).forEach(x => x.remove());
       if (Store.me?.canWrite !== false && !head.querySelector("[data-dcb]")){ const bt = document.createElement("button"); bt.type = "button"; bt.className = "btn sm"; bt.dataset.dcb = "1"; bt.textContent = "Importar documentos"; bt.title = "A importação de documentos fica na Base inicial"; head.appendChild(bt); bt.onclick = () => importar(s.id); } }, 0); });
   setTimeout(cartaoPelaReceita, 4000);
-  window.KT_DOCS = {importar, ler, lerBalanco, lerDRE, periodo, aplicar, cartaoPelaReceita};
+  window.KT_DOCS = {importar, ler, lerBalanco, lerDRE, periodo, aplicar, cartaoPelaReceita, statusDocs, sinoHTML, bindSino};
 })();
