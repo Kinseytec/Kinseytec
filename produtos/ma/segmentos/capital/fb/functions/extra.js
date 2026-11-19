@@ -101,12 +101,11 @@ module.exports = ({db, logger, onSchedule, F}) => {
   const INDICES = [["ibov", "^BVSP", "Ibovespa"], ["smll", "SMLL.SA", "Small caps (SMLL)"], ["ifix", "IFIX.SA", "IFIX"], ["usd", "USDBRL=X", "Dólar"], ["eur", "EURBRL=X", "Euro"], ["spx", "^GSPC", "S&P 500"], ["ndx", "^IXIC", "Nasdaq"], ["brent", "BZ=F", "Petróleo Brent"], ["ouro", "GC=F", "Ouro"], ["btc", "BTC-USD", "Bitcoin"]];
   /* setores com as principais ações da B3 (lista fixa, revisável): garante as 5 maiores do setor mesmo sem a base da CVM.
      Subsetores (frigoríficos, hospitais, farmácias…) são escolhidos pela atividade da empresa consultada. */
-  const SETORES_B3 = {
-    "Saúde":["HAPV3", "RDOR3", "ODPV3", "FLRY3", "QUAL3"], "Saúde · hospitais e planos":["HAPV3", "RDOR3", "ODPV3", "MATD3", "QUAL3"], "Saúde · farmácias e medicamentos":["RADL3", "PGMN3", "HYPE3", "BLAU3", "PNVL3"], "Saúde · diagnósticos":["FLRY3", "DASA3", "RDOR3", "HAPV3", "ODPV3"],
-    "Alimentos":["JBSS3", "MBRF3", "BEEF3", "CAML3", "MDIA3"], "Alimentos · frigoríficos e proteína animal":["JBSS3", "MBRF3", "BEEF3"], "Alimentos · laticínios e bebidas":["ABEV3", "MDIA3", "CAML3", "JBSS3", "MBRF3"],
-    "Agro":["SLCE3", "SMTO3", "AGRO3", "SOJA3", "TTEN3"], "Industrial":["WEGE3", "EMBR3", "RAPT4", "TUPY3", "KEPL3"], "Tecnologia":["TOTS3", "LWSA3", "POSI3", "INTB3", "CASH3"],
-    "Serviços":["GGPS3", "VLID3", "RENT3", "MOVI3", "VAMO3"], "Serviços · terceirização e facilities":["GGPS3", "VLID3", "ATMP3"], "Logística":["RAIL3", "JSLG3", "SIMH3", "VAMO3", "TGMA3"],
-    "Educação":["COGN3", "YDUQ3", "CSED3", "ANIM3", "SEER3"], "Construção":["CYRE3", "EZTC3", "MRVE3", "DIRR3", "CURY3"], "Varejo":["MGLU3", "LREN3", "ASAI3", "CRFB3", "RADL3"],
+  const SETORES_B3 = {"Saúde":["HAPV3", "RDOR3", "ODPV3", "FLRY3", "QUAL3", "MATD3", "RADL3", "HYPE3"], "Saúde · hospitais e planos":["HAPV3", "RDOR3", "ODPV3", "MATD3", "QUAL3"], "Saúde · farmácias e medicamentos":["RADL3", "PGMN3", "HYPE3", "BLAU3", "PNVL3"], "Saúde · diagnósticos":["FLRY3", "DASA3", "RDOR3", "HAPV3", "ODPV3"],
+    "Alimentos":["JBSS3", "MBRF3", "BEEF3", "CAML3", "MDIA3", "ABEV3", "SMTO3"], "Alimentos · frigoríficos e proteína animal":["JBSS3", "MBRF3", "BEEF3"], "Alimentos · laticínios e bebidas":["ABEV3", "MDIA3", "CAML3", "JBSS3", "MBRF3"],
+    "Agro":["SLCE3", "SMTO3", "AGRO3", "SOJA3", "TTEN3", "JALL3"], "Industrial":["WEGE3", "EMBR3", "RAPT4", "TUPY3", "KEPL3", "POMO4", "ROMI3"], "Tecnologia":["TOTS3", "LWSA3", "POSI3", "INTB3", "CASH3", "BMOB3"],
+    "Serviços":["GGPS3", "VLID3", "RENT3", "MOVI3", "VAMO3", "ATMP3", "AMBP3"], "Serviços · terceirização e facilities":["GGPS3", "ATMP3", "VLID3", "AMBP3", "ORVR3"], "Logística":["RAIL3", "JSLG3", "SIMH3", "VAMO3", "TGMA3", "HBSA3"],
+    "Educação":["COGN3", "YDUQ3", "CSED3", "ANIM3", "SEER3", "VTRU3"], "Construção":["CYRE3", "EZTC3", "MRVE3", "DIRR3", "CURY3", "TEND3"], "Varejo":["MGLU3", "LREN3", "ASAI3", "CRFB3", "RADL3", "VIVA3", "SBFG3"],
     "Energia":["ELET3", "EQTL3", "CPFE3", "EGIE3", "CMIG4"], "Financeiro":["ITUB4", "BBDC4", "BBAS3", "BPAC11", "SANB11"], "Óleo e gás":["PETR4", "PRIO3", "VBBR3", "UGPA3", "RECV3"], "Mineração e siderurgia":["VALE3", "GGBR4", "CSNA3", "USIM5", "GOAU4"]};
   async function gravarBolsa(){
     const erros = [], tenta = async (k, fn) => { try{ return await fn(); }catch(e){ erros.push(k + ": " + e.message); return null; } }, espera = ms => new Promise(r => setTimeout(r, ms));
@@ -118,8 +117,8 @@ module.exports = ({db, logger, onSchedule, F}) => {
     comp.slice().sort((a, b) => (b.mcap || 0) - (a.mcap || 0)).slice(0, 40).forEach(c => escolhidas.set(c.ticker, c));
     const fixas = [...new Set(Object.values(SETORES_B3).flat())].filter(t => !escolhidas.has(t)); fixas.forEach(t => escolhidas.set(t, {ticker:t, nome:(comp.find(c => c.ticker === t) || {}).nome || t, seg:"", mcap:(comp.find(c => c.ticker === t) || {}).mcap || null, preco:null}));
     const acoes = []; for (const c of escolhidas.values()){ const q = await tenta(c.ticker, () => cot(c.ticker + ".SA")); if (q) acoes.push({ticker:c.ticker, nome:c.nome, seg:c.seg, preco:q.v, var:q.var, mcap:c.preco ? c.mcap / c.preco * q.v : c.mcap}); await espera(120); }
-    const setores = {}; acoes.filter(a => a.seg).forEach(a => (setores[a.seg] ||= []).push(a)); Object.keys(setores).forEach(k => { setores[k] = setores[k].sort((a, b) => (b.mcap || 0) - (a.mcap || 0)).slice(0, 5); });
-    const porT = Object.fromEntries(acoes.map(a => [a.ticker, a])); Object.entries(SETORES_B3).forEach(([k, L]) => { const X = L.map(t => porT[t]).filter(Boolean); if (X.length >= Math.min(3, L.length)) setores[k] = X.slice(0, 5); });
+    const setores = {}; acoes.filter(a => a.seg).forEach(a => (setores[a.seg] ||= []).push(a)); Object.keys(setores).forEach(k => { setores[k] = setores[k].sort((a, b) => (b.mcap || 0) - (a.mcap || 0)).slice(0, 10); });
+    const porT = Object.fromEntries(acoes.map(a => [a.ticker, a])); Object.entries(SETORES_B3).forEach(([k, L]) => { const X = L.map(t => porT[t]).filter(Boolean); if (X.length >= Math.min(3, L.length)) setores[k] = X.slice(0, 10); });
     const ord = acoes.filter(a => a.var != null).sort((a, b) => b.var - a.var);
     await db.doc("cotacoes/bolsa").set({em:new Date().toISOString(), fonte:"Yahoo Finance (cotações com atraso de até 15 minutos), CVM e B3", indices, setores, altas:ord.slice(0, 5), baixas:ord.slice(-5).reverse(), erros:erros.slice(0, 20)});
     logger.info("bolsa", {indices:Object.keys(indices).length, acoes:acoes.length, erros:erros.length}); return {indices:Object.keys(indices).length, acoes:acoes.length, erros:erros.length};

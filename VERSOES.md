@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v3.19 — 2026-11-19 · Setor com 5 a 10 empresas abertas e possíveis investidores
+- "Empresas de capital aberto do setor": de 5 a 10 empresas listadas do setor da empresa consultada (o subsetor, como terceirização ou frigoríficos, é completado com o setor principal), com preço, variação do dia e valor de mercado na versão publicada.
+- Novo quadro "Possíveis investidores" (5): investidores da Órbita já indicados ou com tese aderente, consolidadores listados do setor e gestoras de private equity, com o perfil e o porquê. Aparece nas Análises financeiras, em Relatórios (Apresentação) e no PDF.
+- Títulos dos quadros e cabeçalhos das tabelas em negrito.
+
 ## v3.18 — 2026-11-19 · Nova ordem do menu
 - Menu na ordem do trabalho: Prospecção, Base inicial, Órbita, Análises financeiras, Valuation, Due Diligence, Jurídico, PPA, Avaliação de ativos, Impairment e Relatórios.
 - "Pós-aquisição" aparece como "PPA" e "Apresentação" como "Relatórios" (a tela que consolida todos os relatórios, teaser e apresentação).

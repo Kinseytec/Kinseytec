@@ -65,6 +65,7 @@ if (window.KT_DD) (() => {
 nav.tabs::-webkit-scrollbar{width:8px}nav.tabs::-webkit-scrollbar-track{background:rgba(255,255,255,.05)}nav.tabs::-webkit-scrollbar-thumb{background:#F2C14E;border-radius:8px}
 nav.tabs button{flex-shrink:0}}
 @media (min-width:900px) and (max-height:820px){nav.tabs button{padding:8px 4px;gap:3px}}`;
+  css.textContent += `.tbl th{font-weight:800 !important;color:var(--fog) !important;letter-spacing:.06em}.card h3,.card h4{font-weight:800}`;
   css.textContent += `nav.tabs [data-go="pos"] svg{stroke:#4FB0F5;color:#4FB0F5}nav.tabs [data-go="impairment"] svg{stroke:#FF8A65;color:#FF8A65}`;
   /* abas de uma mesma área: contorno amarelo, mas cada aba com a sua cor (PPA, Impairment, Base de modelos…) para identificar melhor */
   { const COR = ["#4FB0F5", "#36D399", "#C39BFF", "#FF8A65", "#2DD4BF", "#F472B6", "#F2C14E", "#93C5FD", "#A3E635", "#FDBA74"];
