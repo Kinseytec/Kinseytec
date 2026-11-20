@@ -151,6 +151,31 @@ const KT_FB = !KT_AUTH ? null : {
     b.disabled = !admin; b.style.cursor = admin ? "pointer" : "default";
     b.onclick = admin ? () => KT_FB.openClientes() : null;
   },
+  /* ---------- Diagnóstico do Firebase: mostra o que falta para a leitura dos documentos ---------- */
+  async diagnostico(){
+    const db = KT_AUTH.db, L = [], add = (ok, t, d) => L.push({ok, t, d});
+    const box = sheet(`<div class="sheet-h"><div><div class="eyebrow">Firebase</div><h2>Diagnóstico da leitura de documentos</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div><div class="sheet-b" id="dg-b"><div class="banner">Testando…</div></div>`);
+    const fn = (n, data) => firebase.app().functions("southamerica-east1").httpsCallable(n, {timeout: 60000})(data);
+    add(true, "Versão do sistema", (document.title || "") + " · " + location.host);
+    try{ await db.collection("suppliers").where("clienteId", "==", KT_FB.cid || "").limit(1).get(); add(true, "Banco de dados (Firestore)", "leitura ok"); }catch(e){ add(false, "Banco de dados (Firestore)", (e.code || "") + " " + (e.message || "")); }
+    try{ const r = await fn("lerArquivo", {ping: true}); add(true, "Função lerArquivo publicada", "respondeu · bucket " + (r.data?.bucket || "")); }
+    catch(e){ const c = String(e.code || ""); add(false, "Função lerArquivo", c + " · " + (e.message || "") + (/internal/.test(c) ? " → a função não existe ou o Google Cloud bloqueia o acesso público (veja o passo 4 do tutorial)" : /not-found/.test(c) ? " → publique as funções (passo 3)" : "")); }
+    const ev = (S.evidences || []).find(e => e.url && /firebasestorage|storage\.googleapis/.test(e.url));
+    if (ev){
+      try{ const r = await fetch(ev.url); add(r.ok, "Download direto do Storage (CORS)", r.ok ? "liberado: o sistema lê os arquivos sem precisar da função" : "HTTP " + r.status); }
+      catch(e){ add(false, "Download direto do Storage (CORS)", "bloqueado pelo navegador → rode o passo 5 do tutorial (liberar o Storage para " + location.host + ")"); }
+      try{ const p = ktCaminhoArq(ev), r = await fn("lerArquivo", {path: p}); add(true, "Leitura de um documento pelo servidor", `${ev.nome || p} · ${Math.round((r.data?.size || 0) / 1024)} KB`); }
+      catch(e){ add(false, "Leitura de um documento pelo servidor", String(e.code || "") + " · " + (e.message || "")); }
+    } else add(null, "Documentos no Storage", "nenhum documento guardado para testar");
+    try{ await fn("convidar", {}); add(true, "Função convidar", "respondeu"); }catch(e){ const c = String(e.code || ""); add(/invalid-argument|failed-precondition|permission/.test(c), "Função convidar (convites)", /invalid-argument|failed-precondition|permission/.test(c) ? "publicada" : c + " · " + (e.message || "")); }
+    if (KT_ARQ?.ultimoErro) add(null, "Último erro de leitura", `${KT_ARQ.ultimoErro.code} · ${KT_ARQ.ultimoErro.msg} (${new Date(KT_ARQ.ultimoErro.em).toLocaleString("pt-BR")})`);
+    const txt = L.map(x => `${x.ok === true ? "OK" : x.ok === false ? "FALHA" : "INFO"} · ${x.t}: ${x.d}`).join("\n");
+    $("#dg-b").innerHTML = `<div style="display:flex;flex-direction:column;gap:6px;font-size:13.5px">${L.map(x => `<div><b style="color:${x.ok === true ? "var(--ok)" : x.ok === false ? "var(--bad)" : "var(--muted)"}">${x.ok === true ? "✓" : x.ok === false ? "✗" : "•"} ${esc(x.t)}</b><div class="sub" style="margin:0;font-size:12.5px">${esc(x.d)}</div></div>`).join("")}</div>
+      <p class="sub" style="margin:0;font-size:12.5px">Envie este diagnóstico ao suporte. Se a função falhar e o download direto estiver bloqueado, siga o tutorial de resolução (passos 3 a 5).</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn sm primary" id="dg-cp">Copiar diagnóstico</button><button type="button" class="btn sm" id="dg-re">Testar de novo</button></div>`;
+    $("#dg-cp").onclick = () => navigator.clipboard?.writeText(txt).then(() => toast("Diagnóstico copiado"));
+    $("#dg-re").onclick = () => { box(); KT_FB.diagnostico(); };
+  },
   async openUsers(foco){
     const isAdmin = KT_FB.me.role === "admin", db = KT_AUTH.db;
     const origin = location.origin;

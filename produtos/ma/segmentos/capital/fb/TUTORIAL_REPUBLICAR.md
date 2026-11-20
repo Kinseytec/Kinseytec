@@ -1,8 +1,8 @@
-# KinseyTec – M&A · tutorial para republicar (versão 3.19)
+# KinseyTec – M&A · tutorial para republicar (versão 3.20)
 
 O sistema já está publicado. Republicar **substitui** a versão no ar e **não apaga nenhum dado**: empresas, documentos, balancetes, análises e usuários continuam. Tempo: cerca de 10 minutos, tudo no navegador.
 
-Arquivo: **KinseyTec_MA_Firebase.zip** (está dentro do pacote KinseyTec_MA_publicacao_v3.19.zip; não envie o pacote inteiro, só este arquivo).
+Arquivo: **KinseyTec_MA_Firebase.zip** (está dentro do pacote KinseyTec_MA_publicacao_v3.20.zip; não envie o pacote inteiro, só este arquivo).
 
 ## Republicar agora (passo a passo)
 1. Entre em **console.cloud.google.com** com a conta da Kinsey e escolha o projeto **kinsey-capital-ma** no topo.
@@ -24,14 +24,14 @@ npx -y firebase-tools@13 deploy --project kinsey-capital-ma
 
 5. Pronto quando aparecer **Deploy complete!**. Atualize a página do sistema; no celular, feche e abra o aplicativo.
 
-## Importante nesta versão (3.19, inclui as versões 3.03 a 3.18)
+## Importante nesta versão (3.20, inclui as versões 3.03 a 3.19)
 Esta versão corrige o problema de os documentos não serem reconhecidos nem analisados no sistema publicado. **As funções precisam ser publicadas junto** (o comando de deploy acima já publica tudo): a leitura dos arquivos agora passa por uma função nova do servidor, chamada **lerArquivo**. Se o deploy das funções falhar, me envie a mensagem: sem ela, a análise automática continua sem conseguir abrir os documentos guardados.
 
 **Não é problema de assinatura.** O plano Blaze já está ativo (as funções agendadas de mercado e cotações só rodam nele). O que acontecia:
 1. **Storage sem liberação de download para o navegador (CORS):** o sistema guardava o documento, mas não conseguia abri-lo de novo para analisar. Agora o servidor entrega o arquivo ao sistema.
 2. **Limite de 1 MB por registro do Firestore:** o ECD mês a mês, gravado dentro do cadastro da empresa, podia passar desse limite e travar todas as gravações daquela empresa. Agora cada balancete tem registro próprio; os dados antigos são migrados sozinhos na primeira abertura.
 
-**Opcional (deixa a leitura um pouco mais rápida):** liberar o download direto do Storage para o endereço do sistema. No mesmo Cloud Shell, rode:
+**Recomendado (resolve a leitura mesmo se a função falhar):** liberar o download direto do Storage para o endereço do sistema. O passo a passo completo está no tutorial "Resolver a leitura automática dos documentos". No mesmo Cloud Shell, rode:
 
 ```bash
 echo '[{"origin":["https://kinseytec-ma.web.app","https://kinseytec-ma.firebaseapp.com","https://kinsey-capital-ma.web.app","https://kinsey-capital-ma.firebaseapp.com"],"method":["GET"],"maxAgeSeconds":3600}]' > cors.json && gcloud storage buckets update gs://$(gcloud storage buckets list --project kinsey-capital-ma --format="value(name)" | grep -E "firebasestorage.app|appspot.com" | head -1) --cors-file=cors.json

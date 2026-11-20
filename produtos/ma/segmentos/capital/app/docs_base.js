@@ -191,10 +191,11 @@ if (window.KT_DD) (() => {
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><button type="button" id="dc-sino-b" aria-expanded="${aberto ? "true" : "false"}" aria-label="Situação dos documentos: ${esc(st.tit)}" style="background:none;border:0;padding:0;display:flex;align-items:center;gap:8px;cursor:pointer;color:inherit;font:inherit;text-align:left;flex:1;min-width:180px">
         <svg viewBox="0 0 24 24" width="26" height="26" fill="${c}" stroke="${c}" stroke-width="1.5" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0" fill="none"/></svg>
         <span><b style="font-size:14px">${esc(st.tit)}</b><span class="sub" style="display:block;font-size:11.5px">${st.cor === "amarelo" ? "nenhum documento" : st.cor === "vermelho" ? "documento com problema ou faltando" : "tudo certo"} · toque para ver</span></span></button>
-        ${window.KT_ANAUTO ? `<button type="button" class="btn sm" id="dc-sino-a">Analisar documentos</button>` : ""}</div>
+        ${window.KT_ANAUTO ? `<button type="button" class="btn sm" id="dc-sino-a">Analisar documentos</button>` : ""}${window.KT_FB?.diagnostico && st.cor === "vermelho" ? `<button type="button" class="btn sm ghost" id="dc-sino-dg">Diagnóstico do Firebase</button>` : ""}</div>
       <div id="dc-sino-d" ${aberto ? "" : "hidden"} style="font-size:12.5px;display:flex;flex-direction:column;gap:4px">${st.itens.map(t => `<div style="color:${st.cor === "amarelo" ? "inherit" : COR_SINO.vermelho}">• ${esc(t)}</div>`).join("")}${st.ok.map(t => `<div style="color:${COR_SINO.verde}">✓ ${esc(t)}</div>`).join("")}</div></div>`; }
   function bindSino(host, s, close){ const b = $("#dc-sino-b", host); if (b) b.onclick = () => { const d = $("#dc-sino-d", host), ab = d.hidden; d.hidden = !ab; b.setAttribute("aria-expanded", String(ab)); };
-    const a = $("#dc-sino-a", host); if (a) a.onclick = () => { if (close) close(); KT_ANAUTO.abrir(s.id); }; }
+    const a = $("#dc-sino-a", host); if (a) a.onclick = () => { if (close) close(); KT_ANAUTO.abrir(s.id); };
+    const dg = $("#dc-sino-dg", host); if (dg) dg.onclick = () => { if (close) close(); KT_FB.diagnostico(); }; }
   function importar(pre){
     const L0 = S.suppliers.slice().sort((a, b) => a.nivel.localeCompare(b.nivel) || (a.nome || "").localeCompare(b.nome || "", "pt"));
     const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Base inicial</div><h2>Importação de documentos</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>

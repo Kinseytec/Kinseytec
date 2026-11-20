@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v3.20 — 2026-11-20 · Diagnóstico do Firebase e função de leitura mais robusta
+- Na versão publicada, os documentos guardados não abriam com "servidor indisponível": a função lerArquivo não respondia (não publicada, bloqueada pela política da organização no Google Cloud ou limitada a 1 instância).
+- Função lerArquivo: até 10 instâncias e 20 chamadas simultâneas, acesso público ao endpoint declarado (a função continua conferindo login, perfil e cliente), bucket explícito e mensagem de erro real do Storage. O sistema tenta de novo uma vez antes de desistir e guarda o código e a mensagem do último erro.
+- Novo "Diagnóstico do Firebase" (no sininho vermelho da Importação de documentos e no card do Valuation): testa o banco, a função lerArquivo, o download direto do Storage (CORS), a leitura de um documento pelo servidor e a função de convites, e permite copiar o resultado.
+- Novo tutorial "Resolver a leitura automática dos documentos": plano Blaze e faturamento, deploy, funções, acesso público às funções (política da organização) e liberação do Storage para o endereço do sistema (solução definitiva).
+
 ## v3.19 — 2026-11-19 · Setor com 5 a 10 empresas abertas e possíveis investidores
 - "Empresas de capital aberto do setor": de 5 a 10 empresas listadas do setor da empresa consultada (o subsetor, como terceirização ou frigoríficos, é completado com o setor principal), com preço, variação do dia e valor de mercado na versão publicada.
 - Novo quadro "Possíveis investidores" (5): investidores da Órbita já indicados ou com tese aderente, consolidadores listados do setor e gestoras de private equity, com o perfil e o porquê. Aparece nas Análises financeiras, em Relatórios (Apresentação) e no PDF.

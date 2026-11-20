@@ -59,7 +59,9 @@ exports.atualizarAgora = onCall({memory: "2GiB", timeoutSeconds: 540}, async req
 });
 /* lerArquivo: devolve um arquivo do Storage ao sistema (o navegador não baixa direto do bucket sem CORS liberado).
    Mesmas regras do storage.rules: administrador vê tudo; editor e colaborador só os arquivos do próprio cliente. */
-exports.lerArquivo = onCall({memory: "1GiB", timeoutSeconds: 120}, async req => {
+const bucketPadrao = () => { try{ const c = JSON.parse(process.env.FIREBASE_CONFIG || "{}"); return c.storageBucket || undefined; }catch(e){ return undefined; } };
+exports.lerArquivo = onCall({memory: "512MiB", timeoutSeconds: 120, maxInstances: 10, concurrency: 20, cpu: 1, invoker: "public"}, async req => {
+  if (req.data?.ping) return {ok: true, bucket: bucketPadrao() || "(padrão)", em: new Date().toISOString()};
   if (!req.auth || !req.auth.token.email_verified) throw new HttpsError("unauthenticated", "Entre no sistema.");
   const path = String(req.data?.path || "");
   if (!/^(evidences|fichas)\/[^\0]+$/.test(path) || path.includes("..")) throw new HttpsError("invalid-argument", "Arquivo inválido.");
@@ -69,15 +71,17 @@ exports.lerArquivo = onCall({memory: "1GiB", timeoutSeconds: 120}, async req => 
     if (!d || !["admin", "editor", "colaborador"].includes(d.role)) throw new HttpsError("permission-denied", "Sem acesso a este arquivo.");
     if (d.role !== "admin" && p[0] === "evidences" && p.length > 2 && String(d.clienteId || "") !== p[1]) throw new HttpsError("permission-denied", "Arquivo de outro cliente.");
   }
-  const f = admin.storage().bucket().file(path), [ex] = await f.exists();
-  if (!ex) throw new HttpsError("not-found", "Arquivo não encontrado no Storage.");
-  const [meta] = await f.getMetadata(); if (Number(meta.size || 0) > 20 * 1024 * 1024) throw new HttpsError("out-of-range", "Arquivo maior que 20 MB para leitura automática.");
-  const [buf] = await f.download();
-  return {b64: buf.toString("base64"), mime: meta.contentType || "application/octet-stream", size: buf.length};
+  try{
+    const f = admin.storage().bucket(bucketPadrao()).file(path), [ex] = await f.exists();
+    if (!ex) throw new HttpsError("not-found", "Arquivo não encontrado no Storage.");
+    const [meta] = await f.getMetadata(); if (Number(meta.size || 0) > 20 * 1024 * 1024) throw new HttpsError("out-of-range", "Arquivo maior que 20 MB para leitura automática.");
+    const [buf] = await f.download();
+    return {b64: buf.toString("base64"), mime: meta.contentType || "application/octet-stream", size: buf.length};
+  }catch(e){ if (e instanceof HttpsError) throw e; logger.error("lerArquivo", path, e); throw new HttpsError("unavailable", "Storage: " + String(e.message || e).slice(0, 200)); }
 });
 /* convidar: o administrador convida; a conta é criada com o e-mail já confirmado (só quem recebe o link define a senha) e o
    link de "criar senha" volta para o sistema, que também dispara o e-mail do Firebase e oferece o envio por WhatsApp. */
-exports.convidar = onCall({memory: "256MiB", timeoutSeconds: 60}, async req => {
+exports.convidar = onCall({memory: "256MiB", timeoutSeconds: 60, maxInstances: 5, invoker: "public"}, async req => {
   const me = String(req.auth?.token?.email || "").toLowerCase();
   if (!req.auth || !req.auth.token.email_verified) throw new HttpsError("unauthenticated", "Entre no sistema.");
   let ok = ADMINS.includes(me); if (!ok){ const u = await db.doc("users/" + req.auth.uid).get(); ok = u.exists && u.data().role === "admin"; }

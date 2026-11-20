@@ -533,10 +533,11 @@ async function ktBaixar(e){
     catch(x){ motivo = "download direto bloqueado pelo navegador (CORS do Storage)"; if (nuvem) KT_ARQ.diretoBloq = true; } }
   if (!blob){ const p = ktCaminhoArq(e);
     if (p && window.firebase?.app && firebase.app().functions){
-      try{ const r = await firebase.app().functions("southamerica-east1").httpsCallable("lerArquivo", {timeout: 120000})({path: p}), d = r.data || {};
+      try{ const chama = () => firebase.app().functions("southamerica-east1").httpsCallable("lerArquivo", {timeout: 120000})({path: p});
+        const r = await chama().catch(async x => { if (/internal|unavailable|deadline|resource/.test(String(x?.code || ""))){ await new Promise(z => setTimeout(z, 1500)); return chama(); } throw x; }), d = r.data || {};
         const bin = atob(d.b64 || ""), a = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i);
         blob = new Blob([a], {type: d.mime || e.mime || "application/octet-stream"}); KT_ARQ.via.servidor++; }
-      catch(x){ const c = String(x?.code || ""); motivo = (motivo ? motivo + "; " : "") + (/not-found/.test(c) && /lerArquivo|function/i.test(String(x?.message || "")) ? "função lerArquivo não publicada (republique as funções)" : /not-found/.test(c) ? "arquivo não encontrado no Storage" : /permission/.test(c) ? "sem permissão para este arquivo" : /unauthenticated/.test(c) ? "entre no sistema de novo" : /internal|unavailable|deadline/.test(c) ? "servidor indisponível (confira o plano Blaze e as funções no Firebase)" : (x?.message || "falha no servidor")); } } }
+      catch(x){ const c = String(x?.code || ""); motivo = (motivo ? motivo + "; " : "") + (/not-found/.test(c) && /lerArquivo|function/i.test(String(x?.message || "")) ? "função lerArquivo não publicada (republique as funções)" : /not-found/.test(c) ? "arquivo não encontrado no Storage" : /permission/.test(c) ? "sem permissão para este arquivo" : /unauthenticated/.test(c) ? "entre no sistema de novo" : /internal/.test(c) ? "a função lerArquivo não respondeu (não publicada ou bloqueada no Google Cloud; veja o Diagnóstico do Firebase)" : /unavailable|deadline|resource/.test(c) ? "servidor indisponível: " + String(x?.message || c).slice(0, 140) : (x?.message || "falha no servidor")); KT_ARQ.ultimoErro = {code: c, msg: String(x?.message || ""), em: new Date().toISOString()}; } } }
   if (!blob){ if (k) KT_ARQ.falhas[k] = motivo || "arquivo sem endereço"; throw new Error("não foi possível abrir o arquivo: " + (motivo || "arquivo sem endereço")); }
   if (k) delete KT_ARQ.falhas[k]; ktGuardaArq(k, blob); return blob;
 }
