@@ -1,14 +1,33 @@
-# KinseyTec – M&A · tutorial para republicar (versão 3.20)
+# KinseyTec – M&A · tutorial para republicar (versão 3.21)
 
 O sistema já está publicado. Republicar **substitui** a versão no ar e **não apaga nenhum dado**: empresas, documentos, balancetes, análises e usuários continuam. Tempo: cerca de 10 minutos, tudo no navegador.
 
-Arquivo: **KinseyTec_MA_Firebase.zip** (está dentro do pacote KinseyTec_MA_publicacao_v3.20.zip; não envie o pacote inteiro, só este arquivo).
+Arquivo: **KinseyTec_MA_Firebase.zip** (está dentro do pacote KinseyTec_MA_publicacao_v3.21.zip; não envie o pacote inteiro, só este arquivo).
+
+## Seus dados ficam guardados (o que a publicação troca e o que não troca)
+| O que | Onde fica | Na publicação |
+|---|---|---|
+| Sistema (telas e regras de cálculo) | Firebase Hosting | **substituído** pela versão nova |
+| Funções do servidor (leitura de documentos, convites, cotações) | Cloud Functions | **substituídas** pela versão nova |
+| Regras de acesso | Firestore e Storage | **atualizadas** (só dizem quem pode ler e gravar; não apagam nada) |
+| Clientes, empresas, prospecção, listas, balancetes, análises, contratos, pareceres | Banco Firestore | **não é tocado** |
+| Documentos importados (PDF, Excel, ECD…) | Firebase Storage | **não é tocado** |
+| Contas e senhas dos usuários | Firebase Authentication | **não é tocado** |
+
+Camadas de proteção (ligadas pelo script do passo 4, uma única vez):
+- **Recuperação a um ponto no tempo** do banco: volta o banco a qualquer minuto dos últimos 7 dias;
+- **Backup automático diário** do banco, guardado por 14 semanas;
+- **Lixeira do Storage**: um documento apagado fica recuperável por 30 dias;
+- **Exportação completa e datada** do banco antes de cada publicação;
+- No sistema: **Usuários e convites › Backup e segurança dos dados › Baixar backup do cliente (JSON)**, para uma cópia extra no computador.
+
+No próprio sistema, nenhuma rotina automática apaga dados: excluir só acontece por ação de um usuário, com confirmação.
 
 ## Republicar agora (passo a passo)
 1. Entre em **console.cloud.google.com** com a conta da Kinsey e escolha o projeto **kinsey-capital-ma** no topo.
 2. Clique no ícone **>_** (*Ativar o Cloud Shell*), no canto superior direito. Abre um terminal embaixo.
 3. No terminal, clique em **⋮ → Fazer upload** e envie o **KinseyTec_MA_Firebase.zip**.
-4. Copie e cole os 3 comandos, um de cada vez, apertando Enter depois de cada um:
+4. Copie e cole os 4 comandos, um de cada vez, apertando Enter depois de cada um:
 
 ```bash
 rm -rf kinseytec-ma && unzip -o KinseyTec_MA_Firebase.zip -d kinseytec-ma && cd kinseytec-ma/firebase
@@ -18,16 +37,21 @@ npx -y firebase-tools@13 login --no-localhost
 ```
 (Se aparecer um link: abra, entre com a conta da Kinsey, copie o código e cole no terminal. Se disser que já está logado, siga em frente.)
 
+**Backup antes de publicar** (liga as proteções na primeira vez e exporta o banco; leva 1 a 3 minutos):
+```bash
+bash backup_antes_de_publicar.sh kinsey-capital-ma
+```
+
 ```bash
 npx -y firebase-tools@13 deploy --project kinsey-capital-ma
 ```
 
 5. Pronto quando aparecer **Deploy complete!**. Atualize a página do sistema; no celular, feche e abra o aplicativo.
 
-## Importante nesta versão (3.20, inclui as versões 3.03 a 3.19)
+## Importante nesta versão (3.21, inclui as versões 3.03 a 3.20)
 Esta versão corrige o problema de os documentos não serem reconhecidos nem analisados no sistema publicado. **As funções precisam ser publicadas junto** (o comando de deploy acima já publica tudo): a leitura dos arquivos agora passa por uma função nova do servidor, chamada **lerArquivo**. Se o deploy das funções falhar, me envie a mensagem: sem ela, a análise automática continua sem conseguir abrir os documentos guardados.
 
-**Não é problema de assinatura.** O plano Blaze já está ativo (as funções agendadas de mercado e cotações só rodam nele). O que acontecia:
+**Assinatura:** as funções só rodam no plano Blaze; confira em Firebase › Uso e faturamento (passo 1 do tutorial "Resolver a leitura automática dos documentos"). O que acontecia:
 1. **Storage sem liberação de download para o navegador (CORS):** o sistema guardava o documento, mas não conseguia abri-lo de novo para analisar. Agora o servidor entrega o arquivo ao sistema.
 2. **Limite de 1 MB por registro do Firestore:** o ECD mês a mês, gravado dentro do cadastro da empresa, podia passar desse limite e travar todas as gravações daquela empresa. Agora cada balancete tem registro próprio; os dados antigos são migrados sozinhos na primeira abertura.
 
@@ -36,7 +60,7 @@ Esta versão corrige o problema de os documentos não serem reconhecidos nem ana
 ```bash
 echo '[{"origin":["https://kinseytec-ma.web.app","https://kinseytec-ma.firebaseapp.com","https://kinsey-capital-ma.web.app","https://kinsey-capital-ma.firebaseapp.com"],"method":["GET"],"maxAgeSeconds":3600}]' > cors.json && gcloud storage buckets update gs://$(gcloud storage buckets list --project kinsey-capital-ma --format="value(name)" | grep -E "firebasestorage.app|appspot.com" | head -1) --cors-file=cors.json
 ```
-(Se o sistema for acessado por outro domínio, me avise para incluir. Sem este passo o sistema funciona do mesmo jeito, pelo servidor.)
+(Se o sistema for acessado por outro domínio, me avise para incluir. Com este passo a leitura funciona mesmo se a função do servidor falhar.)
 
 ## Convites por e-mail (configurar uma vez no Firebase)
 O e-mail do convite é enviado pelo próprio Firebase. No console do Firebase (console.firebase.google.com › kinsey-capital-ma):
@@ -48,6 +72,7 @@ O e-mail do convite é enviado pelo próprio Firebase. No console do Firebase (c
 
 ## Se aparecer alguma pergunta
 - **"Would you like to proceed with deletion?"** (apagar funções antigas): responda **N**.
+- **Pergunta sobre apagar índices do Firestore** ("delete these indexes?"): responda **N**. (Índices só aceleram consultas; mesmo assim, não apague.)
 - **Pede ECONODATA_TOKEN, RAMPER_TOKEN ou LEMITTI_TOKEN:** digite **nao configurado** (ou a chave oficial, se já tiver).
 - **Erro só nas funções:** rode o comando abaixo para publicar o restante e me envie a mensagem de erro (nesta versão a função lerArquivo é necessária para analisar os documentos).
 

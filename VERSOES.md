@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v3.21 — 2026-11-25 · Segurança dos dados nas publicações
+- Pacote de publicação traz o script backup_antes_de_publicar.sh: liga, uma vez, a recuperação a um ponto no tempo do banco (7 dias), o backup automático diário (14 semanas) e a lixeira do Storage (30 dias), e faz uma exportação completa e datada do banco antes de cada publicação.
+- Usuários e convites › "Backup e segurança dos dados": o administrador baixa o backup do cliente atual em JSON (cadastros, prospecção, balancetes, contratos, pareceres, operações, ativos, documentos com os links dos arquivos, configurações e convites).
+- Revisão do código: nenhuma rotina automática apaga dados. As exclusões só acontecem por ação do usuário com confirmação (a importação que exclui ausentes exige digitar EXCLUIR), e a migração dos balancetes copia antes de remover a cópia antiga.
+- Tutorial de publicação com a seção "Seus dados ficam guardados" e o passo de backup antes do deploy.
+
 ## v3.20 — 2026-11-20 · Diagnóstico do Firebase e função de leitura mais robusta
 - Na versão publicada, os documentos guardados não abriam com "servidor indisponível": a função lerArquivo não respondia (não publicada, bloqueada pela política da organização no Google Cloud ou limitada a 1 instância).
 - Função lerArquivo: até 10 instâncias e 20 chamadas simultâneas, acesso público ao endpoint declarado (a função continua conferindo login, perfil e cliente), bucket explícito e mensagem de erro real do Storage. O sistema tenta de novo uma vez antes de desistir e guarda o código e a mensagem do último erro.

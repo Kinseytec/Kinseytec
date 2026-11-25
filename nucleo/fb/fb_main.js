@@ -176,6 +176,20 @@ const KT_FB = !KT_AUTH ? null : {
     $("#dg-cp").onclick = () => navigator.clipboard?.writeText(txt).then(() => toast("Diagnóstico copiado"));
     $("#dg-re").onclick = () => { box(); KT_FB.diagnostico(); };
   },
+  /* backup do cliente atual em JSON: todas as coleções do cliente, os balancetes, as configurações e os convites */
+  async backup(bt){
+    const db = KT_AUTH.db, cid = KT_FB.cid; if (!cid){ toast("Escolha o cliente antes"); return; }
+    if (bt){ bt.disabled = true; bt.textContent = "Gerando backup…"; }
+    const out = {sistema: document.title || "KinseyTec", cliente: (KT_FB.clientes || []).find(c => c.id === cid) || {id: cid}, em: new Date().toISOString(), por: KT_FB.me?.email || "", colecoes: {}}, cont = {};
+    const pega = async (col, q) => { try{ const r = await q.get(); out.colecoes[col] = r.docs.map(d => ({id: d.id, ...d.data()})); cont[col] = r.size; }catch(e){ out.colecoes[col] = {erro: e.code || e.message}; cont[col] = "erro"; } };
+    for (const col of [...(KT_FB.SCOPED || []), "ddbal"]) await pega(col, db.collection(col).where("clienteId", "==", cid));
+    await pega("config", db.collection("config").where(firebase.firestore.FieldPath.documentId(), "in", (KT_FB.CFGS || []).map(id => id + "__" + cid).slice(0, 10)));
+    await pega("invites", db.collection("invites").where("clienteId", "==", cid));
+    const txt = JSON.stringify(out), nome = `KinseyTec_backup_${String(out.cliente.nome || cid).normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w]+/g, "_").slice(0, 30)}_${out.em.slice(0, 10)}.json`;
+    try{ await rptSave(new TextEncoder().encode(txt), nome, "application/json"); }catch(e){ const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([txt], {type: "application/json"})); a.download = nome; a.click(); }
+    const r = $("#kt-bkp-r"); if (r) r.textContent = "Backup gerado: " + Object.entries(cont).map(([k, v]) => `${k} ${v}`).join(" · ");
+    if (bt){ bt.disabled = false; bt.textContent = "Baixar backup do cliente (JSON)"; } toast("Backup baixado");
+  },
   async openUsers(foco){
     const isAdmin = KT_FB.me.role === "admin", db = KT_AUTH.db;
     const origin = location.origin;
@@ -207,11 +221,15 @@ const KT_FB = !KT_AUTH ? null : {
           <p style="font-size:13.5px;margin:0">Fornecedores (Portal do Fornecedor): <b class="mono" style="user-select:all">${origin}/portal.html</b></p>
           <p class="sub" style="margin:0">Ao salvar, o sistema cria o acesso e envia o e-mail para a pessoa criar a senha. Também dá para mandar o mesmo link por WhatsApp (válido por 1 hora; depois, a pessoa usa "Esqueci a senha" na tela de entrada) ou reenviar pela lista abaixo.</p></div>
         <div><div class="eyebrow" style="margin-bottom:8px">Convites e usuários</div><div class="tbl"><table class="ptable" id="kt-ul"><tr><td style="color:var(--muted)">Carregando…</td></tr></table></div></div>
+        ${isAdmin ? `<div class="card" style="display:flex;flex-direction:column;gap:8px"><h3>Backup e segurança dos dados</h3>
+          <p class="sub" style="margin:0">Cadastros, listas, análises e documentos ficam no banco e no Storage do Firebase: publicar uma nova versão troca só o sistema, nunca apaga os dados. Para uma cópia extra, baixe aqui o backup do cliente atual (cadastros, prospecção, balancetes, contratos, pareceres, documentos e os links dos arquivos).</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn sm primary" id="kt-bkp">Baixar backup do cliente (JSON)</button></div><div id="kt-bkp-r" class="sub" style="margin:0;font-size:12.5px"></div></div>` : ""}
         <div class="card" style="display:flex;flex-direction:column;gap:8px"><h3>Dados de demonstração</h3><p class="sub" style="margin:0">Carrega os fornecedores e contratos marcados EXEMPLO para o teste. Podem ser excluídos depois.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn sm" id="kt-seed">Carregar dados de exemplo</button><button type="button" class="btn sm ghost" id="kt-unseed">Apagar dados de exemplo</button></div></div>
         <div class="card" id="kt-mig" style="display:flex;flex-direction:column;gap:8px" hidden><h3>Registros sem cliente</h3><div id="kt-mig-b" class="sub" style="margin:0"></div></div>
         <div class="card" id="kt-lotes" style="display:flex;flex-direction:column;gap:8px"><h3>Importações de fornecedores</h3><p class="sub" style="margin:0">Desfaça uma importação inteira ou apague os registros importados com texto ilegível (arquivo lido no formato errado).</p><div id="kt-lotes-b"></div><p class="sub" style="margin:0">Antes de usar com o cliente, apague os exemplos: somem os fornecedores, contratos, pareceres e evidências marcados EXEMPLO.</p></div>` : ""}
       </div>`);
     $("#kt-out").onclick = () => KT_AUTH.signOut().then(() => location.reload());
+    const bk = $("#kt-bkp"); if (bk) bk.onclick = () => KT_FB.backup(bk);
     if ($("#kt-clis")) $("#kt-clis").onclick = () => KT_FB.openClientes();
     if (foco === "cliente") setTimeout(() => { const f = $("#kt-cli"); if (f){ f.scrollIntoView({block: "start"}); $("#kt-cn").focus(); } }, 50);
     if (!isAdmin) return;

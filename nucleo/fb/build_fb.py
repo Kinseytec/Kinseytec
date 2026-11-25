@@ -83,4 +83,5 @@ if os.path.isdir(FN): shutil.rmtree(FN)
 shutil.copytree(S + 'fb/functions', FN, ignore=shutil.ignore_patterns('node_modules', 'importar.js'))
 shutil.copy(S + 'app/importar.js', FN + '/importar.js')   # leitor de ZIP/PDF do próprio sistema, usado pelas listas oficiais
 shutil.copy(S + 'fb/firestore.rules', OUT + '/firestore.rules'); shutil.copy(S + 'fb/storage.rules', OUT + '/storage.rules')
+shutil.copy(S + 'fb/backup_antes_de_publicar.sh', OUT + '/backup_antes_de_publicar.sh')   # cópia de segurança antes de cada publicação
 print('ok', sum(os.path.getsize(os.path.join(dp, f)) for dp, _, fs in os.walk(OUT) for f in fs) // 1024 // 1024, 'MB')
