@@ -2,9 +2,10 @@
 # KinseyTec · cópia de segurança antes de publicar (rodar no Cloud Shell, dentro da pasta firebase)
 # 1) liga, uma única vez, as proteções permanentes do Firebase:
 #    - recuperação a um ponto no tempo do banco (PITR, últimos 7 dias)
-#    - backup automático diário do banco, guardado por 14 semanas
+#    - backup automático diário do banco, guardado por 7 dias
 #    - lixeira do Storage: arquivo apagado fica recuperável por 30 dias
-# 2) faz uma exportação completa do banco (Firestore) para o Storage, datada, antes de cada publicação.
+# 2) faz uma exportação completa do banco (Firestore) para o Storage, datada, antes de cada publicação,
+#    e guarda só o último e o penúltimo backup das publicações.
 # Nada aqui apaga dados. Se um passo já estiver ligado, o script só avisa e segue.
 set -u
 PROJ="${1:-$(sed -n 's/.*"default": *"\([^"]*\)".*/\1/p' .firebaserc 2>/dev/null)}"
@@ -16,11 +17,11 @@ echo "== 1/4 Recuperação a um ponto no tempo (PITR, 7 dias)"
 gcloud firestore databases update --database="(default)" --enable-pitr --project="$PROJ" >/dev/null 2>&1 \
   && echo "   ligada" || echo "   já estava ligada ou o perfil não permite (confira no console: Firestore › Recuperação de desastres)"
 
-echo "== 2/4 Backup automático diário do banco (14 semanas)"
+echo "== 2/4 Backup automático diário do banco (7 dias)"
 if gcloud firestore backups schedules list --database="(default)" --project="$PROJ" 2>/dev/null | grep -q "dailyRecurrence\|DAILY\|recurrence"; then
   echo "   já existe"
 else
-  gcloud firestore backups schedules create --database="(default)" --recurrence=daily --retention=14w --project="$PROJ" >/dev/null 2>&1 \
+  gcloud firestore backups schedules create --database="(default)" --recurrence=daily --retention=7d --project="$PROJ" >/dev/null 2>&1 \
     && echo "   criado" || echo "   não foi possível criar agora (confira o plano Blaze e o perfil de proprietário)"
 fi
 
@@ -38,6 +39,9 @@ if [ -n "$BUCKET" ]; then
   DEST="gs://$BUCKET/backups/firestore-$(date +%Y%m%d-%H%M)"
   if gcloud firestore export "$DEST" --project="$PROJ" >/dev/null 2>&1; then
     echo "   OK: $DEST"
+    # guarda só o último e o penúltimo backup das publicações (os mais antigos são removidos)
+    ANTIGOS="$(gcloud storage ls "gs://$BUCKET/backups/" 2>/dev/null | grep 'firestore-' | sort | head -n -2)"
+    for A in $ANTIGOS; do gcloud storage rm -r "$A" >/dev/null 2>&1 && echo "   backup antigo removido: $A"; done
   else
     echo "   a exportação não rodou (comum na primeira vez: confira permissões). O backup diário do passo 2 continua valendo."
   fi

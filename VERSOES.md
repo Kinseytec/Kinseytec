@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v3.24 — 2026-11-27 · Publicação automática simplificada e backups enxutos
+- Cada versão enviada daqui (branch de trabalho) é publicada sozinha, sem pull request, sem aprovação no GitHub e sem mexer na main. A main continua publicando também.
+- Não precisa mais criar o ambiente "producao" no GitHub: a configuração única tem só dois passos (Cloud Shell e duas variáveis no GitHub).
+- Backup antes de cada publicação guarda só o último e o penúltimo; os mais antigos são removidos. O backup diário do banco passa a ser guardado por 7 dias, junto com a recuperação a um ponto no tempo (7 dias) e a lixeira do Storage (30 dias).
+- O configurador atualiza a regra de entrada do GitHub no Google Cloud se ela já existir (pode rodar de novo sem erro).
+
 ## v3.23 — 2026-11-27 · Publicação automática com as correções do Firebase
 - Um único fluxo de publicação no GitHub Actions (publicar.yml), sem chave guardada: o GitHub entra no Google Cloud pela federação de identidade, só a partir da branch main. O fluxo antigo deploy-firebase.yml (publicava sem montar o sistema e dependia de chave) foi retirado.
 - A cada publicação: monta e testa o sistema, faz o backup do banco (e liga PITR, backup diário e lixeira do Storage), publica site, regras e funções, libera o Storage para os endereços reais do site (inclusive kinseytec-ma.web.app), libera o acesso das funções chamadas pelo sistema (lerArquivo, convidar, consultas) e confere site, banco e função de leitura, com o resumo na aba Actions.

@@ -48,5 +48,5 @@ Configurada uma vez, cada nova versão é publicada sozinha, com a sua aprovaç�
 bash configurar_publicacao_automatica.sh kinsey-capital-ma kinseytec/kinseytec
 ```
 2. O comando mostra no final dois valores. No GitHub do repositório **kinseytec/kinseytec**: **Settings → Secrets and variables → Actions → aba Variables → New repository variable**, crie **GCP_WIF_PROVIDER** e **GCP_SERVICE_ACCOUNT** com esses valores.
-3. Em **Settings → Environments → New environment**, crie **producao** e, em *Required reviewers*, coloque quem aprova as publicações.
+3. (Desde a versão 3.24 não é preciso criar o ambiente "producao": cada versão enviada ao repositório é publicada sozinha. Veja TUTORIAL_REPUBLICAR.md.)
 4. Me avise e autorize a criação da branch **main**: a partir daí, cada versão nova vai ao ar depois da sua aprovação na aba **Actions** do GitHub.

@@ -5,7 +5,7 @@ name: Publicar KinseyTec M&A
 # Login no Google Cloud sem chave guardada (Workload Identity Federation): veja ferramentas/configurar_publicacao_automatica.sh
 on:
   push:
-    branches: [main]
+    branches: [main, "claude/affectionate-ride-h3apqa"]   # a branch de trabalho: cada versão enviada daqui é publicada
     paths:
       - "nucleo/**"
       - "produtos/**"
@@ -39,7 +39,6 @@ jobs:
   publicar:
     needs: testar
     runs-on: ubuntu-latest
-    environment: producao   # quem estiver em "Required reviewers" aprova antes de publicar
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 2 }

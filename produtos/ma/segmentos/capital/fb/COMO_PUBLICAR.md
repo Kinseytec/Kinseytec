@@ -136,7 +136,7 @@ A v2.65 cria a coleção "ativos" no banco. As regras de acesso dela vão junto 
 Depois de configurada, cada nova versão aprovada na branch **main** do repositório é testada e publicada sozinha no Firebase, sem Cloud Shell e sem baixar pacote. Nenhuma chave ou senha é guardada: o GitHub entra no Google Cloud pela federação de identidade, e só a branch main deste repositório pode publicar.
 1. No Cloud Shell do projeto, rode o script `ferramentas/configurar_publicacao_automatica.sh` do repositório (ele mostra no final os dois valores do passo 2).
 2. No GitHub, em **Settings → Secrets and variables → Actions → Variables**, crie `GCP_WIF_PROVIDER` e `GCP_SERVICE_ACCOUNT` com os valores mostrados.
-3. Em **Settings → Environments**, crie o ambiente **producao**. Em *Required reviewers*, coloque quem aprova cada publicação (ex.: ia@ ou newton.kao@): a versão só vai ao ar depois desse clique.
+3. (Desde a versão 3.24 não é preciso criar o ambiente "producao": cada versão enviada ao repositório é publicada sozinha. Veja TUTORIAL_REPUBLICAR.md.)
 4. Para publicar na hora, sem esperar uma nova versão: aba **Actions → Publicar KinseyTec M&A → Run workflow**.
 5. O resultado (site no ar e banco de dados) aparece no resumo da execução, na aba Actions.
 

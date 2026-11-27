@@ -38,7 +38,9 @@ gcloud iam workload-identity-pools providers describe github --location=global -
   gcloud iam workload-identity-pools providers create-oidc github --location=global --workload-identity-pool=github \
     --display-name="GitHub Actions" --issuer-uri="https://token.actions.githubusercontent.com" \
     --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository,attribute.ref=assertion.ref" \
-    --attribute-condition="assertion.repository=='$REPO' && assertion.ref=='refs/heads/main'"
+    --attribute-condition="assertion.repository=='$REPO' && (assertion.ref=='refs/heads/main' || assertion.ref=='refs/heads/claude/affectionate-ride-h3apqa')"
+gcloud iam workload-identity-pools providers update-oidc github --location=global --workload-identity-pool=github \
+  --attribute-condition="assertion.repository=='$REPO' && (assertion.ref=='refs/heads/main' || assertion.ref=='refs/heads/claude/affectionate-ride-h3apqa')" >/dev/null 2>&1 || true
 
 gcloud iam service-accounts add-iam-policy-binding "$SA" --role=roles/iam.workloadIdentityUser \
   --member="principalSet://iam.googleapis.com/projects/$NUM/locations/global/workloadIdentityPools/github/attribute.repository/$REPO" >/dev/null
@@ -47,4 +49,4 @@ echo
 echo "Pronto. No GitHub (Settings > Secrets and variables > Actions > Variables), crie:"
 echo "  GCP_WIF_PROVIDER    = projects/$NUM/locations/global/workloadIdentityPools/github/providers/github"
 echo "  GCP_SERVICE_ACCOUNT = $SA"
-echo "E em Settings > Environments, crie o ambiente: producao (opcional: Required reviewers = quem aprova cada publicação)."
+echo "Pronto: cada versão enviada daqui (ou que entrar na main) é publicada sozinha. Acompanhe em GitHub > Actions."

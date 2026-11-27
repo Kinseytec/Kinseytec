@@ -1,8 +1,8 @@
-# KinseyTec – M&A · tutorial para republicar (versão 3.23)
+# KinseyTec – M&A · tutorial para republicar (versão 3.24)
 
 O sistema já está publicado. Republicar **substitui** a versão no ar e **não apaga nenhum dado**: empresas, documentos, balancetes, análises e usuários continuam. Tempo: cerca de 10 minutos, tudo no navegador.
 
-Arquivo: **KinseyTec_MA_Firebase.zip** (está dentro do pacote KinseyTec_MA_publicacao_v3.23.zip; não envie o pacote inteiro, só este arquivo).
+Arquivo: **KinseyTec_MA_Firebase.zip** (está dentro do pacote KinseyTec_MA_publicacao_v3.24.zip; não envie o pacote inteiro, só este arquivo).
 
 ## Seus dados ficam guardados (o que a publicação troca e o que não troca)
 | O que | Onde fica | Na publicação |
@@ -16,7 +16,8 @@ Arquivo: **KinseyTec_MA_Firebase.zip** (está dentro do pacote KinseyTec_MA_publ
 
 Camadas de proteção (ligadas pelo script do passo 4, uma única vez):
 - **Recuperação a um ponto no tempo** do banco: volta o banco a qualquer minuto dos últimos 7 dias;
-- **Backup automático diário** do banco, guardado por 14 semanas;
+- **Backup automático diário** do banco, guardado por 7 dias;
+- **Backup antes de cada publicação**: o sistema guarda **o último e o penúltimo**; os mais antigos são removidos sozinhos;
 - **Lixeira do Storage**: um documento apagado fica recuperável por 30 dias;
 - **Exportação completa e datada** do banco antes de cada publicação;
 - No sistema: **Usuários e convites › Backup e segurança dos dados › Baixar backup do cliente (JSON)**, para uma cópia extra no computador.
@@ -48,7 +49,7 @@ npx -y firebase-tools@13 deploy --project kinsey-capital-ma
 
 5. Pronto quando aparecer **Deploy complete!**. Atualize a página do sistema; no celular, feche e abra o aplicativo.
 
-## Importante nesta versão (3.23, inclui as versões 3.03 a 3.22)
+## Importante nesta versão (3.24, inclui as versões 3.03 a 3.23)
 Esta versão corrige o problema de os documentos não serem reconhecidos nem analisados no sistema publicado. **As funções precisam ser publicadas junto** (o comando de deploy acima já publica tudo): a leitura dos arquivos agora passa por uma função nova do servidor, chamada **lerArquivo**. Se o deploy das funções falhar, me envie a mensagem: sem ela, a análise automática continua sem conseguir abrir os documentos guardados.
 
 **Assinatura:** as funções só rodam no plano Blaze; confira em Firebase › Uso e faturamento (passo 1 do tutorial "Resolver a leitura automática dos documentos"). O que acontecia:
@@ -97,22 +98,38 @@ npx -y firebase-tools@13 deploy --project kinsey-capital-ma --only hosting,fires
 - **Dossiê da Tallenty:** o "Resumo para o investidor" mostra faturamento, EBITDA e faixa de valuation (o sistema lê os documentos do dossiê ao abrir).
 - **Jurídico:** abas "Validação dos documentos" e "Parecer do advogado".
 
-## Publicação automática (configurar uma única vez, cerca de 15 minutos)
-Depois de configurada, cada versão aprovada vai ao ar sozinha, com backup antes e as correções do Firebase aplicadas a cada vez. **Não usa chave nem senha:** o GitHub entra no Google Cloud pela federação de identidade, e só a branch **main** do repositório pode publicar.
+## Publicação automática (o jeito mais simples: configurar uma única vez, cerca de 10 minutos)
+Depois disso, **vocês não fazem mais nada**: pedem a atualização aqui, a nova versão é enviada e o sistema se atualiza sozinho em 5 a 10 minutos, com backup antes. **Não usa chave nem senha:** o GitHub entra no Google Cloud pela federação de identidade, e só este repositório pode publicar.
 
-1. **No Cloud Shell** (projeto kinsey-capital-ma, conta proprietária do projeto), envie o arquivo **configurar_publicacao_automatica.sh** (está no pacote) e rode:
+**Passo 1 · No Cloud Shell** (console.cloud.google.com › projeto kinsey-capital-ma › ícone **>_**, com a conta proprietária do projeto). Envie o arquivo **configurar_publicacao_automatica.sh** (está no pacote) pelo menu ⋮ › Fazer upload e rode:
 ```bash
 bash configurar_publicacao_automatica.sh kinsey-capital-ma kinseytec/kinseytec
 ```
-   Ele ativa as APIs das funções, cria o publicador sem chave, cria os segredos das bases contratadas com "nao configurado" e, no final, mostra **dois valores**.
-2. **No GitHub**, repositório kinseytec/kinseytec › **Settings › Secrets and variables › Actions › aba Variables › New repository variable**, crie as duas variáveis com os valores mostrados:
-   - **GCP_WIF_PROVIDER**
-   - **GCP_SERVICE_ACCOUNT**
+No final ele mostra **dois valores**. Deixe a tela aberta.
 
-   (São endereços, não senhas; mesmo assim, não é preciso enviá-los por mensagem.)
-3. **No GitHub › Settings › Environments › New environment**, crie **producao**. Opcional: em "Required reviewers", coloque quem aprova cada publicação.
-4. **Autorize a entrada das versões na branch main** (por pull request aprovado por vocês ou autorizando o envio direto). A partir daí, cada versão que entra na main é publicada sozinha.
-5. Acompanhe na aba **Actions › Publicar KinseyTec M&A**. O resumo mostra: publicação, site no ar, banco e função de leitura. Também dá para publicar a qualquer momento em **Run workflow**.
+**Passo 2 · No GitHub**, repositório kinseytec/kinseytec › **Settings › Secrets and variables › Actions › aba Variables › New repository variable**. Crie as duas, copiando os valores do passo 1:
+- **GCP_WIF_PROVIDER**
+- **GCP_SERVICE_ACCOUNT**
+
+(São endereços, não senhas. Mesmo assim, não precisa enviá-los por mensagem.)
+
+**Pronto.** A partir daí:
+1. Vocês pedem a mudança aqui, na conversa de desenvolvimento.
+2. A nova versão é enviada ao repositório.
+3. O GitHub monta e testa o sistema, faz o backup do banco, publica e confere site, banco e leitura de documentos.
+4. Em 5 a 10 minutos a nova versão está no ar. No celular, feche e abra o app.
+
+Para acompanhar: GitHub › **Actions › Publicar KinseyTec M&A** (verde = publicado; o resumo mostra site, banco e função de leitura). Para publicar de novo sem mudanças: **Run workflow**.
+
+**Backups mantidos (segurança):**
+| Proteção | Quanto guarda |
+|---|---|
+| Backup antes de cada publicação | o **último e o penúltimo** |
+| Backup automático diário do banco | 7 dias |
+| Recuperação a um ponto no tempo (PITR) | qualquer minuto dos últimos 7 dias |
+| Lixeira do Storage (documentos) | 30 dias |
+
+A publicação troca só as telas e as funções. Empresas, contas, balancetes, listas e documentos ficam no banco e no Storage e não são apagados.
 
 Se o resumo mostrar o aviso "acesso público bloqueado (política da organização)", o administrador do Google Cloud ou Workspace libera a exceção só para o projeto kinsey-capital-ma (IAM e administrador › Políticas da organização › "Compartilhamento restrito de domínio").
 
