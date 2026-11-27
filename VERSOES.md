@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v3.22 — 2026-11-27 · Gravação dos balancetes no Firebase corrigida e documentos sem repetição
+- Causa encontrada pelo sininho na versão publicada: "Nested arrays are not supported". O Firestore não aceita lista dentro de lista, e as contas dos balancetes são listas de listas (código, descrição, valor, grupo). Toda gravação de balancete, demonstração e workbook era recusada no Firebase, embora funcionasse no teste local. Agora cada lista interna é gravada como {__a:[…]} e volta como lista na leitura, em todas as coleções, sem mudar o resto do sistema.
+- Documentos repetidos: a importação compara a impressão digital do arquivo (ou o nome e o tamanho) e não guarda de novo o que já está no dossiê da empresa ("documento já estava no dossiê"). O sininho conta os repetidos já guardados e oferece "Remover repetidos" (fica a primeira cópia de cada um).
+- Nomes de arquivo com acento quebrado (inclusive quebrados duas vezes) aparecem corrigidos.
+
 ## v3.21 — 2026-11-25 · Segurança dos dados nas publicações
 - Pacote de publicação traz o script backup_antes_de_publicar.sh: liga, uma vez, a recuperação a um ponto no tempo do banco (7 dias), o backup automático diário (14 semanas) e a lixeira do Storage (30 dias), e faz uma exportação completa e datada do banco antes de cada publicação.
 - Usuários e convites › "Backup e segurança dos dados": o administrador baixa o backup do cliente atual em JSON (cadastros, prospecção, balancetes, contratos, pareceres, operações, ativos, documentos com os links dos arquivos, configurações e convites).

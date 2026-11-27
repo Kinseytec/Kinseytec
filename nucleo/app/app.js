@@ -12,7 +12,9 @@ function mapa3D(lat, lng, end){ const alvo = end ? encodeURIComponent(end) : `${
 function enderecoForn(s){ const r = s.mapa?.end || s.receita?.endereco || (S.evidences || []).filter(e => e.supplierId === s.id && e.analise?.extraido?.endereco).map(e => e.analise.extraido.endereco)[0] || "";
   return r ? [r, s.municipio, s.uf, "Brasil"].filter(Boolean).join(", ") : ""; }
 const CP1252 = {"€":128,"‚":130,"ƒ":131,"„":132,"…":133,"†":134,"‡":135,"ˆ":136,"‰":137,"Š":138,"‹":139,"Œ":140,"Ž":142,"‘":145,"’":146,"“":147,"”":148,"•":149,"–":150,"—":151,"˜":152,"™":153,"š":154,"›":155,"œ":156,"ž":158,"Ÿ":159};
-function fixMoji(t){
+/* nomes de arquivo com acento quebrado (UTF-8 lido como Latin-1), às vezes duas vezes: corrige até duas passadas */
+function fixMoji(t){ let x = fixMoji1(t); if (x !== t) x = fixMoji1(x); return x; }
+function fixMoji1(t){
   t = String(t ?? ""); if (!/[ÃÂ][\u0080-\u00BF\u0152-\u0178\u0192\u02C6\u02DC\u2013-\u2122]/.test(t)) return t;
   try{ const b = Uint8Array.from([...t].map(c => { const n = CP1252[c] ?? c.charCodeAt(0); if (n > 255) throw 0; return n; })); return new TextDecoder("utf-8", {fatal: true}).decode(b); }catch(e){ return t; }
 }
@@ -542,6 +544,21 @@ async function ktBaixar(e){
   if (k) delete KT_ARQ.falhas[k]; ktGuardaArq(k, blob); return blob;
 }
 window.ktBaixar = ktBaixar; window.KT_ARQ = KT_ARQ;
+/* ---------- documentos repetidos ---------- */
+const ktNomeDoc = n => String(typeof fixMoji === "function" ? fixMoji(n || "") : (n || "")).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s*\(\d+\)(?=\.\w+$)/, "").replace(/[^a-z0-9.]+/g, " ").trim();
+async function ktHashArq(blob){ try{ const h = await crypto.subtle.digest("SHA-256", await blob.arrayBuffer()); return [...new Uint8Array(h)].slice(0, 16).map(b => b.toString(16).padStart(2, "0")).join(""); }catch(e){ return ""; } }
+/* devolve o documento que já está no dossiê da empresa (mesmo conteúdo, ou mesmo nome e tamanho), ou null */
+async function ktDocDuplicado(supplierId, file){
+  if (!supplierId || !file) return null; const h = await ktHashArq(file), nm = ktNomeDoc(file.name), tam = file.size;
+  const L = (S.evidences || []).filter(e => e.supplierId === supplierId);
+  return {dup: L.find(e => (h && e.hash === h) || (ktNomeDoc(e.nome) === nm && (e.tam == null || +e.tam === tam))) || null, hash: h, tam};
+}
+/* grupos de repetidos já guardados: fica o mais antigo de cada grupo */
+function ktDocsRepetidos(supplierId){
+  const G = {}; (S.evidences || []).filter(e => e.supplierId === supplierId && (e.url || e.assetId)).forEach(e => { const k = e.hash || ("n:" + ktNomeDoc(e.nome) + "|" + (e.tam ?? "")); (G[k] = G[k] || []).push(e); });
+  return Object.values(G).filter(g => g.length > 1).map(g => g.sort((a, b) => String(a.criadoEm || "").localeCompare(String(b.criadoEm || ""))));
+}
+window.ktDocDuplicado = ktDocDuplicado; window.ktDocsRepetidos = ktDocsRepetidos;
 EXT_EVID.push((id, blob, body) => { if (blob) ktGuardaArq(id, blob); });
 function openFicha(){
   const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Portal do Fornecedor</div><h2>Importar ficha do fornecedor</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>

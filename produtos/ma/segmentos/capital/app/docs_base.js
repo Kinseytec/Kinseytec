@@ -140,8 +140,10 @@ if (window.KT_DD) (() => {
     if (r.tipo === "mandato" && window.KT_AUTO?.registrarMandato){ try{ await KT_AUTO.registrarMandato(supById(s.id) || s, r.f, false); feito.push("Jurídico: mandato registrado"); }catch(e){} }
     if ((r.tipo === "spa" || r.tipo === "mou") && window.KT_OPDOC && r.texto){ try{ await KT_OPDOC.registrar(supById(s.id) || s, r.tipo.toUpperCase(), "investidor", r.texto.split(/\n+/).map(x => x.trim()).filter(Boolean), r.f.name); feito.push("Jurídico: análise pró-vendedor (SPA e MOU)"); }catch(e){} }
     /* arquivo no dossiê (na releitura de um documento que já está lá, não duplica) */
+    const rep = !o.semArquivo && window.ktDocDuplicado ? await ktDocDuplicado(s.id, r.f) : null;
+    if (rep?.dup){ feito.push("documento já estava no dossiê: não foi guardado de novo"); o = {...o, semArquivo:true}; }
     if (!o.semArquivo) try{ const blob = r.f.type?.startsWith("image/") && typeof shrink === "function" ? await shrink(r.f) : r.f, up = await Store.upload(blob);
-      const eid = uid(); await salvarEvid(eid, {supplierId:s.id, tipo:evTipo(r.tipo), obs:`Importação de documentos · ${rotulo(r.tipo)}${r.como ? " (identificado pelo " + r.como + ")" : ""}`, ...up, mime:blob.type || r.f.type, nome:fixMoji(r.f.name), criadoEm:nowISO(), criadoPor:Store.me?.id || "", origem:"Importação de documentos", tipoDoc:r.tipo || ""}, blob);
+      const eid = uid(); await salvarEvid(eid, {...(rep?.hash ? {hash:rep.hash} : {}), tam:r.f.size, supplierId:s.id, tipo:evTipo(r.tipo), obs:`Importação de documentos · ${rotulo(r.tipo)}${r.como ? " (identificado pelo " + r.como + ")" : ""}`, ...up, mime:blob.type || r.f.type, nome:fixMoji(r.f.name), criadoEm:nowISO(), criadoPor:Store.me?.id || "", origem:"Importação de documentos", tipoDoc:r.tipo || ""}, blob);
       feito.push("arquivo guardado no dossiê"); Store.update("suppliers", s.id, {dd:{lidosV2:{[eid]:nowISO()}, lerFalha:{[eid]:null}}}).catch(() => {}); }catch(e){ feito.push("arquivo não guardado: " + (e.message || "erro")); }
     /* checklist documental */
     const L = DOCS[s.nivel] || [], re = ITEM[r.tipo], i = re ? L.findIndex(x => re.test(x)) : -1, ss = supById(s.id) || s;
@@ -169,6 +171,7 @@ if (window.KT_DD) (() => {
     const fal = {}; Object.entries(s.dd?.lerFalha || {}).forEach(([id, v]) => { if (v && E.some(e => e.id === id)) fal[id] = v; });
     E.forEach(e => { const m = window.KT_ARQ?.falhas?.[e.id]; if (m && !fal[e.id]) fal[e.id] = {nome:e.nome, motivo:m}; });
     Object.values(fal).forEach(v => itens.push(`${fixMoji(v.nome || "documento")} não abriu: ${v.motivo}`));
+    const rp = window.ktDocsRepetidos ? ktDocsRepetidos(s.id) : [], nrp = rp.reduce((t, g) => t + g.length - 1, 0); if (nrp) itens.push(`${nrp} documento(s) repetido(s) no dossiê (mesmo arquivo enviado mais de uma vez)`);
     const acl = E.filter(e => e.aClassificar || /a classificar/i.test(e.tipo || "")); if (acl.length) itens.push(`${acl.length} documento(s) sem tipo reconhecido, aguardando classificação (Evidências)`);
     const finEnv = E.filter(e => /demonstra|balan|dre|balancete|sped|ecd|ecf/i.test(`${e.tipo} ${e.nome}`));
     const lid = s.dd?.lidosV2 || {}, naoLidos = finEnv.filter(e => !lid[e.id] && !fal[e.id]);
@@ -191,11 +194,15 @@ if (window.KT_DD) (() => {
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><button type="button" id="dc-sino-b" aria-expanded="${aberto ? "true" : "false"}" aria-label="Situação dos documentos: ${esc(st.tit)}" style="background:none;border:0;padding:0;display:flex;align-items:center;gap:8px;cursor:pointer;color:inherit;font:inherit;text-align:left;flex:1;min-width:180px">
         <svg viewBox="0 0 24 24" width="26" height="26" fill="${c}" stroke="${c}" stroke-width="1.5" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0" fill="none"/></svg>
         <span><b style="font-size:14px">${esc(st.tit)}</b><span class="sub" style="display:block;font-size:11.5px">${st.cor === "amarelo" ? "nenhum documento" : st.cor === "vermelho" ? "documento com problema ou faltando" : "tudo certo"} · toque para ver</span></span></button>
-        ${window.KT_ANAUTO ? `<button type="button" class="btn sm" id="dc-sino-a">Analisar documentos</button>` : ""}${window.KT_FB?.diagnostico && st.cor === "vermelho" ? `<button type="button" class="btn sm ghost" id="dc-sino-dg">Diagnóstico do Firebase</button>` : ""}</div>
+        ${window.KT_ANAUTO ? `<button type="button" class="btn sm" id="dc-sino-a">Analisar documentos</button>` : ""}${window.KT_FB?.diagnostico && st.cor === "vermelho" ? `<button type="button" class="btn sm ghost" id="dc-sino-dg">Diagnóstico do Firebase</button>` : ""}${window.ktDocsRepetidos && ktDocsRepetidos(s.id).length && Store.me?.canWrite !== false ? `<button type="button" class="btn sm ghost" id="dc-sino-rep">Remover repetidos</button>` : ""}</div>
       <div id="dc-sino-d" ${aberto ? "" : "hidden"} style="font-size:12.5px;display:flex;flex-direction:column;gap:4px">${st.itens.map(t => `<div style="color:${st.cor === "amarelo" ? "inherit" : COR_SINO.vermelho}">• ${esc(t)}</div>`).join("")}${st.ok.map(t => `<div style="color:${COR_SINO.verde}">✓ ${esc(t)}</div>`).join("")}</div></div>`; }
   function bindSino(host, s, close){ const b = $("#dc-sino-b", host); if (b) b.onclick = () => { const d = $("#dc-sino-d", host), ab = d.hidden; d.hidden = !ab; b.setAttribute("aria-expanded", String(ab)); };
     const a = $("#dc-sino-a", host); if (a) a.onclick = () => { if (close) close(); KT_ANAUTO.abrir(s.id); };
-    const dg = $("#dc-sino-dg", host); if (dg) dg.onclick = () => { if (close) close(); KT_FB.diagnostico(); }; }
+    const dg = $("#dc-sino-dg", host); if (dg) dg.onclick = () => { if (close) close(); KT_FB.diagnostico(); };
+    const rb = $("#dc-sino-rep", host); if (rb) rb.onclick = async () => { const G = ktDocsRepetidos(s.id), apagar = G.flatMap(g => g.slice(1)); if (!apagar.length) return;
+      if (!confirm(`Remover ${apagar.length} documento(s) repetido(s)? Fica a primeira cópia de cada um (${G.length} documento(s)).`)) return;
+      rb.disabled = true; let n = 0; for (const e of apagar){ await Store.del("evidences", e.id).catch(() => {}); n++; }
+      toast(`${n} documento(s) repetido(s) removido(s)`); const w = host.closest("#dc-sinow") || host; setTimeout(() => { const x = $("#dc-sino-b"); if (x) x.click(); }, 0); if (w.id === "dc-sinow"){ w.innerHTML = sinoHTML(supById(s.id) || s, true); bindSino(w, s, close); } }; }
   function importar(pre){
     const L0 = S.suppliers.slice().sort((a, b) => a.nivel.localeCompare(b.nivel) || (a.nome || "").localeCompare(b.nome || "", "pt"));
     const close = sheet(`<div class="sheet-h"><div><div class="eyebrow">Base inicial</div><h2>Importação de documentos</h2></div><button type="button" class="x" data-x aria-label="Fechar">×</button></div>

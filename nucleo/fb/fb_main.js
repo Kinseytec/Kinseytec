@@ -30,16 +30,22 @@ const KT_FB = !KT_AUTH ? null : {
       document.body.appendChild(o); o.querySelector("#kt-out3").onclick = () => KT_AUTH.signOut().then(() => location.reload());
     }
     const mapCfg = id => CFGS.includes(id) ? id + "__" + cid : id;
+    /* o Firestore recusa "nested arrays": as contas dos balancetes são listas de listas. Grava cada lista interna como
+       {__a:[…]} e devolve como lista na leitura, sem o resto do sistema perceber. */
+    const ehObj = o => o && typeof o === "object" && Object.getPrototypeOf(o) === Object.prototype;
+    const enc = v => Array.isArray(v) ? v.map(x => Array.isArray(x) ? {__a: enc(x)} : enc(x)) : ehObj(v) ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, enc(x)])) : v;
+    const dec = v => Array.isArray(v) ? v.map(dec) : ehObj(v) ? (Object.keys(v).length === 1 && Array.isArray(v.__a) ? dec(v.__a) : Object.fromEntries(Object.entries(v).map(([k, x]) => [k, dec(x)]))) : v;
+    KT_FB.enc = enc; KT_FB.dec = dec;
     Store.set = (col, id, obj) => {
       if (col === "config" && id === "cliente") return KT_FB.salvarCliente(obj);
       if (SCOPED.includes(col)) obj = {...obj, clienteId: cid};
-      return db.collection(col).doc(col === "config" ? mapCfg(id) : id).set(obj);
+      return db.collection(col).doc(col === "config" ? mapCfg(id) : id).set(enc(obj));
     };
     Store.update = (col, id, patch) => {
       if (col === "config" && id === "cliente") return KT_FB.salvarCliente(patch);
       if (SCOPED.includes(col)) patch = {...patch, clienteId: cid};
       if (col === "suppliers" && patch?.dd?.bal && typeof patch.dd.bal === "object") return balUpdate(id, patch);
-      return db.collection(col).doc(col === "config" ? mapCfg(id) : id).set(patch, {merge: true});
+      return db.collection(col).doc(col === "config" ? mapCfg(id) : id).set(enc(patch), {merge: true});
     };
     /* ---------- balancetes da Due Diligence em registros próprios: ddbal/{empresa}__{período} ----------
        O Firestore aceita no máximo 1 MiB por registro. Um ECD mês a mês (12 balancetes com centenas de contas) estoura esse
@@ -51,20 +57,20 @@ const KT_FB = !KT_AUTH ? null : {
       const bal = patch.dd.bal, dd = {...patch.dd}, del = {}; delete dd.bal;
       const ops = Object.entries(bal).map(async ([per, v]) => { del[per] = FV.delete(); const ref = balRef(id, per);
         if (v == null) return ref.delete();
-        const leg = LEG[id]?.[per]; if (leg && !BAL[id]?.[per]) await ref.set({clienteId: cid, sup: id, per, b: leg});
-        return ref.set({clienteId: cid, sup: id, per, b: v}, {merge: true}); });
+        const leg = LEG[id]?.[per]; if (leg && !BAL[id]?.[per]) await ref.set({clienteId: cid, sup: id, per, b: enc(leg)});
+        return ref.set({clienteId: cid, sup: id, per, b: enc(v)}, {merge: true}); });
       await Promise.all(ops);
-      return db.collection("suppliers").doc(id).set({...patch, dd: {...dd, bal: del}}, {merge: true});
+      return db.collection("suppliers").doc(id).set(enc({...patch, dd: {...dd, bal: del}}), {merge: true});
     }
     async function migraBal(sup){
       if (!balPronto || Store.me?.canWrite === false) return;
       for (const s of sup){ const L = LEG[s.id]; if (!L || migrados.has(s.id) || !Object.keys(L).length) continue; migrados.add(s.id);
-        try{ for (const [per, b] of Object.entries(L)) if (b && !BAL[s.id]?.[per]) await balRef(s.id, per).set({clienteId: cid, sup: s.id, per, b});
+        try{ for (const [per, b] of Object.entries(L)) if (b && !BAL[s.id]?.[per]) await balRef(s.id, per).set({clienteId: cid, sup: s.id, per, b: enc(b)});
           await db.collection("suppliers").doc(s.id).set({dd: {bal: Object.fromEntries(Object.keys(L).map(p => [p, FV.delete()]))}}, {merge: true}); }
         catch(e){ console.warn("migração dos balancetes", s.id, e); } } }
     { const baseSet = Store.set, baseDel = Store.del.bind(Store);
       Store.set = (col, id, obj) => { if (col === "suppliers" && obj?.dd?.bal && typeof obj.dd.bal === "object"){ const bal = obj.dd.bal, dd = {...obj.dd}; delete dd.bal;
-          return Promise.all(Object.entries(bal).filter(([, v]) => v).map(([per, v]) => balRef(id, per).set({clienteId: cid, sup: id, per, b: v}))).then(() => baseSet(col, id, {...obj, dd})); }
+          return Promise.all(Object.entries(bal).filter(([, v]) => v).map(([per, v]) => balRef(id, per).set({clienteId: cid, sup: id, per, b: enc(v)}))).then(() => baseSet(col, id, {...obj, dd})); }
         return baseSet(col, id, obj); };
       Store.del = async (col, id) => { if (col === "suppliers" && cid){ try{ const q = await db.collection("ddbal").where("clienteId", "==", cid).where("sup", "==", id).get(); await Promise.all(q.docs.map(d => d.ref.delete())); }catch(e){} } return baseDel(col, id); }; }
     { const baseListen = Store.listen.bind(Store);
@@ -72,14 +78,14 @@ const KT_FB = !KT_AUTH ? null : {
         const err = e => console.warn(col, e);
         if (col === "suppliers" && cid){ let sup = [];
           const emit = () => cb(sup.map(s => { const B = BAL[s.id], L = LEG[s.id]; if (!B && !L) return s; return {...s, dd: {...(s.dd || {}), bal: {...(L || {}), ...(B || {})}}}; }));
-          db.collection("suppliers").where("clienteId", "==", cid).onSnapshot(q => { sup = q.docs.map(d => ({id: d.id, ...d.data()}));
+          db.collection("suppliers").where("clienteId", "==", cid).onSnapshot(q => { sup = q.docs.map(d => ({id: d.id, ...dec(d.data())}));
             sup.forEach(s => { const L = s.dd?.bal; if (L && typeof L === "object" && Object.keys(L).length) LEG[s.id] = L; else delete LEG[s.id]; }); emit(); migraBal(sup); }, err);
           db.collection("ddbal").where("clienteId", "==", cid).onSnapshot(q => { Object.keys(BAL).forEach(k => delete BAL[k]);
-            q.docs.forEach(d => { const x = d.data(); if (x.sup && x.per && x.b) (BAL[x.sup] = BAL[x.sup] || {})[x.per] = x.b; }); balPronto = true; emit(); migraBal(sup); }, e => { balPronto = false; err(e); });
+            q.docs.forEach(d => { const x = dec(d.data()); if (x.sup && x.per && x.b) (BAL[x.sup] = BAL[x.sup] || {})[x.per] = x.b; }); balPronto = true; emit(); migraBal(sup); }, e => { balPronto = false; err(e); });
           return; }
-        if (SCOPED.includes(col)){ if (!cid){ cb([]); return; } db.collection(col).where("clienteId", "==", cid).onSnapshot(q => cb(q.docs.map(d => ({id: d.id, ...d.data()}))), err); return; }
+        if (SCOPED.includes(col)){ if (!cid){ cb([]); return; } db.collection(col).where("clienteId", "==", cid).onSnapshot(q => cb(q.docs.map(d => ({id: d.id, ...dec(d.data())}))), err); return; }
         if (col === "config"){ if (!cid){ cb([]); return; } const st = {}, emit = () => cb(Object.values(st));
-          CFGS.forEach(id => db.collection("config").doc(id + "__" + cid).onSnapshot(d => { if (d.exists) st[id] = {...d.data(), id}; else delete st[id]; emit(); }, err));
+          CFGS.forEach(id => db.collection("config").doc(id + "__" + cid).onSnapshot(d => { if (d.exists) st[id] = {...dec(d.data()), id}; else delete st[id]; emit(); }, err));
           db.collection("clientes").doc(cid).onSnapshot(d => { if (d.exists) st.cliente = {...d.data(), id: "cliente"}; else delete st.cliente; emit(); }, err);
           return; }
         baseListen(col, cb);
@@ -181,7 +187,7 @@ const KT_FB = !KT_AUTH ? null : {
     const db = KT_AUTH.db, cid = KT_FB.cid; if (!cid){ toast("Escolha o cliente antes"); return; }
     if (bt){ bt.disabled = true; bt.textContent = "Gerando backup…"; }
     const out = {sistema: document.title || "KinseyTec", cliente: (KT_FB.clientes || []).find(c => c.id === cid) || {id: cid}, em: new Date().toISOString(), por: KT_FB.me?.email || "", colecoes: {}}, cont = {};
-    const pega = async (col, q) => { try{ const r = await q.get(); out.colecoes[col] = r.docs.map(d => ({id: d.id, ...d.data()})); cont[col] = r.size; }catch(e){ out.colecoes[col] = {erro: e.code || e.message}; cont[col] = "erro"; } };
+    const pega = async (col, q) => { try{ const r = await q.get(); out.colecoes[col] = r.docs.map(d => ({id: d.id, ...KT_FB.dec(d.data())})); cont[col] = r.size; }catch(e){ out.colecoes[col] = {erro: e.code || e.message}; cont[col] = "erro"; } };
     for (const col of [...(KT_FB.SCOPED || []), "ddbal"]) await pega(col, db.collection(col).where("clienteId", "==", cid));
     await pega("config", db.collection("config").where(firebase.firestore.FieldPath.documentId(), "in", (KT_FB.CFGS || []).map(id => id + "__" + cid).slice(0, 10)));
     await pega("invites", db.collection("invites").where("clienteId", "==", cid));

@@ -9,6 +9,11 @@
 
 **A solução definitiva e mais simples é o passo 5:** liberar o Storage para o endereço do sistema. Com isso o navegador lê os arquivos direto, sem depender da função. Recomendamos fazer os passos 1 a 6 em sequência (cerca de 20 minutos), no **Cloud Shell** (console.cloud.google.com › projeto **kinsey-capital-ma** › ícone **>_**).
 
+**Atualização (versão 3.22), a partir do diagnóstico de vocês:**
+- ✓ **Download direto do Storage liberado** (passo 5 feito): o sistema já lê os arquivos **sem precisar da função**.
+- ✗ **"Nested arrays are not supported"** era o que impedia a leitura de virar balancete: o Firebase recusava gravar as contas. **Corrigido na versão 3.22.** Basta publicar a 3.22 e abrir a Due Diligence ou o Valuation de cada empresa: os documentos são lidos de novo e os balancetes entram.
+- ✗ **Funções lerArquivo e convidar com "internal"**: elas não estão no ar ou estão bloqueadas. A leitura dos documentos já não depende delas, mas **os convites por e-mail sim**. Para os convites, siga os passos 1 a 4.
+
 ---
 
 ## 1. Conferir a assinatura (plano e faturamento)

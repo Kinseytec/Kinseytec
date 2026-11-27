@@ -1,8 +1,8 @@
-# KinseyTec – M&A · tutorial para republicar (versão 3.21)
+# KinseyTec – M&A · tutorial para republicar (versão 3.22)
 
 O sistema já está publicado. Republicar **substitui** a versão no ar e **não apaga nenhum dado**: empresas, documentos, balancetes, análises e usuários continuam. Tempo: cerca de 10 minutos, tudo no navegador.
 
-Arquivo: **KinseyTec_MA_Firebase.zip** (está dentro do pacote KinseyTec_MA_publicacao_v3.21.zip; não envie o pacote inteiro, só este arquivo).
+Arquivo: **KinseyTec_MA_Firebase.zip** (está dentro do pacote KinseyTec_MA_publicacao_v3.22.zip; não envie o pacote inteiro, só este arquivo).
 
 ## Seus dados ficam guardados (o que a publicação troca e o que não troca)
 | O que | Onde fica | Na publicação |
@@ -48,7 +48,7 @@ npx -y firebase-tools@13 deploy --project kinsey-capital-ma
 
 5. Pronto quando aparecer **Deploy complete!**. Atualize a página do sistema; no celular, feche e abra o aplicativo.
 
-## Importante nesta versão (3.21, inclui as versões 3.03 a 3.20)
+## Importante nesta versão (3.22, inclui as versões 3.03 a 3.21)
 Esta versão corrige o problema de os documentos não serem reconhecidos nem analisados no sistema publicado. **As funções precisam ser publicadas junto** (o comando de deploy acima já publica tudo): a leitura dos arquivos agora passa por uma função nova do servidor, chamada **lerArquivo**. Se o deploy das funções falhar, me envie a mensagem: sem ela, a análise automática continua sem conseguir abrir os documentos guardados.
 
 **Assinatura:** as funções só rodam no plano Blaze; confira em Firebase › Uso e faturamento (passo 1 do tutorial "Resolver a leitura automática dos documentos"). O que acontecia:
