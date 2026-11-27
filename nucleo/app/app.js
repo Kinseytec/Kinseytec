@@ -242,7 +242,7 @@ function draw(now){
   G.stars.forEach(s => { const x = ((s.x*w + G.rot[0]*0.4) % w + w) % w, y = ((s.y*h - G.rot[1]*0.4) % h + h) % h; ctx.globalAlpha = s.a * (G.reduce ? 1 : .75 + .25*Math.sin(tw*1.3 + s.p)); ctx.fillStyle = "#cfe3ff"; ctx.fillRect(x, y, s.r, s.r); });
   ctx.globalAlpha = 1;
   // atmosfera
-  if (R < Math.max(w,h)*1.4){ const at = ctx.createRadialGradient(cx, cyy, R*.92, cx, cyy, R*1.22); at.addColorStop(0, "rgba(79,176,245,.55)"); at.addColorStop(.25, "rgba(4,115,195,.22)"); at.addColorStop(1, "rgba(4,115,195,0)"); ctx.fillStyle = at; ctx.beginPath(); ctx.arc(cx, cyy, R*1.22, 0, 7); ctx.fill(); }
+  if (R < Math.max(w,h)*1.4){ const at = ctx.createRadialGradient(cx, cyy, R*.92, cx, cyy, R*1.22); at.addColorStop(0, "rgba(56,182,255,.55)"); at.addColorStop(.25, "rgba(4,115,195,.22)"); at.addColorStop(1, "rgba(4,115,195,0)"); ctx.fillStyle = at; ctx.beginPath(); ctx.arc(cx, cyy, R*1.22, 0, 7); ctx.fill(); }
   // oceano
   const oc = ctx.createRadialGradient(cx - R*.35, cyy - R*.4, R*.1, cx, cyy, R);
   oc.addColorStop(0, "#0b3d7e"); oc.addColorStop(.7, "#05224f"); oc.addColorStop(1, "#021433");
@@ -250,7 +250,7 @@ function draw(now){
   ctx.beginPath(); G.path(G.grat); ctx.strokeStyle = "rgba(120,180,255,.10)"; ctx.lineWidth = .7; ctx.stroke();
   // terra
   ctx.beginPath(); G.countries.forEach(f => { if (f !== G.brazil) G.path(f); }); ctx.fillStyle = "#123f73"; ctx.fill(); ctx.strokeStyle = "rgba(160,200,255,.22)"; ctx.lineWidth = .6; ctx.stroke();
-  ctx.save(); ctx.shadowColor = "rgba(79,176,245,.8)"; ctx.shadowBlur = 14; ctx.beginPath(); G.path(G.brazil); ctx.fillStyle = "#16589c"; ctx.fill(); ctx.restore();
+  ctx.save(); ctx.shadowColor = "rgba(56,182,255,.8)"; ctx.shadowBlur = 14; ctx.beginPath(); G.path(G.brazil); ctx.fillStyle = "#16589c"; ctx.fill(); ctx.restore();
   ctx.beginPath(); G.path(G.brazil); ctx.strokeStyle = "rgba(170,215,255,.85)"; ctx.lineWidth = 1.1; ctx.stroke();
   if (G.k > 1.8){
     ctx.beginPath(); G.path(G.stateMesh); ctx.strokeStyle = `rgba(170,215,255,${Math.min(.55,(G.k-1.8)*.3)})`; ctx.lineWidth = .8; ctx.stroke();
@@ -258,7 +258,7 @@ function draw(now){
     G.states.forEach(f => { const c = d3.geoCentroid(f); if (!visible(c[0], c[1])) return; const p = G.proj(c); const uf = (f.id||"").split(".")[1] || ""; ctx.fillText(G.k > 6 ? f.properties.name.toUpperCase() : uf, p[0], p[1]); });
   }
   // grade de escala ao aproximar (efeito "satélite")
-  if (G.k > 8){ ctx.strokeStyle = "rgba(79,176,245,.07)"; ctx.lineWidth = 1; const step = 48; ctx.beginPath(); for (let x = (cx % step); x < w; x += step){ ctx.moveTo(x,0); ctx.lineTo(x,h); } for (let y = (cyy % step); y < h; y += step){ ctx.moveTo(0,y); ctx.lineTo(w,y); } ctx.stroke(); }
+  if (G.k > 8){ ctx.strokeStyle = "rgba(56,182,255,.07)"; ctx.lineWidth = 1; const step = 48; ctx.beginPath(); for (let x = (cx % step); x < w; x += step){ ctx.moveTo(x,0); ctx.lineTo(x,h); } for (let y = (cyy % step); y < h; y += step){ ctx.moveTo(0,y); ctx.lineTo(w,y); } ctx.stroke(); }
   // rotas N3 → N2 → N1 → cliente
   const list = S.suppliers.filter(s => s.lat != null && S.lv[s.nivel] && (!window.ORB_FILTRO || window.ORB_FILTRO(s)));
   if (S.lv.rotas){
@@ -268,7 +268,7 @@ function draw(now){
       const to = par && par.lat != null ? [par.lng, par.lat] : (s.nivel==="N1" && !window.ORB_SEM_CLIENTE ? [CLI().lng, CLI().lat] : null);
       if (!to) return;
       ctx.beginPath(); G.path({type:"LineString", coordinates:[[s.lng, s.lat], to]});
-      ctx.strokeStyle = S.sel && (S.sel===s.id || S.sel===s.parentId) ? "rgba(140,210,255,.95)" : "rgba(79,176,245,.45)"; ctx.stroke();
+      ctx.strokeStyle = S.sel && (S.sel===s.id || S.sel===s.parentId) ? "rgba(140,210,255,.95)" : "rgba(56,182,255,.45)"; ctx.stroke();
     });
     ctx.setLineDash([]);
   }

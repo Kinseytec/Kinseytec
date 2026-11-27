@@ -39,7 +39,7 @@ if (window.KT_DD) (() => {
         ${oficial() ? `<span class="pill r-baixo">Modelo Kinsey · ${dt(S.config.fees_kinsey.em)}</span>` : `<span class="pill r-medio">Provisório</span>`}</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px">${col("venda")}${col("compra")}</div>
       ${D.ed() ? `<button type="submit" class="btn primary" style="align-self:flex-start">Salvar como modelo Kinsey</button>` : ""}
-      <div class="card" style="display:flex;flex-direction:column;gap:8px;background:rgba(79,176,245,.06)"><h3 style="font-size:14px">Simulador</h3><div class="form">
+      <div class="card" style="display:flex;flex-direction:column;gap:8px;background:rgba(56,182,255,.06)"><h3 style="font-size:14px">Simulador</h3><div class="form">
         <div class="fld"><label for="h-sim">Valor da operação (EV, R$ mi)</label><input id="h-sim" inputmode="decimal" value="${fmt(sim, 0)}"></div><div class="fld"><label for="h-lado">Mandato</label><select id="h-lado"><option value="venda" ${S.honLado !== "compra" ? "selected" : ""}>Venda</option><option value="compra" ${S.honLado === "compra" ? "selected" : ""}>Compra</option></select></div></div>
         <div class="tbl"><table><tbody>${r.parc.map(([a, l, p, v]) => `<tr><td>${fmt(p, 1)}% sobre R$ ${fmt(a / 1e6, 0)} a ${l == null ? "…" : fmt(l / 1e6, 0)} mi</td><td class="dd-num">${mi(v, 2)}</td></tr>`).join("")}
           <tr><td><b>Success fee</b>${r.minimoAplicado ? " (mínimo aplicado)" : ""} · ${fmt(r.efetivo * 100, 2)}% efetivo</td><td class="dd-num"><b>${mi(r.success, 2)}</b></td></tr><tr><td>Retainer (${r.M.meses} meses)</td><td class="dd-num">${mi(r.ret, 2)}</td></tr>

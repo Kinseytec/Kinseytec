@@ -191,7 +191,7 @@ if (window.KT_DD && window.KT_VAL && window.KT_POS) (() => {
   }
   function cardAvulso(s){
     const A = s.pos?.avulso || {}, ed = D.ed() ? "" : "disabled", f = (id, l, v, ph) => `<div class="fld"><label for="av-${id}">${l}</label><input id="av-${id}" inputmode="decimal" value="${v != null ? esc(String(v).replace(".", ",")) : ""}" placeholder="${esc(ph ?? "")}" ${ed}></div>`;
-    return `<div class="card" id="av-ppa" style="display:flex;flex-direction:column;gap:10px;border-color:rgba(79,176,245,.45)"><div class="head" style="margin:0"><div><div class="eyebrow">Trabalho avulso</div><h3 style="margin:0">PPA sem due diligence · pelo fluxo de caixa</h3>
+    return `<div class="card" id="av-ppa" style="display:flex;flex-direction:column;gap:10px;border-color:rgba(56,182,255,.45)"><div class="head" style="margin:0"><div><div class="eyebrow">Trabalho avulso</div><h3 style="margin:0">PPA sem due diligence · pelo fluxo de caixa</h3>
         <p class="sub" style="margin:2px 0 0">Para clientes que contratam só o PPA: importe o fluxo de caixa (Excel ou CSV com uma linha por conta e uma coluna por ano: Receita, EBITDA, Fluxo de caixa livre) e informe os saldos da data de aquisição.</p></div></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap"><label class="btn sm primary">Importar fluxo de caixa<input type="file" id="av-fc" accept=".xlsx,.csv,.txt" hidden ${ed}></label></div>
       ${A.fc ? `<p class="sub" style="margin:0;font-size:12.5px">Fluxo importado: ${esc(A.fc.arquivo || "")} · ${A.fc.anos.length} ano(s) projetados (${A.fc.anos.map(a => a.y).join(", ")}) · ${esc(A.fc.unidade || "")}</p>` : ""}

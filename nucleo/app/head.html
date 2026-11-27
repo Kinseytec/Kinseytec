@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: one-screen mission-control app — top bar, live view, bottom nav (side rail on desktop). Deliberately single dark "orbital" theme in Kinsey BR colours. */
+/* Layout: one-screen mission-control app — top bar, live view, bottom nav (side rail on desktop). Deliberately single dark "orbital" theme in KinseyTec colours (branding book KinseyTec, nov/2026: Navy #011F4B dominante, Azul #0473C3, Ciano Tec #38B6FF, Fog #E6E8EC). */
 :root{
   --navy:#011F4B;          /* Kinsey Navy */
   --space:#000A1C;         /* deep space ground, navy-biased */
@@ -15,7 +15,9 @@
   --line:rgba(150,190,240,.16);
   --line-2:rgba(150,190,240,.30);
   --accent:#0473C3;        /* Kinsey Acent */
-  --glow:#4FB0F5;          /* accent lifted for dark ground */
+  --glow:#38B6FF;          /* Ciano Tec (branding book KinseyTec): pontos de conexão e "Tec" sobre o navy */
+  --ocean:#0A5CA8;         /* Azul Oceano: globo e fundos secundários */
+  --americas:#7CCBFF;      /* Azul Américas: ilustrações */
   --fog:#E6E8EC;           /* Kinsey Fog — primary text */
   --muted:#93A3BC;         /* Kinsey Gray, shifted toward navy */
   --ok:#36D399; --warn:#F2B33D; --bad:#FF6B6B;
@@ -43,7 +45,7 @@ p{margin:0}
 #app{height:100%;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-areas:"top" "price" "main" "nav"}
 .topbar{grid-area:top;background:var(--navy);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));position:relative;z-index:5}
 .brand{display:flex;align-items:center;gap:10px;min-width:0}
-.brand svg,.brand .logo{width:34px;height:34px;flex:none}
+.brand svg,.brand .logo{width:40px;height:40px;flex:none}   /* branding book: símbolo com no mínimo 40 px nas telas */
 .brand b{font-family:var(--f-display);font-weight:800;font-size:19px;letter-spacing:.02em;line-height:1}
 .brand b span{color:var(--glow)}
 .brand b .sys{font-style:normal;font-weight:600;color:var(--fog)}
@@ -281,7 +283,7 @@ details.card[open] > summary::after{content:"–"}
 .ct .meta{font-size:12px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
 .st-pendente{color:var(--warn);background:rgba(242,179,61,.13)}
 .st-aprovado{color:var(--ok);background:rgba(54,211,153,.12)}
-.st-ressalvas{color:#7EC8FF;background:rgba(79,176,245,.14)}
+.st-ressalvas{color:#7EC8FF;background:rgba(56,182,255,.14)}
 .st-reprovado{color:var(--bad);background:rgba(255,107,107,.13)}
 .clauses{display:flex;flex-direction:column;gap:8px}
 .banner{font-size:12.5px;padding:10px 12px;border-radius:10px;border:1px solid var(--line-2);background:var(--panel);color:var(--muted)}

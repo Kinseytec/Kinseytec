@@ -187,7 +187,7 @@ if (window.KT_DD) (() => {
 .orb-q .res{position:absolute;left:0;right:0;bottom:42px;background:rgba(1,20,48,.98);border:1px solid var(--line-2);border-radius:12px;padding:4px;display:flex;flex-direction:column;gap:2px;max-height:46vh;overflow:auto;z-index:8;box-shadow:0 -10px 30px rgba(0,0,0,.4)}
 .orb-q .res[hidden]{display:none}
 .orb-q .res button{display:flex;gap:8px;align-items:center;text-align:left;background:transparent;border:0;border-radius:8px;padding:8px 9px;color:inherit;font:inherit;font-size:13px;cursor:pointer}
-.orb-q .res button:hover,.orb-q .res button:focus{background:rgba(79,176,245,.12)}
+.orb-q .res button:hover,.orb-q .res button:focus{background:rgba(56,182,255,.12)}
 .orb-q .res span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.orb-q .res small{color:var(--muted);font-size:11.5px;white-space:nowrap}`;
   document.head.appendChild(cssQ);
   function buscaEmpresa(){

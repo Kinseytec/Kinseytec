@@ -34,7 +34,7 @@ if (window.KT_DD) (() => {
     host.prepend(el); el.querySelector("button").onclick = trocar;
   }
   const css = document.createElement("style");
-  css.textContent = `.alv-bar{display:flex;align-items:center;gap:10px;padding:8px 12px;margin-bottom:12px;border:1px solid var(--line-2);border-radius:12px;background:rgba(79,176,245,.08);position:sticky;top:0;z-index:5;backdrop-filter:blur(6px)}
+  css.textContent = `.alv-bar{display:flex;align-items:center;gap:10px;padding:8px 12px;margin-bottom:12px;border:1px solid var(--line-2);border-radius:12px;background:rgba(56,182,255,.08);position:sticky;top:0;z-index:5;backdrop-filter:blur(6px)}
 .alv-bar b{flex:1}`;
   document.head.appendChild(css);
   const _rv = renderView; renderView = function(){ const r = _rv.apply(this, arguments); try{ faixa(); }catch(e){} return r; };
@@ -66,9 +66,9 @@ nav.tabs::-webkit-scrollbar{width:8px}nav.tabs::-webkit-scrollbar-track{backgrou
 nav.tabs button{flex-shrink:0}}
 @media (min-width:900px) and (max-height:820px){nav.tabs button{padding:8px 4px;gap:3px}}`;
   css.textContent += `.tbl th{font-weight:800 !important;color:var(--fog) !important;letter-spacing:.06em}.card h3,.card h4{font-weight:800}`;
-  css.textContent += `nav.tabs [data-go="pos"] svg{stroke:#4FB0F5;color:#4FB0F5}nav.tabs [data-go="impairment"] svg{stroke:#FF8A65;color:#FF8A65}`;
+  css.textContent += `nav.tabs [data-go="pos"] svg{stroke:#38B6FF;color:#38B6FF}nav.tabs [data-go="impairment"] svg{stroke:#FF8A65;color:#FF8A65}`;
   /* abas de uma mesma área: contorno amarelo, mas cada aba com a sua cor (PPA, Impairment, Base de modelos…) para identificar melhor */
-  { const COR = ["#4FB0F5", "#36D399", "#C39BFF", "#FF8A65", "#2DD4BF", "#F472B6", "#F2C14E", "#93C5FD", "#A3E635", "#FDBA74"];
+  { const COR = ["#38B6FF", "#36D399", "#C39BFF", "#FF8A65", "#2DD4BF", "#F472B6", "#F2C14E", "#93C5FD", "#A3E635", "#FDBA74"];
     css.textContent += COR.map((c, i) => `.dd-tabs > .fbtn:nth-child(${COR.length}n+${i + 1}){color:${c};background:${c}14;border-color:rgba(242,193,78,.55)}
 .dd-tabs > .fbtn:nth-child(${COR.length}n+${i + 1})[aria-pressed="true"]{background:${c} !important;color:#0b1730 !important;border-color:#F2C14E !important;box-shadow:0 0 0 2px rgba(242,193,78,.55),0 0 14px ${c}55}`).join("\n"); }
   css.textContent += `.vw-top{display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:6;margin:-4px 0 8px;padding:6px 0;background:linear-gradient(var(--bg,#011F4B) 70%,transparent)}

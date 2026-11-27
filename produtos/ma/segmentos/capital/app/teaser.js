@@ -76,12 +76,12 @@ if (window.KT_DD && window.KT_VAL) (() => {
   function barras(serie){
     if (!serie.length) return ""; const W = 520, H = 210, x0 = 20, w = W - 40, max = Math.max(...serie.map(a => a.rl), 1), gw = w / serie.length, bw = Math.min(46, gw / 2.6);
     return `<svg class="dd-svg" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Receita líquida e EBITDA por ano">${serie.map((a, i) => { const x = x0 + i * gw + gw / 2 - bw - 2, hr = a.rl / max * 150, he = a.eb / max * 150;
-      return `<rect x="${x}" y="${170 - hr}" width="${bw}" height="${hr}" rx="3" fill="#4FB0F5"/><rect x="${x + bw + 4}" y="${170 - he}" width="${bw}" height="${he}" rx="3" fill="#F2C14E"/><text x="${x + bw / 2}" y="${164 - hr}" text-anchor="middle">${fmt(a.rl / 1e6, 0)}</text><text x="${x + bw * 1.5 + 4}" y="${164 - he}" text-anchor="middle">${fmt(a.eb / 1e6, 0)}</text><text x="${x + bw + 2}" y="188" text-anchor="middle" class="lb">${a.ano}</text>`; }).join("")}
-      <line x1="${x0}" x2="${W - 20}" y1="170" y2="170" stroke="currentColor" stroke-opacity=".25"/><rect x="${x0}" y="198" width="9" height="9" fill="#4FB0F5"/><text x="${x0 + 13}" y="206">Receita líquida (R$ mi)</text><rect x="${x0 + 170}" y="198" width="9" height="9" fill="#F2C14E"/><text x="${x0 + 183}" y="206">EBITDA ajustado (R$ mi)</text></svg>`;
+      return `<rect x="${x}" y="${170 - hr}" width="${bw}" height="${hr}" rx="3" fill="#38B6FF"/><rect x="${x + bw + 4}" y="${170 - he}" width="${bw}" height="${he}" rx="3" fill="#F2C14E"/><text x="${x + bw / 2}" y="${164 - hr}" text-anchor="middle">${fmt(a.rl / 1e6, 0)}</text><text x="${x + bw * 1.5 + 4}" y="${164 - he}" text-anchor="middle">${fmt(a.eb / 1e6, 0)}</text><text x="${x + bw + 2}" y="188" text-anchor="middle" class="lb">${a.ano}</text>`; }).join("")}
+      <line x1="${x0}" x2="${W - 20}" y1="170" y2="170" stroke="currentColor" stroke-opacity=".25"/><rect x="${x0}" y="198" width="9" height="9" fill="#38B6FF"/><text x="${x0 + 13}" y="206">Receita líquida (R$ mi)</text><rect x="${x0 + 170}" y="198" width="9" height="9" fill="#F2C14E"/><text x="${x0 + 183}" y="206">EBITDA ajustado (R$ mi)</text></svg>`;
   }
   function rosca(linhas){
     const L = linhas.map(l => ({n:l.nome, v:parseFloat(String(l.pct || "").replace(",", ".")) || 0})).filter(l => l.v > 0); if (!L.length) return "";
-    const tot = L.reduce((a, b) => a + b.v, 0), cores = ["#4FB0F5","#F2C14E","#3DDC97","#C39BFF","#FF8A65"]; let a0 = -Math.PI / 2;
+    const tot = L.reduce((a, b) => a + b.v, 0), cores = ["#38B6FF","#F2C14E","#3DDC97","#C39BFF","#FF8A65"]; let a0 = -Math.PI / 2;
     const arcs = L.map((l, i) => { const a1 = a0 + l.v / tot * Math.PI * 2, big = a1 - a0 > Math.PI ? 1 : 0, p = (r, a) => [90 + r * Math.cos(a), 90 + r * Math.sin(a)];
       const [x1, y1] = p(80, a0), [x2, y2] = p(80, a1), [x3, y3] = p(48, a1), [x4, y4] = p(48, a0), d = `M${x1},${y1} A80,80 0 ${big} 1 ${x2},${y2} L${x3},${y3} A48,48 0 ${big} 0 ${x4},${y4} Z`; a0 = a1; return `<path d="${d}" fill="${cores[i % 5]}"/>`; });
     return `<svg class="dd-svg" viewBox="0 0 420 180" width="100%" role="img" aria-label="Receita por linha de negócio">${arcs.join("")}${L.map((l, i) => `<rect x="200" y="${30 + i * 26}" width="11" height="11" rx="2" fill="${cores[i % 5]}"/><text x="218" y="${40 + i * 26}" class="lb">${esc(l.n)} · ${fmt(l.v / tot * 100, 0)}%</text>`).join("")}</svg>`;
@@ -102,7 +102,7 @@ if (window.KT_DD && window.KT_VAL) (() => {
     host.innerHTML = h + `<div class="dd-split" style="margin-top:4px">${sd.html}<div style="display:flex;flex-direction:column;gap:14px;min-width:0">
       <div class="dd-tabs">${[["pre","Antes do NDA (teaser)"],["pos","Depois do NDA"],["edit","Conteúdo e pesquisa"]].map(([k, l]) => `<button type="button" class="fbtn" data-tz="${k}" aria-pressed="${S.tzFase === k}">${l}</button>`).join("")}</div>
       ${S.tzFase === "edit" ? editar(s, t) : `
-      <div class="card" style="display:flex;flex-direction:column;gap:14px;border-color:${pre ? "rgba(79,176,245,.5)" : "rgba(242,193,78,.5)"}">
+      <div class="card" style="display:flex;flex-direction:column;gap:14px;border-color:${pre ? "rgba(56,182,255,.5)" : "rgba(242,193,78,.5)"}">
         <div style="background:linear-gradient(120deg,#011F4B,#0b3d7e);border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:4px">
           <span style="font-size:11px;letter-spacing:.12em;color:#7FB8E6;font-weight:700">${pre ? "OPORTUNIDADE DE INVESTIMENTO · TEASER" : "APRESENTAÇÃO CONFIDENCIAL · NDA"}</span>
           <span style="font-size:26px;font-weight:800;color:#fff">${esc(pre ? Z.codinome : s.nome)}</span><span style="color:#C9D6EA">${esc(Z.subtitulo)}</span><span style="color:#F2C14E;font-weight:700">${esc(Z.transacao)}</span></div>

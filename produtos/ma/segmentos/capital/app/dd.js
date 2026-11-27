@@ -422,7 +422,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     else if (!MG.drag && !G.reduce) MG.rot[0] += .06;
     const proj = d3.geoOrthographic().scale(R).translate([w / 2, h / 2]).rotate([MG.rot[0], MG.rot[1], 0]).clipAngle(90), path = d3.geoPath(proj, ctx);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
-    const at = ctx.createRadialGradient(w / 2, h / 2, R * .9, w / 2, h / 2, R * 1.15); at.addColorStop(0, "rgba(79,176,245,.45)"); at.addColorStop(1, "rgba(4,115,195,0)"); ctx.fillStyle = at; ctx.beginPath(); ctx.arc(w / 2, h / 2, R * 1.15, 0, 7); ctx.fill();
+    const at = ctx.createRadialGradient(w / 2, h / 2, R * .9, w / 2, h / 2, R * 1.15); at.addColorStop(0, "rgba(56,182,255,.45)"); at.addColorStop(1, "rgba(4,115,195,0)"); ctx.fillStyle = at; ctx.beginPath(); ctx.arc(w / 2, h / 2, R * 1.15, 0, 7); ctx.fill();
     ctx.beginPath(); path({type:"Sphere"}); ctx.fillStyle = "#05224f"; ctx.fill();
     ctx.beginPath(); path(d3.geoGraticule10()); ctx.strokeStyle = "rgba(120,180,255,.10)"; ctx.lineWidth = .6; ctx.stroke();
     ctx.beginPath(); G.countries.forEach(f => { if (f !== G.brazil) path(f); }); ctx.fillStyle = "#123f73"; ctx.fill();
@@ -441,7 +441,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
   st.textContent = `.dd-split{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-items:start}
     .dd-side{display:flex;flex-direction:column;gap:10px;max-width:560px}.dd-list{display:flex;flex-direction:column;gap:4px;max-height:340px;overflow:auto}
     .dd-list button{display:flex;align-items:center;gap:8px;text-align:left;background:transparent;border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:inherit;font:inherit;font-size:12.5px;cursor:pointer}
-    .dd-list button[aria-pressed=true]{border-color:var(--acc,#4FB0F5);background:rgba(79,176,245,.12)}.dd-list i{width:9px;height:9px;border-radius:50%;flex:none}
+    .dd-list button[aria-pressed=true]{border-color:var(--acc,#38B6FF);background:rgba(56,182,255,.12)}.dd-list i{width:9px;height:9px;border-radius:50%;flex:none}
     .dd-kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}.dd-k{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
     .dd-k span{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.dd-k b{font-size:18px;font-variant-numeric:tabular-nums}.dd-k small{font-size:11.5px;color:var(--muted)}
     .dd-tabs{display:flex;gap:6px;flex-wrap:wrap}.dd-num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.dd-proc{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;border-top:1px solid var(--line);padding:10px 0}
@@ -458,11 +458,11 @@ if (typeof MA_MODELOS !== "undefined") (() => {
   const statusAlvo = s => { if (!temBal(s)) return "sem"; const L = ajustes(s, periodos(s)[0]); return L.some(a => pendFin(a) || pendVal(a)) ? "pend" : "ok"; };
   /* painel lateral das pastas de análise: identificação da pasta (mini globo como emblema, sem mapa) e lista dos targets.
      O globo com o mapa fica só na tela principal (Órbita). */
-  const PASTAS = {financas:["Análises financeiras","#3DDC97","EBITDA, endividamento, indicadores e capital de giro"], valuation:["Valuation","#F2C14E","FCD, múltiplos e outras avaliações · EV e equity"], apresentacao:["Apresentação","#4FB0F5","Teaser antes e depois do NDA"], pos:["Pós-aquisição","#C39BFF","PPA e base de modelos"], juridico:["Jurídico","#FF8A65","Diligência jurídica, NDAs, mandatos e honorários"]};
+  const PASTAS = {financas:["Análises financeiras","#3DDC97","EBITDA, endividamento, indicadores e capital de giro"], valuation:["Valuation","#F2C14E","FCD, múltiplos e outras avaliações · EV e equity"], apresentacao:["Apresentação","#38B6FF","Teaser antes e depois do NDA"], pos:["Pós-aquisição","#C39BFF","PPA e base de modelos"], juridico:["Jurídico","#FF8A65","Diligência jurídica, NDAs, mandatos e honorários"]};
   const emblema = cor => `<svg viewBox="0 0 48 48" width="44" height="44" aria-hidden="true"><circle cx="24" cy="24" r="19" fill="none" stroke="${cor}" stroke-width="2.4"/><ellipse cx="24" cy="24" rx="8" ry="19" fill="none" stroke="${cor}" stroke-width="1.6" opacity=".8"/><path d="M5 24h38M8 14h32M8 34h32" stroke="${cor}" stroke-width="1.4" opacity=".6"/><circle cx="38" cy="10" r="4" fill="${cor}"/></svg>`;
   /* pasta de análise recolhida: mostra só o target escolhido; a lista abre ao tocar em "Trocar" */
   function lado(s, onPick, legenda){
-    const L = targets(), P = PASTAS[S.view] || ["Análise","#4FB0F5",""], aberta = !!S.pastaAberta || !s;
+    const L = targets(), P = PASTAS[S.view] || ["Análise","#38B6FF",""], aberta = !!S.pastaAberta || !s;
     const cor = legenda[3] || (y => COR[statusAlvo(y)]), nomeDe = x => `${x.mandato?.codinome ? x.mandato.codinome + " · " : ""}${(x.nome || "").replace(/^EXEMPLO /, "")}`;
     const lista = `<div class="sub" style="margin:0;font-size:11.5px;display:flex;gap:10px;flex-wrap:wrap"><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${COR.ok}"></i> ${legenda[0]}</span><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${COR.pend}"></i> ${legenda[1]}</span><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${COR.sem}"></i> ${legenda[2] || "sem balancete"}</span></div>
       ${L.length > 8 ? `<input type="search" id="dd-busca" placeholder="Filtrar targets" autocomplete="off" style="height:34px;border-radius:9px;border:1px solid var(--line-2);background:rgba(1,31,75,.6);color:var(--fog);padding:0 10px;font:inherit;font-size:13px">` : ""}
@@ -610,7 +610,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     const pts = passos.map(p => { let a, b; if (p.t === "b"){ a = 0; b = p.v; acc = p.v; } else { a = acc; b = acc + p.v; acc = b; } return {...p, a, b}; });
     const mx = Math.max(...pts.map(p => Math.max(p.a, p.b)), 1), mn = Math.min(0, ...pts.map(p => Math.min(p.a, p.b))), sx = v => x0 + (v - mn) / (mx - mn) * w;
     return `<div style="overflow-x:auto"><svg class="dd-svg" viewBox="0 0 ${W} ${H}" width="100%" style="min-width:520px" role="img" aria-label="${l0} até ${l1}">
-      ${pts.map((p, i) => { const y = 14 + i * 30, xa = sx(Math.min(p.a, p.b)), xb = sx(Math.max(p.a, p.b)), cor = p.t === "b" ? (i === pts.length - 1 ? "#F4C440" : "#4FB0F5") : p.v >= 0 ? "#3DDC97" : "#FF6B6B";
+      ${pts.map((p, i) => { const y = 14 + i * 30, xa = sx(Math.min(p.a, p.b)), xb = sx(Math.max(p.a, p.b)), cor = p.t === "b" ? (i === pts.length - 1 ? "#F4C440" : "#38B6FF") : p.v >= 0 ? "#3DDC97" : "#FF6B6B";
         return `<text x="${x0 - 8}" y="${y + 14}" text-anchor="end" class="lb">${esc(p.l.length > 34 ? p.l.slice(0, 33) + "…" : p.l)}</text><rect x="${xa}" y="${y + 3}" width="${Math.max(2, xb - xa)}" height="16" rx="3" fill="${cor}"/><text x="${xb + 6}" y="${y + 15}">${p.t === "b" ? mi(p.v) : mil(p.v)}</text>`; }).join("")}
       <line x1="${sx(0)}" x2="${sx(0)}" y1="8" y2="${H - 8}" stroke="currentColor" stroke-opacity=".25"/></svg></div>`;
   }
@@ -663,7 +663,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
   };
   function faixas(M, a, b){
     const W = 720, H = 16 + (M.length + 1) * 30, x0 = 250, w = W - x0 - 160, mx = Math.max(...M.map(m => m[2]), b), mn0 = Math.min(...M.map(m => m[1]), a), mn = Math.max(0, mn0 - (mx - mn0) * .25), sx = v => x0 + (v - mn) / (mx - mn) * w;
-    const L = [...M.map(m => [m[0], m[1], m[2], "#4FB0F5"]), ["Faixa de referência", a, b, "#F2C14E"]];
+    const L = [...M.map(m => [m[0], m[1], m[2], "#38B6FF"]), ["Faixa de referência", a, b, "#F2C14E"]];
     return `<div style="overflow-x:auto"><svg class="dd-svg" viewBox="0 0 ${W} ${H}" width="100%" style="min-width:520px" role="img" aria-label="Faixas de valor por método">
       ${L.map((l, i) => { const y = 6 + i * 30; return `<text x="${x0 - 8}" y="${y + 16}" text-anchor="end" class="lb">${esc(l[0])}</text><rect x="${sx(l[1])}" y="${y + 3}" width="${Math.max(3, sx(l[2]) - sx(l[1]))}" height="18" rx="4" fill="${l[3]}" fill-opacity="${i === L.length - 1 ? .9 : .75}"/><text x="${sx(l[2]) + 8}" y="${y + 16}">${mi(l[1], 0)} a ${mi(l[2], 0)}</text>`; }).join("")}
     </svg></div>`;

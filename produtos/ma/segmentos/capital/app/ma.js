@@ -34,7 +34,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
   { const st = document.createElement("style"); st.textContent = `.view:not(#v-orbita){background:linear-gradient(180deg,#022B63 0%,var(--navy) 38%,#011A40 100%)}
 .view:not(#v-orbita) .card{background:#0A2D60;border-color:rgba(150,190,240,.22)}
 .view:not(#v-orbita) .card .card{background:#0D3570}
-.view:not(#v-orbita) .tbl tbody tr:hover,.view:not(#v-orbita) .mb-row:hover{background:rgba(79,176,245,.08)}
+.view:not(#v-orbita) .tbl tbody tr:hover,.view:not(#v-orbita) .mb-row:hover{background:rgba(56,182,255,.08)}
 .view:not(#v-orbita) input,.view:not(#v-orbita) select,.view:not(#v-orbita) textarea{background:#01183D}
 .view:not(#v-orbita) .dd-k{background:rgba(1,24,61,.55)}`; document.head.appendChild(st); }
   /* legenda compacta (também no celular) */

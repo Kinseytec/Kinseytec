@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v3.25 — 2026-11-27 · Novo branding KinseyTec
+- Logo do sistema trocado pelo símbolo oficial do branding book KinseyTec (globo com as Américas, anel navy e quatro órbitas com pontos de conexão), na versão negativa sobre o navy: barra superior, tela de login, ícone do app no iPhone e favicon.
+- Cores predominantes mantidas (Navy Kinsey #011F4B, Azul Kinsey #0473C3, Fog #E6E8EC). O azul claro de destaque passa a ser o Ciano Tec #38B6FF (o "Tec" do nome, links, gráficos e abas); entram os tons Azul Oceano #0A5CA8 e Azul Américas #7CCBFF.
+- Símbolo na barra com 40 px (mínimo do branding book para telas). Fonte Montserrat mantida.
+- Os relatórios em PDF continuam com o logo da Kinsey BR (marca da assessoria), como antes.
+
 ## v3.24 — 2026-11-27 · Publicação automática simplificada e backups enxutos
 - Cada versão enviada daqui (branch de trabalho) é publicada sozinha, sem pull request, sem aprovação no GitHub e sem mexer na main. A main continua publicando também.
 - Não precisa mais criar o ambiente "producao" no GitHub: a configuração única tem só dois passos (Cloud Shell e duas variáveis no GitHub).

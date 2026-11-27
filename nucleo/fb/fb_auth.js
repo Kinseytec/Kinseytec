@@ -18,16 +18,16 @@ const KT_AUTH = (() => {
   };
   const css = `
   .ktl{position:fixed;inset:0;z-index:100;background:radial-gradient(circle at 60% 30%,#06306a,#011F4B 55%,#000A1C);display:flex;align-items:center;justify-content:center;padding:20px;font-family:Montserrat,Arial,sans-serif;color:#E6E8EC}
-  .ktl .card{width:100%;max-width:400px;background:rgba(1,31,75,.85);border:1px solid rgba(79,176,245,.35);border-radius:20px;padding:28px 24px;display:flex;flex-direction:column;gap:14px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+  .ktl .card{width:100%;max-width:400px;background:rgba(1,31,75,.85);border:1px solid rgba(56,182,255,.35);border-radius:20px;padding:28px 24px;display:flex;flex-direction:column;gap:14px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
   .ktl .brand{display:flex;align-items:center;gap:12px}.ktl .brand img{width:46px;height:46px}
-  .ktl h1{margin:0;font-size:24px;font-weight:800}.ktl h1 span{color:#4FB0F5}.ktl h1 em{font-style:normal;font-weight:600}
+  .ktl h1{margin:0;font-size:24px;font-weight:800}.ktl h1 span{color:#38B6FF}.ktl h1 em{font-style:normal;font-weight:600}
   .ktl p{margin:0;font-size:13.5px;color:#a9bbd6;line-height:1.45}
   .ktl input{width:100%;box-sizing:border-box;background:#000A1C;border:1px solid rgba(150,190,240,.3);border-radius:10px;padding:11px 12px;color:#E6E8EC;font:inherit;font-size:15px}
   .ktl button{font:inherit;font-weight:700;font-size:14px;border-radius:10px;padding:11px 14px;cursor:pointer;border:1px solid rgba(150,190,240,.3);background:#0A2D60;color:#E6E8EC}
   .ktl button.pri{background:#0473C3;border-color:#0473C3;color:#fff}
   .ktl button.g{background:#fff;color:#1f2937;border-color:#fff;display:flex;align-items:center;justify-content:center;gap:10px}
   .ktl .row{display:flex;gap:8px;flex-wrap:wrap}.ktl .row button{flex:1}
-  .ktl .lnk{background:none;border:0;color:#4FB0F5;padding:2px 0;font-weight:600;font-size:13px;text-align:left}
+  .ktl .lnk{background:none;border:0;color:#38B6FF;padding:2px 0;font-weight:600;font-size:13px;text-align:left}
   .ktl .err{color:#FF8A8A;font-size:13px;min-height:1em}.ktl .ok{color:#36D399;font-size:13px}
   .ktl .sep{display:flex;align-items:center;gap:10px;color:#7f93b2;font-size:12px}.ktl .sep:before,.ktl .sep:after{content:"";flex:1;height:1px;background:rgba(150,190,240,.2)}
   .ktl .lang{align-self:flex-end;display:flex;border:1px solid rgba(150,190,240,.3);border-radius:99px;overflow:hidden}.ktl .lang button{border:0;border-radius:0;padding:5px 10px;font-size:11.5px;background:none}.ktl .lang button.on{background:#0473C3}`;
@@ -42,7 +42,7 @@ const KT_AUTH = (() => {
     if (!el){ const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st); el = document.createElement("div"); el.className = "ktl"; document.body.appendChild(el); }
     el.hidden = false;
     el.innerHTML = `<div class="card"><div class="lang"><button type="button" data-l="pt" class="${lang==="pt"?"on":""}">PT</button><button type="button" data-l="en" class="${lang==="en"?"on":""}">EN</button></div>
-      <div class="brand"><img src="/icons/logo_white.png" alt="Kinsey BR"><div><h1>Kinsey<span>Tec</span> <em>– Cacau</em></h1></div></div>${inner}</div>`;
+      <div class="brand"><img src="/icons/logo_white.png" alt="KinseyTec"><div><h1>Kinsey<span>Tec</span> <em>– Cacau</em></h1></div></div>${inner}</div>`;
     el.querySelectorAll("[data-l]").forEach(b => b.onclick = () => { lang = b.dataset.l; try{ localStorage.setItem("kinseytec-lang", lang); }catch(e){} render(); });
   }
   let render = () => {};

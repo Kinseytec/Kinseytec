@@ -162,7 +162,7 @@ if (window.KT_DD) (() => {
     if (!s.nda?.aceito) passos.push(["NDA do target", "nda"]);
     if (!inv.length) passos.push(["Indicar investidores", "proj"]);
     const k = (l, v, sm) => `<div class="dd-k"><span>${l}</span><b style="font-size:14px">${v}</b>${sm ? `<small>${sm}</small>` : ""}</div>`;
-    return `<div class="card" style="display:flex;flex-direction:column;gap:10px;border-color:rgba(79,176,245,.45)"><div class="head" style="margin:0"><div><div class="eyebrow">Painel do projeto${m.codinome ? " · " + esc(m.codinome) : ""}</div><h3 style="margin:0">Tudo do target em um lugar</h3></div><button type="button" class="btn sm" data-pj="proj">Cadastro principal</button></div>
+    return `<div class="card" style="display:flex;flex-direction:column;gap:10px;border-color:rgba(56,182,255,.45)"><div class="head" style="margin:0"><div><div class="eyebrow">Painel do projeto${m.codinome ? " · " + esc(m.codinome) : ""}</div><h3 style="margin:0">Tudo do target em um lugar</h3></div><button type="button" class="btn sm" data-pj="proj">Cadastro principal</button></div>
       <div class="sub" style="margin:0;font-size:12.5px">Sócio do projeto: <b>${esc(P.socio || "—")}</b> · mandato trazido por <b>${esc(P.socioMandato || "—")}</b> · investidor trazido por <b>${esc(P.socioInvestidor || "—")}</b></div>
       <div class="dd-kpis">${k("Mandato", esc(({assinado:"Assinado", negociacao:"Em negociação", enviado:"Enviado"})[m.status] || "Sem mandato"), esc([m.success, m.retainer].filter(Boolean).join(" · ").slice(0, 90)))}
         ${k("Due diligence", P.dd === "nao" ? "Não contratada" : `${anuais.length} de ${pedidos.length || 3} exercícios`, `${ach} achado(s) · ${pend} ajuste(s) sem OK${P.dd === "self" ? " · self due" : ""}`)}
