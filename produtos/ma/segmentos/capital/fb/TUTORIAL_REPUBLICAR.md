@@ -1,8 +1,8 @@
-# KinseyTec – M&A · tutorial para republicar (versão 3.25)
+# KinseyTec – M&A · tutorial para republicar (versão 3.26)
 
 O sistema já está publicado. Republicar **substitui** a versão no ar e **não apaga nenhum dado**: empresas, documentos, balancetes, análises e usuários continuam. Tempo: cerca de 10 minutos, tudo no navegador.
 
-Arquivo: **KinseyTec_MA_Firebase.zip** (está dentro do pacote KinseyTec_MA_publicacao_v3.25.zip; não envie o pacote inteiro, só este arquivo).
+Arquivo: **KinseyTec_MA_Firebase.zip** (está dentro do pacote KinseyTec_MA_publicacao_v3.26.zip; não envie o pacote inteiro, só este arquivo).
 
 ## Seus dados ficam guardados (o que a publicação troca e o que não troca)
 | O que | Onde fica | Na publicação |
@@ -49,7 +49,7 @@ npx -y firebase-tools@13 deploy --project kinsey-capital-ma
 
 5. Pronto quando aparecer **Deploy complete!**. Atualize a página do sistema; no celular, feche e abra o aplicativo.
 
-## Importante nesta versão (3.25, inclui as versões 3.03 a 3.24)
+## Importante nesta versão (3.26, inclui as versões 3.03 a 3.25)
 Esta versão corrige o problema de os documentos não serem reconhecidos nem analisados no sistema publicado. **As funções precisam ser publicadas junto** (o comando de deploy acima já publica tudo): a leitura dos arquivos agora passa por uma função nova do servidor, chamada **lerArquivo**. Se o deploy das funções falhar, me envie a mensagem: sem ela, a análise automática continua sem conseguir abrir os documentos guardados.
 
 **Assinatura:** as funções só rodam no plano Blaze; confira em Firebase › Uso e faturamento (passo 1 do tutorial "Resolver a leitura automática dos documentos"). O que acontecia:
@@ -63,13 +63,16 @@ echo '[{"origin":["https://kinseytec-ma.web.app","https://kinseytec-ma.firebasea
 ```
 (Se o sistema for acessado por outro domínio, me avise para incluir. Com este passo a leitura funciona mesmo se a função do servidor falhar.)
 
-## Convites por e-mail (configurar uma vez no Firebase)
-O e-mail do convite é enviado pelo próprio Firebase. No console do Firebase (console.firebase.google.com › kinsey-capital-ma):
-1. **Authentication › Sign-in method:** "E-mail/senha" precisa estar **ativado**.
-2. **Authentication › Configurações › Domínios autorizados:** confira se **kinseytec-ma.web.app** está na lista; se não estiver, toque em "Adicionar domínio" e inclua.
-3. **Authentication › Modelos (Templates) › Redefinição de senha:** escolha o idioma **português** e, se quiser, troque o assunto para "Crie sua senha de acesso ao KinseyTec".
-4. O e-mail sai de **noreply@kinsey-capital-ma.firebaseapp.com**. Em e-mails corporativos ele pode cair em quarentena ou spam: peça para a pessoa procurar por "kinsey-capital-ma" e marcar como confiável. Para sair do domínio da Kinsey (melhor entrega), em **Modelos › Configurações de SMTP** informe o servidor de e-mail da empresa (o próprio administrador digita a senha do e-mail no console; nunca envie por mensagem).
-5. Se o e-mail não chegar, use **Enviar por WhatsApp** na mesma tela: a mensagem leva o link para criar a senha.
+## Convites de novos usuários (enviados pelo próprio sistema)
+1. Em **Usuários e convites**, preencha e-mail, nome, perfil, cliente e WhatsApp e toque em **Convidar**. O sistema cria o acesso e prepara a mensagem com o link para criar a senha.
+2. Escolha como enviar:
+   - **Enviar por e-mail**: abre o seu aplicativo de e-mail (Outlook, Mail do iPhone etc.) com destinatário, assunto e mensagem prontos; é só tocar em Enviar. A mensagem sai do **seu e-mail da Kinsey**, então não cai como spam.
+   - **Abrir no Gmail**: o mesmo, pelo Gmail no navegador.
+   - **Enviar por WhatsApp**: abre a conversa com a mensagem pronta.
+3. O link de senha vale por **1 hora**. Se expirar, a pessoa usa **"Esqueci a senha"** na tela de entrada, ou você toca em **Reenviar** na lista de usuários.
+4. O botão **E-mail automático do Firebase** continua disponível como alternativa (sai de noreply@kinsey-capital-ma.firebaseapp.com).
+
+No console do Firebase, confira só uma vez: **Authentication › Sign-in method › E-mail/senha** ativado e **Domínios autorizados** com kinseytec-ma.web.app. O link de senha depende da função **convidar** publicada (a publicação automática cuida disso); sem ela, a mensagem leva o endereço do sistema e o passo "Primeiro acesso".
 
 ## Se aparecer alguma pergunta
 - **"Would you like to proceed with deletion?"** (apagar funções antigas): responda **N**.

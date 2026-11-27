@@ -265,26 +265,33 @@ const KT_FB = !KT_AUTH ? null : {
         toast("Acesso removido"); listU(); }));
       $$("[data-reinv]", $("#kt-ul")).forEach(b => b.onclick = () => enviarConvite(b.dataset.reinv, b.dataset.nome, b.dataset.tel));
     };
-    /* envio do convite: cria a conta no servidor, dispara o e-mail do Firebase e oferece WhatsApp e cópia do link */
+    /* envio do convite pelo próprio sistema: o servidor cria a conta e gera o link de senha; a mensagem sai do e-mail
+       de quem convida (aplicativo de e-mail ou Gmail) ou pelo WhatsApp, com o texto do KinseyTec – M&A. O e-mail
+       automático do Firebase ("Redefina sua senha") fica só como alternativa, num botão. */
     const telFmt = t => { const d = String(t || "").replace(/\D/g, ""); return d.length >= 10 && d.length <= 11 ? "55" + d : d.length >= 12 ? d : ""; };
     async function enviarConvite(email, nome, tel){
       const box = $("#kt-envio") || document.body; box.innerHTML = `<div class="banner" style="font-size:13px">Enviando o convite para <b>${esc(email)}</b>…</div>`; box.scrollIntoView?.({block:"nearest"});
       const app = location.origin + "/", nm = (nome || "").split(" ")[0];
-      let link = "", erroFn = "", emailOk = false, erroMail = "";
+      let link = "", erroFn = "";
       try{ const r = await firebase.app().functions("southamerica-east1").httpsCallable("convidar", {timeout:60000})({email, nome, url:app}); link = r.data?.link || ""; }
       catch(e){ const c = String(e?.code || ""); erroFn = /not-found/.test(c) ? "a função convidar ainda não foi publicada (republique o sistema com as funções)" : /permission/.test(c) ? "só o administrador envia convites" : (e?.message || "falha no servidor"); }
-      try{ await KT_AUTH.auth.sendPasswordResetEmail(email, {url:app}).catch(e => { if (/continue-uri|unauthorized|invalid-continue/i.test(String(e?.code || ""))) return KT_AUTH.auth.sendPasswordResetEmail(email); throw e; }); emailOk = true; }
-      catch(e){ const c = String(e?.code || ""); erroMail = /user-not-found/.test(c) ? "a conta ainda não existe (o servidor não criou o acesso)" : /too-many|quota/.test(c) ? "limite de e-mails do Firebase atingido; tente mais tarde ou use o WhatsApp" : (e?.message || "falha no envio"); }
+      const viaFirebase = async () => { try{ await KT_AUTH.auth.sendPasswordResetEmail(email, {url:app}).catch(e => { if (/continue-uri|unauthorized|invalid-continue/i.test(String(e?.code || ""))) return KT_AUTH.auth.sendPasswordResetEmail(email); throw e; }); toast("E-mail automático do Firebase enviado"); }
+        catch(e){ const c = String(e?.code || ""); toast(/user-not-found/.test(c) ? "A conta ainda não existe: use a mensagem do sistema (Primeiro acesso)" : /too-many|quota/.test(c) ? "Limite de e-mails do Firebase atingido; use a mensagem do sistema" : (e?.message || "Falha no envio")); } };
       const msg = `Olá${nm ? ", " + nm : ""}! Você foi convidado(a) para acessar o KinseyTec – M&A.\n\n` + (link ? `1) Crie sua senha neste link (válido por 1 hora):\n${link}\n\n2) Depois entre em ${app} com o e-mail ${email} e a senha criada.` : `Entre em ${app} com o e-mail ${email}: toque em "Primeiro acesso" para criar a senha (ou "Esqueci a senha", se já tiver conta).`) + `\n\nSe o link expirar, use "Esqueci a senha" na tela de entrada.`;
-      const t = telFmt(tel);
-      box.innerHTML = `<div class="card" style="display:flex;flex-direction:column;gap:8px;padding:12px;border-color:${emailOk ? "var(--ok)" : "var(--warn)"}">
-        <div style="font-size:13.5px">${emailOk ? `<b style="color:var(--ok)">✓ E-mail enviado</b> para ${esc(email)}: a pessoa recebe "Redefina sua senha" e cria a senha de acesso. Peça para olhar também o spam e a aba Promoções.` : `<b style="color:var(--warn)">E-mail não enviado:</b> ${esc(erroMail)}.`}</div>
-        ${erroFn ? `<div class="sub" style="margin:0;font-size:12.5px">Link de senha indisponível: ${esc(erroFn)}. A mensagem de WhatsApp leva o endereço do sistema e o passo a passo.</div>` : ""}
+      const t = telFmt(tel), assunto = "Convite: acesso ao KinseyTec – M&A";
+      box.innerHTML = `<div class="card" style="display:flex;flex-direction:column;gap:8px;padding:12px;border-color:${link ? "var(--ok)" : "var(--warn)"}">
+        <div style="font-size:13.5px">${link ? `<b style="color:var(--ok)">✓ Acesso de ${esc(email)} criado.</b> Envie o convite pelo sistema: a mensagem sai do <b>seu e-mail</b> (ou do seu WhatsApp), com o link para criar a senha.` : `<b style="color:var(--warn)">Convite pronto, sem link de senha:</b> a mensagem leva o endereço do sistema e o passo "Primeiro acesso".`}</div>
+        ${erroFn ? `<div class="sub" style="margin:0;font-size:12.5px">Link de senha indisponível: ${esc(erroFn)}.</div>` : ""}
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn sm primary" id="kt-em">Enviar por e-mail</button><button type="button" class="btn sm" id="kt-gm">Abrir no Gmail</button></div>
         <div class="fld" style="margin:0"><label for="kt-wtel">WhatsApp (DDD + número)</label><input id="kt-wtel" inputmode="tel" value="${esc(tel || "")}" placeholder="(11) 98765-4321"></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn sm primary" id="kt-wa">Enviar por WhatsApp</button><button type="button" class="btn sm" id="kt-cp">Copiar mensagem</button>${emailOk ? "" : `<button type="button" class="btn sm" id="kt-re">Tentar o e-mail de novo</button>`}</div></div>`;
-      $("#kt-wa").onclick = () => { const n = telFmt($("#kt-wtel").value); if (!n){ toast("Informe o WhatsApp com DDD"); return; } if (n !== t) db.collection("invites").doc(email).set({tel:$("#kt-wtel").value.trim()}, {merge:true}).catch(() => {}); window.open(`https://wa.me/${n}?text=${encodeURIComponent(msg)}`, "_blank", "noopener"); };
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn sm primary" id="kt-wa">Enviar por WhatsApp</button><button type="button" class="btn sm" id="kt-cp">Copiar mensagem</button></div>
+        <div class="sub" style="margin:0;font-size:12px">Alternativa: <button type="button" class="btn sm" id="kt-fbm" style="margin-left:4px">E-mail automático do Firebase</button></div></div>`;
+      const marca = () => db.collection("invites").doc(email).set({enviadoEm:new Date().toISOString(), enviadoPor:KT_FB.me?.email || "", canal:"sistema"}, {merge:true}).catch(() => {});
+      $("#kt-em").onclick = () => { marca(); location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(msg)}`; };
+      $("#kt-gm").onclick = () => { marca(); window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${encodeURIComponent(assunto)}&body=${encodeURIComponent(msg)}`, "_blank", "noopener"); };
+      $("#kt-fbm").onclick = viaFirebase;
+      $("#kt-wa").onclick = () => { const n = telFmt($("#kt-wtel").value); if (!n){ toast("Informe o WhatsApp com DDD"); return; } if (n !== t) db.collection("invites").doc(email).set({tel:$("#kt-wtel").value.trim()}, {merge:true}).catch(() => {}); marca(); window.open(`https://wa.me/${n}?text=${encodeURIComponent(msg)}`, "_blank", "noopener"); };
       $("#kt-cp").onclick = () => { navigator.clipboard?.writeText(msg).then(() => toast("Mensagem copiada"), () => toast("Não foi possível copiar")); };
-      const re = $("#kt-re"); if (re) re.onclick = () => enviarConvite(email, nome, $("#kt-wtel").value);
       listU();
     }
     listU();

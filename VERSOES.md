@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v3.26 — 2026-11-27 · Convite enviado pelo próprio sistema
+- O convite de novos usuários sai pelo KinseyTec – M&A, e não mais pelo e-mail automático do Firebase: o servidor cria o acesso e gera o link de senha, e o administrador envia a mensagem do sistema pelo **próprio e-mail** (botão "Enviar por e-mail", que abre o aplicativo de e-mail, ou "Abrir no Gmail") ou pelo **WhatsApp**.
+- A mensagem chega com o remetente da Kinsey (não cai como "noreply do Firebase" no spam) e traz o assunto "Convite: acesso ao KinseyTec – M&A", o link para criar a senha e o passo a passo.
+- O e-mail automático do Firebase ficou como alternativa, num botão. O convite registra data, quem enviou e o canal.
+
 ## v3.25 — 2026-11-27 · Novo branding KinseyTec
 - Logo do sistema trocado pelo símbolo oficial do branding book KinseyTec (globo com as Américas, anel navy e quatro órbitas com pontos de conexão), na versão negativa sobre o navy: barra superior, tela de login, ícone do app no iPhone e favicon.
 - Cores predominantes mantidas (Navy Kinsey #011F4B, Azul Kinsey #0473C3, Fog #E6E8EC). O azul claro de destaque passa a ser o Ciano Tec #38B6FF (o "Tec" do nome, links, gráficos e abas); entram os tons Azul Oceano #0A5CA8 e Azul Américas #7CCBFF.
