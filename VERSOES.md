@@ -1,5 +1,10 @@
 # Registro de versões
 
+## v3.23 — 2026-11-27 · Publicação automática com as correções do Firebase
+- Um único fluxo de publicação no GitHub Actions (publicar.yml), sem chave guardada: o GitHub entra no Google Cloud pela federação de identidade, só a partir da branch main. O fluxo antigo deploy-firebase.yml (publicava sem montar o sistema e dependia de chave) foi retirado.
+- A cada publicação: monta e testa o sistema, faz o backup do banco (e liga PITR, backup diário e lixeira do Storage), publica site, regras e funções, libera o Storage para os endereços reais do site (inclusive kinseytec-ma.web.app), libera o acesso das funções chamadas pelo sistema (lerArquivo, convidar, consultas) e confere site, banco e função de leitura, com o resumo na aba Actions.
+- Configuração única (configurar_publicacao_automatica.sh): agora também ativa as APIs que as funções exigem (Cloud Functions, Cloud Build, Artifact Registry, Cloud Run, Eventarc, Pub/Sub, Scheduler, Secret Manager, Firestore, Storage), cria os segredos das bases contratadas com "nao configurado" (sem eles o deploy das funções parava) e dá ao publicador os papéis de backup do banco.
+
 ## v3.22 — 2026-11-27 · Gravação dos balancetes no Firebase corrigida e documentos sem repetição
 - Causa encontrada pelo sininho na versão publicada: "Nested arrays are not supported". O Firestore não aceita lista dentro de lista, e as contas dos balancetes são listas de listas (código, descrição, valor, grupo). Toda gravação de balancete, demonstração e workbook era recusada no Firebase, embora funcionasse no teste local. Agora cada lista interna é gravada como {__a:[…]} e volta como lista na leitura, em todas as coleções, sem mudar o resto do sistema.
 - Documentos repetidos: a importação compara a impressão digital do arquivo (ou o nome e o tamanho) e não guarda de novo o que já está no dossiê da empresa ("documento já estava no dossiê"). O sininho conta os repetidos já guardados e oferece "Remover repetidos" (fica a primeira cópia de cada um).

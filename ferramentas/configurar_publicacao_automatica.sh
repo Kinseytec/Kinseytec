@@ -13,14 +13,22 @@ NUM=$(gcloud projects describe "$PROJ" --format='value(projectNumber)')
 echo "Projeto $PROJ ($NUM) · repositório $REPO"
 
 gcloud services enable iam.googleapis.com iamcredentials.googleapis.com sts.googleapis.com \
-  cloudresourcemanager.googleapis.com firebase.googleapis.com serviceusage.googleapis.com >/dev/null
+  cloudresourcemanager.googleapis.com firebase.googleapis.com serviceusage.googleapis.com \
+  cloudfunctions.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com run.googleapis.com \
+  eventarc.googleapis.com pubsub.googleapis.com cloudscheduler.googleapis.com secretmanager.googleapis.com \
+  firestore.googleapis.com firebasestorage.googleapis.com storage.googleapis.com >/dev/null
+# segredos das bases contratadas: existem com "nao configurado" até a Kinsey cadastrar a chave oficial (sem isso o deploy das funções para)
+for S in ECONODATA_TOKEN RAMPER_TOKEN LEMITTI_TOKEN; do
+  gcloud secrets describe "$S" >/dev/null 2>&1 || printf 'nao configurado' | gcloud secrets create "$S" --data-file=- >/dev/null
+done
 
 gcloud iam service-accounts describe "$SA" >/dev/null 2>&1 || \
   gcloud iam service-accounts create publicador-github --display-name="Publicação automática (GitHub)"
 
 for R in roles/firebase.admin roles/cloudfunctions.admin roles/run.admin roles/artifactregistry.admin \
          roles/cloudbuild.builds.editor roles/iam.serviceAccountUser roles/storage.admin \
-         roles/secretmanager.admin roles/serviceusage.serviceUsageConsumer; do
+         roles/secretmanager.admin roles/serviceusage.serviceUsageConsumer \
+         roles/datastore.owner roles/datastore.importExportAdmin roles/cloudscheduler.admin roles/eventarc.admin; do
   gcloud projects add-iam-policy-binding "$PROJ" --member="serviceAccount:$SA" --role="$R" --condition=None -q >/dev/null
 done
 

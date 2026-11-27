@@ -1,8 +1,8 @@
-# KinseyTec – M&A · tutorial para republicar (versão 3.22)
+# KinseyTec – M&A · tutorial para republicar (versão 3.23)
 
 O sistema já está publicado. Republicar **substitui** a versão no ar e **não apaga nenhum dado**: empresas, documentos, balancetes, análises e usuários continuam. Tempo: cerca de 10 minutos, tudo no navegador.
 
-Arquivo: **KinseyTec_MA_Firebase.zip** (está dentro do pacote KinseyTec_MA_publicacao_v3.22.zip; não envie o pacote inteiro, só este arquivo).
+Arquivo: **KinseyTec_MA_Firebase.zip** (está dentro do pacote KinseyTec_MA_publicacao_v3.23.zip; não envie o pacote inteiro, só este arquivo).
 
 ## Seus dados ficam guardados (o que a publicação troca e o que não troca)
 | O que | Onde fica | Na publicação |
@@ -48,7 +48,7 @@ npx -y firebase-tools@13 deploy --project kinsey-capital-ma
 
 5. Pronto quando aparecer **Deploy complete!**. Atualize a página do sistema; no celular, feche e abra o aplicativo.
 
-## Importante nesta versão (3.22, inclui as versões 3.03 a 3.21)
+## Importante nesta versão (3.23, inclui as versões 3.03 a 3.22)
 Esta versão corrige o problema de os documentos não serem reconhecidos nem analisados no sistema publicado. **As funções precisam ser publicadas junto** (o comando de deploy acima já publica tudo): a leitura dos arquivos agora passa por uma função nova do servidor, chamada **lerArquivo**. Se o deploy das funções falhar, me envie a mensagem: sem ela, a análise automática continua sem conseguir abrir os documentos guardados.
 
 **Assinatura:** as funções só rodam no plano Blaze; confira em Firebase › Uso e faturamento (passo 1 do tutorial "Resolver a leitura automática dos documentos"). O que acontecia:
@@ -97,14 +97,23 @@ npx -y firebase-tools@13 deploy --project kinsey-capital-ma --only hosting,fires
 - **Dossiê da Tallenty:** o "Resumo para o investidor" mostra faturamento, EBITDA e faixa de valuation (o sistema lê os documentos do dossiê ao abrir).
 - **Jurídico:** abas "Validação dos documentos" e "Parecer do advogado".
 
-## Para não repetir este passo a passo: publicação automática
-Depois de configurada, cada nova versão vai ao ar sozinha. É preciso fazer **uma vez**:
-1. **Chave de publicação:** no mesmo Cloud Shell, rode o comando abaixo, entre com a conta da Kinsey e copie o código longo que aparece no final (começa com "1//").
+## Publicação automática (configurar uma única vez, cerca de 15 minutos)
+Depois de configurada, cada versão aprovada vai ao ar sozinha, com backup antes e as correções do Firebase aplicadas a cada vez. **Não usa chave nem senha:** o GitHub entra no Google Cloud pela federação de identidade, e só a branch **main** do repositório pode publicar.
 
+1. **No Cloud Shell** (projeto kinsey-capital-ma, conta proprietária do projeto), envie o arquivo **configurar_publicacao_automatica.sh** (está no pacote) e rode:
 ```bash
-npx -y firebase-tools@13 login:ci --no-localhost
+bash configurar_publicacao_automatica.sh kinsey-capital-ma kinseytec/kinseytec
 ```
-2. No GitHub, repositório **kinseytec/kinseytec**: **Settings → Secrets and variables → Actions → New repository secret**. Nome: **FIREBASE_TOKEN**. Valor: o código copiado. Salve. (Nunca envie esse código por mensagem.)
-3. Me avise que o segredo foi criado e autorize a criação da branch **main**. Eu ajusto o arquivo de publicação automática (ele precisa montar o sistema antes de publicar) e, a partir daí, cada versão aprovada é publicada sozinha; o andamento aparece na aba **Actions** do GitHub.
+   Ele ativa as APIs das funções, cria o publicador sem chave, cria os segredos das bases contratadas com "nao configurado" e, no final, mostra **dois valores**.
+2. **No GitHub**, repositório kinseytec/kinseytec › **Settings › Secrets and variables › Actions › aba Variables › New repository variable**, crie as duas variáveis com os valores mostrados:
+   - **GCP_WIF_PROVIDER**
+   - **GCP_SERVICE_ACCOUNT**
+
+   (São endereços, não senhas; mesmo assim, não é preciso enviá-los por mensagem.)
+3. **No GitHub › Settings › Environments › New environment**, crie **producao**. Opcional: em "Required reviewers", coloque quem aprova cada publicação.
+4. **Autorize a entrada das versões na branch main** (por pull request aprovado por vocês ou autorizando o envio direto). A partir daí, cada versão que entra na main é publicada sozinha.
+5. Acompanhe na aba **Actions › Publicar KinseyTec M&A**. O resumo mostra: publicação, site no ar, banco e função de leitura. Também dá para publicar a qualquer momento em **Run workflow**.
+
+Se o resumo mostrar o aviso "acesso público bloqueado (política da organização)", o administrador do Google Cloud ou Workspace libera a exceção só para o projeto kinsey-capital-ma (IAM e administrador › Políticas da organização › "Compartilhamento restrito de domínio").
 
 Enquanto isso não for feito, continue republicando pelo passo a passo acima.
