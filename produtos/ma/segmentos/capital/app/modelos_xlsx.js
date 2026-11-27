@@ -21,9 +21,12 @@ if (window.KT_DD && window.KT_XLSX) (() => {
     return f; }
   const T = v => ({v, s:"t"}), H = v => ({v, s:"h"}), HH = v => ({v, s:"hh"}), HP = v => ({v, s:"hp"});
   const I = v => ({v:v == null || !isFinite(v) ? 0 : Math.round(v * 100) / 100, s:"i"}), IP = v => ({v:v == null || !isFinite(v) ? 0 : +(+v).toFixed(6), s:"ip"}), ID = v => ({v:+(+v || 0).toFixed(6), s:"id"}), IT = v => ({v:String(v ?? ""), s:"it"});
-  const F = (f, s) => ({f, s:s || "n"}), FP = f => ({f, s:"fp"}), FX = f => ({f, s:"x"}), FD = f => ({f, s:"d"}), G = f => ({f, s:"g"}), GP = f => ({f, s:"gp"});
+  /* unidade: a modelagem do valuation sai em R$ milhões (padrão do sistema); o PPA continua em R$ */
+  let MI = false; const U = v => MI ? v / 1e6 : v, UN = () => MI ? "R$ mi" : "R$";
+  const M = v => ({v:v == null || !isFinite(v) ? 0 : MI ? Math.round(v / 100) / 1e4 : Math.round(v * 100) / 100, s:MI ? "im" : "i"}); /* entrada monetária */
+  const F = (f, s) => ({f, s:s || (MI ? "m" : "n")}), FP = f => ({f, s:"fp"}), FX = f => ({f, s:"x"}), FD = f => ({f, s:"d"}), G = f => ({f, s:MI ? "mg" : "g"}), GP = f => ({f, s:"gp"});
   const N = 5, YC = i => colL(2 + i); /* anos projetados nas colunas C..G; perpetuidade em H */
-  const cab = (f, titulo, s) => { f.add([T(`${titulo} · ${s.mandato?.codinome || s.nome}`)]); f.add(["Planilha padronizada Kinsey BR · células em azul são entradas; as demais são fórmulas · valores em R$"]); };
+  const cab = (f, titulo, s) => { f.add([T(`${titulo} · ${s.mandato?.codinome || s.nome}`)]); f.add([`Planilha padronizada Kinsey BR · células em azul são entradas; as demais são fórmulas · valores em ${MI ? "R$ milhões (R$ mi), exceto percentuais, múltiplos e dias" : "R$"}`]); };
 
   /* ---------------- dados do sistema ---------------- */
   function dados(s){
@@ -69,8 +72,8 @@ if (window.KT_DD && window.KT_XLSX) (() => {
     f.add(["Normalização do capital de giro (% da receita líquida; ajustes de DD e premissa do consultor)", IP(d.ncgAj)], "ncgAj");
     f.add([]); f.add([H("Tributação"), H("Valor")]);
     f.add(["Alíquota IRPJ + CSLL (lucro real)", IP(.34)], "aliq"); f.add(["Presunção IRPJ (lucro presumido)", IP(.32)], "presIR"); f.add(["Presunção CSLL (lucro presumido)", IP(.32)], "presCS");
-    f.add([]); f.add([H("Ponte para o equity"), H("R$")]);
-    f.add(["Dívida líquida ajustada (positivo = dívida)", I(d.X.dl)], "dl"); f.add(["Caixa excedente e outros ativos não operacionais", I(0)], "outros");
+    f.add([]); f.add([H("Ponte para o equity"), H(UN())]);
+    f.add(["Dívida líquida ajustada (positivo = dívida)", M(d.X.dl)], "dl"); f.add(["Caixa excedente e outros ativos não operacionais", M(0)], "outros");
     f.add(["Desconto de liquidez nos múltiplos (empresa fechada)", IP(d.P.desc.v / 100)], "descL");
     f.add([]); f.add([H("Ajuste do consultor no WACC"), H("p.p.")]);
     f.add(["Ajuste (limite de 3 p.p. para cima ou para baixo)", IP(d.W.ajustado ? d.W.wacc - d.W.waccAuto : 0)], "ajw"); f.add(["Justificativa do ajuste", IT(d.W.just?.texto || "")], "ajwj");
@@ -101,9 +104,9 @@ if (window.KT_DD && window.KT_XLSX) (() => {
   function fHistorico(s, d){
     const pers = D.periodos(s).slice().sort().slice(-5), Hs = pers.map(p => { const b = s.dd.bal[p], K = D.calc(b); return {p, b, K, f:K.f, rot:b.meses != 12 ? `${p.slice(5, 7)}/${p.slice(0, 4)} (${b.meses}m)` : p.slice(0, 4)}; });
     const f = Folha("Histórico", [44, ...Hs.map(() => 16)]); cab(f, "Demonstrações históricas (balancetes do sistema)", s); f.add([]);
-    f.add([HH("DRE do período (R$)"), ...Hs.map(h => HH(h.rot))], "hd"); const c = i => colL(1 + i);
+    f.add([HH(`DRE do período (${UN()})`), ...Hs.map(h => HH(h.rot))], "hd"); const c = i => colL(1 + i);
     f.add(["Meses", ...Hs.map(h => I(+h.b.meses || 12))], "m");
-    const v = (k, sg = 1) => Hs.map(h => I(sg * (h.K[k] || 0) / h.f));
+    const v = (k, sg = 1) => Hs.map(h => M(sg * (h.K[k] || 0) / h.f));
     f.add(["Receita bruta", ...v("recBruta")], "rb"); f.add(["(-) Deduções", ...v("deducoes", -1)], "ded");
     f.add(["Receita líquida", ...Hs.map((_, i) => G(`${c(i)}${f.r("rb")}+${c(i)}${f.r("ded")}`))], "rl");
     f.add(["(-) Custos", ...v("cpv", -1)], "cpv"); f.add(["Lucro bruto", ...Hs.map((_, i) => G(`${c(i)}${f.r("rl")}+${c(i)}${f.r("cpv")}`))], "lb");
@@ -112,8 +115,8 @@ if (window.KT_DD && window.KT_XLSX) (() => {
     f.add(["(-) Depreciação e amortização", ...v("da", -1)], "da"); f.add(["EBIT", ...Hs.map((_, i) => F(`${c(i)}${f.r("eb")}+${c(i)}${f.r("da")}`))], "ebit");
     f.add(["(+/-) Resultado financeiro", ...v("resFin")], "rf"); f.add(["(+/-) Resultado não operacional (fora do EBITDA)", ...v("naoOp")], "nop"); f.add(["(-) IRPJ e CSLL", ...v("ir", -1)], "ir");
     f.add(["Lucro líquido", ...Hs.map((_, i) => G(`${c(i)}${f.r("ebit")}+${c(i)}${f.r("rf")}+${c(i)}${f.r("nop")}+${c(i)}${f.r("ir")}`))], "ll");
-    f.add([]); f.add([HH("Balanço patrimonial (R$)"), ...Hs.map(h => HH(h.rot))]);
-    const g = k => Hs.map(h => I(h.K.G[k] || 0));
+    f.add([]); f.add([HH(`Balanço patrimonial (${UN()})`), ...Hs.map(h => HH(h.rot))]);
+    const g = k => Hs.map(h => M(h.K.G[k] || 0));
     const AC = [["caixa", "Caixa e equivalentes"], ["clientes", "Contas a receber"], ["pdd", "(-) Perdas esperadas"], ["estoques", "Estoques"], ["impRec", "Impostos a recuperar"], ["outrosAC", "Outros ativos circulantes"]];
     const ANC = [["rlp", "Realizável a longo prazo"], ["deposJud", "Depósitos judiciais"], ["mutuoAtivo", "Partes relacionadas (ativo)"], ["investimentos", "Investimentos"], ["imobilizado", "Imobilizado"], ["deprec", "(-) Depreciação acumulada"], ["intangivel", "Intangível"]];
     const PC = [["fornecedores", "Fornecedores"], ["empCP", "Empréstimos e financiamentos CP"], ["trab", "Obrigações trabalhistas"], ["tribCP", "Obrigações tributárias"], ["adiantCli", "Adiantamento de clientes"], ["outrosPC", "Outros passivos circulantes"]];
@@ -121,46 +124,46 @@ if (window.KT_DD && window.KT_XLSX) (() => {
     const bloco = (L, tot, key) => { const ini = f.linhas.length + 1; L.forEach(([k, l]) => f.add([l, ...g(k)], "b_" + k)); const fim = f.linhas.length; f.add([tot, ...Hs.map((_, i) => G(`SUM(${c(i)}${ini}:${c(i)}${fim})`))], key); };
     bloco(AC, "Ativo circulante", "ac"); bloco(ANC, "Ativo não circulante", "anc"); f.add(["Ativo total", ...Hs.map((_, i) => G(`${c(i)}${f.r("ac")}+${c(i)}${f.r("anc")}`))], "at");
     bloco(PC, "Passivo circulante", "pc"); bloco(PNC, "Passivo não circulante", "pnc");
-    f.add(["Patrimônio líquido (com resultado do período)", ...Hs.map(h => I(h.K.PL))], "pl");
+    f.add(["Patrimônio líquido (com resultado do período)", ...Hs.map(h => M(h.K.PL))], "pl");
     f.add(["Passivo + patrimônio líquido", ...Hs.map((_, i) => G(`${c(i)}${f.r("pc")}+${c(i)}${f.r("pnc")}+${c(i)}${f.r("pl")}`))], "ppl");
     f.add(["Diferença (deve ser zero)", ...Hs.map((_, i) => F(`${c(i)}${f.r("at")}-${c(i)}${f.r("ppl")}`))], "dif");
     f.congela = [3, 1]; f.Hs = Hs; return f;
   }
   function fDre(s, d, Pm){
     const f = Folha("DRE projetada"); cab(f, "DRE projetada", s); f.add([]);
-    f.add([HP("R$"), HH("Base (anualizada)"), ...d.anos.map(y => HP(`${y}E`))], "h");
+    f.add([HP(UN()), HH("Base (anualizada)"), ...d.anos.map(y => HP(`${y}E`))], "h");
     const pr = (k, c = "B") => Pm.x(k, c, 1), prev = i => i ? YC(i - 1) : "B";
-    f.add(["Receita bruta", I(d.rb), ...d.anos.map((_, i) => F(`${prev(i)}${f.idx.rb || 5}*(1+${Pm.x("g", YC(i))})*(1+${Pm.x("ipca", YC(i))})`))], "rb");
-    f.linhas[f.r("rb") - 1] = ["Receita bruta", I(d.rb), ...d.anos.map((_, i) => F(`${prev(i)}${f.r("rb")}*(1+${Pm.x("g", YC(i))})*(1+${Pm.x("ipca", YC(i))})`))];
+    f.add(["Receita bruta", M(d.rb), ...d.anos.map((_, i) => F(`${prev(i)}${f.idx.rb || 5}*(1+${Pm.x("g", YC(i))})*(1+${Pm.x("ipca", YC(i))})`))], "rb");
+    f.linhas[f.r("rb") - 1] = ["Receita bruta", M(d.rb), ...d.anos.map((_, i) => F(`${prev(i)}${f.r("rb")}*(1+${Pm.x("g", YC(i))})*(1+${Pm.x("ipca", YC(i))})`))];
     f.add(["% crescimento nominal", "", ...d.anos.map((_, i) => FP(`IFERROR(${YC(i)}${f.r("rb")}/${prev(i)}${f.r("rb")}-1,0)`))]);
-    f.add(["(-) Deduções", I(-d.K.deducoes), ...d.anos.map((_, i) => F(`-${YC(i)}${f.r("rb")}*${pr("ded")}`))], "ded");
+    f.add(["(-) Deduções", M(-d.K.deducoes), ...d.anos.map((_, i) => F(`-${YC(i)}${f.r("rb")}*${pr("ded")}`))], "ded");
     f.add(["Receita líquida", G(`B${f.r("rb")}+B${f.r("ded")}`), ...d.anos.map((_, i) => G(`${YC(i)}${f.r("rb")}+${YC(i)}${f.r("ded")}`))], "rl");
-    f.add(["(-) Custos", I(-d.cpv), ...d.anos.map((_, i) => F(`-${YC(i)}${f.r("rl")}*${pr("custo")}`))], "cpv");
+    f.add(["(-) Custos", M(-d.cpv), ...d.anos.map((_, i) => F(`-${YC(i)}${f.r("rl")}*${pr("custo")}`))], "cpv");
     f.add(["Lucro bruto", G(`B${f.r("rl")}+B${f.r("cpv")}`), ...d.anos.map((_, i) => G(`${YC(i)}${f.r("rl")}+${YC(i)}${f.r("cpv")}`))], "lb");
-    f.add(["(-) Despesas operacionais", I(-d.desp), ...d.anos.map((_, i) => F(`-${YC(i)}${f.r("rl")}*${pr("desp")}`))], "dop");
+    f.add(["(-) Despesas operacionais", M(-d.desp), ...d.anos.map((_, i) => F(`-${YC(i)}${f.r("rl")}*${pr("desp")}`))], "dop");
     f.add(["EBITDA", G(`B${f.r("lb")}+B${f.r("dop")}`), ...d.anos.map((_, i) => G(`${YC(i)}${f.r("lb")}+${YC(i)}${f.r("dop")}`))], "eb");
-    f.add(["(+/-) Ajustes de due diligence (não recorrentes)", I(d.ebAj), ...d.anos.map(() => I(0))], "ajdd");
+    f.add(["(+/-) Ajustes de due diligence (não recorrentes)", M(d.ebAj), ...d.anos.map(() => M(0))], "ajdd");
     f.add(["EBITDA ajustado", G(`B${f.r("eb")}+B${f.r("ajdd")}`), ...d.anos.map((_, i) => G(`${YC(i)}${f.r("eb")}+${YC(i)}${f.r("ajdd")}`))], "ebaj");
     f.add(["% margem EBITDA ajustada", FP(`IFERROR(B${f.r("ebaj")}/B${f.r("rl")},0)`), ...d.anos.map((_, i) => FP(`IFERROR(${YC(i)}${f.r("ebaj")}/${YC(i)}${f.r("rl")},0)`))], "mg");
-    f.add(["(-) Depreciação e amortização", I(-d.K.da), ...d.anos.map((_, i) => F(`-${YC(i)}${f.r("rl")}*${pr("da")}`))], "da");
+    f.add(["(-) Depreciação e amortização", M(-d.K.da), ...d.anos.map((_, i) => F(`-${YC(i)}${f.r("rl")}*${pr("da")}`))], "da");
     f.add(["EBIT", F(`B${f.r("ebaj")}+B${f.r("da")}`), ...d.anos.map((_, i) => F(`${YC(i)}${f.r("ebaj")}+${YC(i)}${f.r("da")}`))], "ebit");
-    const ir = c => `IF(${pr("regime")}="Lucro presumido",-(${c}${f.r("rb")}*${pr("presIR")}*0.15+MAX(0,${c}${f.r("rb")}*${pr("presIR")}-240000)*0.1+${c}${f.r("rb")}*${pr("presCS")}*0.09),-MAX(0,${c}${f.r("ebit")})*${pr("aliq")})`;
+    const ir = c => `IF(${pr("regime")}="Lucro presumido",-(${c}${f.r("rb")}*${pr("presIR")}*0.15+MAX(0,${c}${f.r("rb")}*${pr("presIR")}-${MI ? 0.24 : 240000})*0.1+${c}${f.r("rb")}*${pr("presCS")}*0.09),-MAX(0,${c}${f.r("ebit")})*${pr("aliq")})`;
     f.add(["(-) IRPJ e CSLL sobre o resultado operacional", F(ir("B")), ...d.anos.map((_, i) => F(ir(YC(i))))], "ir");
     f.add(["Lucro operacional líquido (NOPLAT)", G(`B${f.r("ebit")}+B${f.r("ir")}`), ...d.anos.map((_, i) => G(`${YC(i)}${f.r("ebit")}+${YC(i)}${f.r("ir")}`))], "nop");
     f.congela = [4, 1]; return f;
   }
   function fGiro(s, d, Pm, Dr){
     const f = Folha("Capital de giro"); cab(f, "Capital de giro em dias", s); f.add([]); const G0 = d.G;
-    f.add([HP("R$"), HH("Base"), ...d.anos.map(y => HP(`${y}E`))], "h");
+    f.add([HP(UN()), HH("Base"), ...d.anos.map(y => HP(`${y}E`))], "h");
     const dias = k => Pm.x("d_" + k, "B", 1), rl = c => `${Q(Dr.nome)}!${c}${Dr.r("rl")}`, cp = c => `-${Q(Dr.nome)}!${c}${Dr.r("cpv")}`, cd = c => `(-${Q(Dr.nome)}!${c}${Dr.r("cpv")}-${Q(Dr.nome)}!${c}${Dr.r("dop")})`;
     const L = [["cli", "Contas a receber", (G0.clientes || 0), rl], ["est", "Estoques", (G0.estoques || 0), cp], ["imp", "Impostos a recuperar", (G0.impRec || 0), rl], ["outA", "Outros ativos operacionais", (G0.outrosAC || 0) + (G0.pdd || 0), rl]];
     const Pp = [["forn", "Fornecedores", (G0.fornecedores || 0), cp], ["trab", "Obrigações trabalhistas", (G0.trab || 0), cd], ["trib", "Obrigações tributárias", (G0.tribCP || 0), rl], ["outP", "Outros passivos operacionais", (G0.adiantCli || 0) + (G0.outrosPC || 0), cd]];
     f.add([T("Aplicações")]); const a0 = f.linhas.length + 1;
-    L.forEach(([k, l, v, base]) => f.add([l, I(v), ...d.anos.map((_, i) => F(`${base(YC(i))}*${dias(k)}/360`))], "a_" + k)); const a1 = f.linhas.length;
+    L.forEach(([k, l, v, base]) => f.add([l, M(v), ...d.anos.map((_, i) => F(`${base(YC(i))}*${dias(k)}/360`))], "a_" + k)); const a1 = f.linhas.length;
     f.add(["Normalização (ajustes de DD e premissa do consultor)", F(`${rl("B")}*${Pm.x("ncgAj", "B", 1)}`), ...d.anos.map((_, i) => F(`${rl(YC(i))}*${Pm.x("ncgAj", "B", 1)}`))], "a_aj");
     f.linhas[f.linhas.length - 1] = f.linhas[f.linhas.length - 1]; const a1b = f.linhas.length;
     f.add([T("Fontes")]); const p0 = f.linhas.length + 1;
-    Pp.forEach(([k, l, v, base]) => f.add([l, I(v), ...d.anos.map((_, i) => F(`${base(YC(i))}*${dias(k)}/360`))], "p_" + k)); const p1 = f.linhas.length;
+    Pp.forEach(([k, l, v, base]) => f.add([l, M(v), ...d.anos.map((_, i) => F(`${base(YC(i))}*${dias(k)}/360`))], "p_" + k)); const p1 = f.linhas.length;
     const cols = ["B", ...d.anos.map((_, i) => YC(i))];
     f.add(["Capital de giro líquido (NCG)", ...cols.map(c => G(`SUM(${c}${a0}:${c}${a1b})-SUM(${c}${p0}:${c}${p1})`))], "ncg");
     f.add(["Variação do capital de giro (investimento)", "", ...d.anos.map((_, i) => F(`${YC(i)}${f.r("ncg")}-${i ? YC(i - 1) : "B"}${f.r("ncg")}`))], "dncg");
@@ -169,7 +172,7 @@ if (window.KT_DD && window.KT_XLSX) (() => {
   }
   function fFcd(s, d, Pm, Wc, Dr, Gi){
     const f = Folha("FCD", [46, 16, 15, 15, 15, 15, 15, 15, 15]); cab(f, "Fluxo de caixa descontado (FCFF)", s); f.add([]);
-    f.add([HP("R$"), H(""), ...d.anos.map(y => HP(`${y}E`)), HP("Perpetuidade")], "h");
+    f.add([HP(UN()), H(""), ...d.anos.map(y => HP(`${y}E`)), HP("Perpetuidade")], "h");
     const dr = (k, c) => `${Q(Dr.nome)}!${c}${Dr.r(k)}`, w = Wc.x("wacc", "B", 1), g = Pm.x("gnom", "B", 1), cols = [...d.anos.map((_, i) => YC(i)), "H"];
     f.add(["EBITDA ajustado", "", ...d.anos.map((_, i) => F(dr("ebaj", YC(i)))), F(`${YC(N - 1)}{EB}*(1+${g})`)], "eb");
     f.linhas[f.r("eb") - 1][N + 2] = F(`${YC(N - 1)}${f.r("eb")}*(1+${g})`);
@@ -185,7 +188,7 @@ if (window.KT_DD && window.KT_XLSX) (() => {
     f.add(["Fator de desconto", "", ...cols.map(c => FD(`1/(1+${w})^${c}${f.r("per")}`))], "fd");
     f.add(["Valor presente", "", ...d.anos.map((_, i) => F(`${YC(i)}${f.r("fcff")}*${YC(i)}${f.r("fd")}`)), F(`H${0}`)], "vp");
     f.linhas[f.r("vp") - 1][N + 2] = F(`H${f.r("fcff")}/(${w}-${g})*H${f.r("fd")}`);
-    f.add([]); f.add([H("Valor"), H("R$")]);
+    f.add([]); f.add([H("Valor"), H(UN())]);
     f.add(["Soma do valor presente dos fluxos", G(`SUM(C${f.r("vp")}:${YC(N - 1)}${f.r("vp")})`)], "svp");
     f.add(["Valor presente da perpetuidade", G(`H${f.r("vp")}`)], "vpp");
     f.add(["Enterprise value", G(`B${f.r("svp")}+B${f.r("vpp")}`)], "ev");
@@ -211,14 +214,14 @@ if (window.KT_DD && window.KT_XLSX) (() => {
     const fim = f.linhas.length, rg = c => `${c}${ini}:${c}${fim}`;
     f.add([]); f.add([H("Estatística"), H(""), H("EV/EBITDA"), H("EV/Receita")]);
     [["p25", 1], ["mediana", 2], ["p75", 3]].forEach(([n, q]) => f.add([n, "", FX(`IFERROR(QUARTILE(${rg("C")},${q}),0)`), FX(`IFERROR(QUARTILE(${rg("D")},${q}),0)`)], "q" + n));
-    f.add([]); f.add([H("Aplicação ao target"), H("R$")]);
+    f.add([]); f.add([H("Aplicação ao target"), H(UN())]);
     f.add(["EBITDA ajustado da base", F(`${Q(Dr.nome)}!B${Dr.r("ebaj")}`)], "eb"); f.add(["Desconto de liquidez", F(Pm.x("descL", "B", 1), "fp")], "dl");
     ["p25", "mediana", "p75"].forEach(n => f.add([`EV pelo EV/EBITDA ${n}`, G(`B${f.r("eb")}*C${f.r("q" + n)}*(1-B${f.r("dl")})`)], "ev" + n));
     f.congela = [4, 0]; return f;
   }
   function fResumoVal(s, d, Pm, Fc, Mu){
     const f = Folha("Resumo", [52, 18, 18]); cab(f, "Resumo do valuation", s); f.add([]);
-    f.add([H("Resultado"), H("R$"), H("")]);
+    f.add([H("Resultado"), H(UN()), H("")]);
     f.add(["Enterprise value (FCD)", G(`${Fc.x("ev", "B", 1)}`)], "ev"); f.add(["Equity value (FCD)", G(`${Fc.x("eq", "B", 1)}`)], "eq");
     f.add(["EV · WACC +1 p.p.", F(`${Q(Fc.nome)}!D${Fc.r("s3")}`)], "evmin"); f.add(["EV · WACC −1 p.p.", F(`${Q(Fc.nome)}!D${Fc.r("s1")}`)], "evmax");
     f.add(["EV pelos múltiplos · p25", F(Mu.x("evp25", "B", 1))], "m25"); f.add(["EV pelos múltiplos · mediana", F(Mu.x("evmediana", "B", 1))], "m50"); f.add(["EV pelos múltiplos · p75", F(Mu.x("evp75", "B", 1))], "m75");
@@ -226,9 +229,9 @@ if (window.KT_DD && window.KT_XLSX) (() => {
     f.add(["Equity · faixa recomendada · mínimo", G(`B${f.r("fmin")}-${Pm.x("dl", "B", 1)}+${Pm.x("outros", "B", 1)}`)], "emin"); f.add(["Equity · faixa recomendada · máximo", G(`B${f.r("fmax")}-${Pm.x("dl", "B", 1)}+${Pm.x("outros", "B", 1)}`)], "emax");
     f.add(["WACC usado", F(`WACC!B${0}`, "fp")], "wacc");
     f.add(["EV / EBITDA implícito (FCD)", FX(Fc.x("mult", "B", 1))], "mult");
-    f.add([]); f.add([H("Valores calculados pelo sistema (para conferência)"), H("R$"), H("Diferença")]);
-    f.add(["Enterprise value · FCD moderado (sistema)", I(d.R.mod.c.ev), F(`B${f.r("ev")}-B${f.linhas.length + 1}`)], "sev");
-    f.add(["Faixa recomendada do sistema · mínimo", I(d.R.rec[0])]); f.add(["Faixa recomendada do sistema · máximo", I(d.R.rec[1])]); f.add(["WACC do sistema", IP(d.W.wacc)]);
+    f.add([]); f.add([H("Valores calculados pelo sistema (para conferência)"), H(UN()), H("Diferença")]);
+    f.add(["Enterprise value · FCD moderado (sistema)", M(d.R.mod.c.ev), F(`B${f.r("ev")}-B${f.linhas.length + 1}`)], "sev");
+    f.add(["Faixa recomendada do sistema · mínimo", M(d.R.rec[0])]); f.add(["Faixa recomendada do sistema · máximo", M(d.R.rec[1])]); f.add(["WACC do sistema", IP(d.W.wacc)]);
     f.congela = [3, 0]; return f;
   }
   function fCheck(nome, s, itens){
@@ -239,20 +242,21 @@ if (window.KT_DD && window.KT_XLSX) (() => {
     Object.entries(D.GRUPOS || {}).forEach(([k, g]) => f.add([k, g[0], {A:"Ativo", P:"Passivo", R:"Receita", D:"Despesa"}[g[1]] || g[1]])); f.congela = [4, 0]; return f; };
 
   /* ---------------- planilha de valuation ---------------- */
-  async function valuationXlsx(s){
+  async function valuationXlsx(s){ MI = true; try{ return await valuationXlsx0(s); } finally { MI = false; } }
+  async function valuationXlsx0(s){
     const d = dados(s), Pm = fPremissas(s, d), Wc = fWacc(s, d, Pm), Hi = fHistorico(s, d), Dr = fDre(s, d, Pm), Gi = fGiro(s, d, Pm, Dr), Fc = fFcd(s, d, Pm, Wc, Dr, Gi), Mu = fMult(s, d, Pm, Dr), Rs = fResumoVal(s, d, Pm, Fc, Mu);
     Rs.linhas[Rs.r("wacc") - 1][1] = F(Wc.x("wacc", "B", 1), "fp");
     Rs.linhas[Rs.r("sev") - 1][2] = F(`B${Rs.r("ev")}-B${Rs.r("sev")}`);
     const hc = Hi.Hs.map((_, i) => colL(1 + i));
     const Ck = fCheck("Conferências", s, [
-      ...hc.map((c, i) => [`Balanço fecha · ${Hi.Hs[i].rot}`, `ABS(${Hi.x("dif", c)})<1`, Hi.x("dif", c)]),
+      ...hc.map((c, i) => [`Balanço fecha · ${Hi.Hs[i].rot}`, `ABS(${Hi.x("dif", c)})<${MI ? 0.001 : 1}`, Hi.x("dif", c)]),
       ["WACC dentro do limite de ajuste (±3 p.p. do automático)", `ABS(${Wc.x("wacc", "B")}-${Wc.x("wacc0", "B")})<=0.03`, `${Wc.x("wacc", "B")}-${Wc.x("wacc0", "B")}`, "p"],
       ["Crescimento na perpetuidade menor que o WACC", `${Pm.x("gnom", "B")}<${Wc.x("wacc", "B")}`, Pm.x("gnom", "B"), "p"],
       ["Perpetuidade até 85% do enterprise value", `${Fc.x("pp", "B")}<=0.85`, Fc.x("pp", "B"), "p"],
       ["EV/EBITDA implícito dentro da faixa de mercado (p25 com desconto a p75 × 1,25)", `AND(${Fc.x("mult", "B")}>=${Mu.x("qp25", "C")}*(1-${Pm.x("descL", "B")})*0.75,${Fc.x("mult", "B")}<=${Mu.x("qp75", "C")}*1.25)`, Fc.x("mult", "B"), "x"],
       ["Diferença do EV para o sistema até 10% (a planilha desconta no meio do período, padrão Kinsey)", `ABS(${Rs.x("sev", "C")})<=ABS(${Rs.x("sev", "B")})*0.1`, Rs.x("sev", "C")]]);
     const abas = [Rs, Pm, Wc, Hi, Dr, Gi, Fc, Mu, Ck, PLANO()];
-    await rptSave(KT_XLSX.gerar(abas), KT_REL.arq(s, "valuation_planilha_padronizada", "xlsx"), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    await rptSave(KT_XLSX.gerar(abas), KT_REL.arq(s, "valuation_modelagem_RS_mi", "xlsx"), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
   }
 
   /* ---------------- planilha de PPA ---------------- */
@@ -438,6 +442,7 @@ if (window.KT_DD && window.KT_XLSX) (() => {
     const R = tipo === "ppa" ? {consideracao:achar("PPA Goodwill", "Consideração total"), goodwill:achar("PPA Goodwill", "Goodwill (ágio por expectativa de rentabilidade futura)"), carteira:achar("PPA Goodwill", "(+) Carteira de clientes"),
         marca:achar("PPA Goodwill", "(+) Marca"), tecnologia:achar("PPA Goodwill", "(+) Tecnologia"), naoConc:achar("PPA Goodwill", "(+) Não concorrência"), earnout:achar("PPA Goodwill", "Earn-out a valor justo"), wara:achar("WARA", "WARA (retorno ponderado)"), wacc:achar("WACC", "WACC usado")}
       : {ev:achar("Resumo", "Enterprise value (FCD)"), equity:achar("Resumo", "Equity value (FCD)"), fmin:achar("Resumo", "Faixa recomendada · mínimo"), fmax:achar("Resumo", "Faixa recomendada · máximo"), wacc:achar("WACC", "WACC usado"), mult:achar("Resumo", "EV / EBITDA implícito (FCD)")};
+    if (tipo !== "ppa" && /R\$ mi|milh/i.test((P.Resumo || []).slice(0, 4).map(x => (x || []).join(" ")).join(" "))) ["ev", "equity", "fmin", "fmax"].forEach(k => { if (R[k] != null) R[k] *= 1e6; }); /* modelagem em R$ mi */
     const lidos = Object.values(R).filter(v => v != null).length;
     if (!lidos) throw new Error("Não encontrei os resultados. Abra a planilha no Excel, salve (para gravar os valores das fórmulas) e importe de novo.");
     const reg = {arquivo:file.name, em:nowISO(), por:Store.me?.email || "", resultados:R};
@@ -453,15 +458,15 @@ if (window.KT_DD && window.KT_XLSX) (() => {
       <div class="tbl"><table><thead><tr><th>Item</th><th class="dd-num">Sistema</th><th class="dd-num">Consultor</th><th class="dd-num">Diferença</th></tr></thead><tbody>${L.map(row).join("")}${tipo !== "ppa" && reg.resultados.wacc != null ? `<tr><td>WACC</td><td class="dd-num">${pc(KT_VAL.resumo(s).X.W.wacc)}</td><td class="dd-num">${pc(reg.resultados.wacc)}</td><td></td></tr>` : ""}${tipo === "ppa" && reg.resultados.wara != null ? `<tr><td>WARA</td><td></td><td class="dd-num">${pc(reg.resultados.wara)}</td><td></td></tr>` : ""}</tbody></table></div></div>`;
   }
   const bloco = (tipo) => `<div class="card" style="display:flex;flex-direction:column;gap:8px"><div><div class="eyebrow">Padrão Kinsey BR</div><h3 style="margin:2px 0 0">Planilha padronizada ${tipo === "ppa" ? "do PPA" : "do valuation"} (Excel com fórmulas)</h3></div>
-    <p class="sub" style="margin:0;font-size:12.5px">${tipo === "ppa" ? "Premissas, WACC, DRE projetada, capital de giro, CAC, carteira de clientes (MPEEM), marca e tecnologia (relief-from-royalty), não concorrência, força de trabalho, contingências, earn-out por cenários e Monte Carlo, WARA, alocação do preço e conferências." : "Premissas, WACC (CAPM), demonstrações históricas, DRE projetada, capital de giro em dias, FCD com sensibilidade WACC × g, múltiplos, resumo e conferências."} Já sai com o cadastro e os números do sistema; o consultor revisa no Excel e importa de volta para a conferência.</p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn sm primary" data-mx="${tipo}">Exportar planilha padronizada</button>${D.ed() ? `<label class="btn sm">Importar planilha do consultor<input type="file" data-mi="${tipo}" accept=".xlsx,.xlsm" hidden></label>` : ""}</div></div>`;
+    <p class="sub" style="margin:0;font-size:12.5px">${tipo === "ppa" ? "" : "Modelagem completa em R$ milhões (R$ mi), com fórmulas vivas para a análise dos especialistas de Finanças. "}${tipo === "ppa" ? "Premissas, WACC, DRE projetada, capital de giro, CAC, carteira de clientes (MPEEM), marca e tecnologia (relief-from-royalty), não concorrência, força de trabalho, contingências, earn-out por cenários e Monte Carlo, WARA, alocação do preço e conferências." : "Premissas, WACC (CAPM), demonstrações históricas, DRE projetada, capital de giro em dias, FCD com sensibilidade WACC × g, múltiplos, resumo e conferências."} Já sai com o cadastro e os números do sistema; o consultor revisa no Excel e importa de volta para a conferência.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn sm primary" data-mx="${tipo}">${tipo === "ppa" ? "Exportar planilha padronizada" : "Exportar modelagem em Excel (com fórmulas)"}</button>${D.ed() ? `<label class="btn sm">Importar planilha do consultor<input type="file" data-mi="${tipo}" accept=".xlsx,.xlsm" hidden></label>` : ""}</div></div>`;
   function bind(host, s){
     $$("[data-mx]", host).forEach(b => b.onclick = () => { toast("Gerando a planilha…"); (b.dataset.mx === "ppa" ? ppaXlsx(s) : valuationXlsx(s)).catch(e => { console.error(e); toast("Não foi possível gerar: " + (e.message || "erro")); }); });
     $$("[data-mi]", host).forEach(i => i.onchange = async () => { const fl = i.files[0]; if (!fl) return; try{ const r = await importar(s, i.dataset.mi, fl); toast(`Planilha do consultor importada: ${Object.values(r.resultados).filter(v => v != null).length} resultado(s) lidos`); renderView(); }catch(e){ console.error(e); toast(e.message || "Não foi possível ler a planilha."); } });
   }
   /* telas: aba Relatório do valuation e PPA */
-  if (EXT_VIEWS.valuation){ const _v = EXT_VIEWS.valuation; EXT_VIEWS.valuation = function(){ _v.apply(this, arguments); const host = $("#valuation"), s = D.alvoSel(); if (!host || !s || S.valTab !== "rel" || !D.temBal(s) || host.querySelector("[data-mx]")) return;
-    const card = [...host.querySelectorAll(".card")].find(c => /Relatório de valuation/.test(c.querySelector("h3")?.textContent || "")); if (!card) return; card.insertAdjacentHTML("afterend", bloco("val") + conferencia(s, "val")); bind(host, s); }; }
+  if (EXT_VIEWS.valuation){ const _v = EXT_VIEWS.valuation; EXT_VIEWS.valuation = function(){ _v.apply(this, arguments); const host = $("#valuation"), s = D.alvoSel(); if (!host || !s || !["rel", "sintese", "fcd"].includes(S.valTab) || !D.temBal(s) || host.querySelector("[data-mx]")) return;
+    const card = S.valTab === "rel" ? [...host.querySelectorAll(".card")].find(c => /Relatório de valuation/.test(c.querySelector("h3")?.textContent || "")) : [...host.querySelectorAll(".card")].pop(); if (!card) return; card.insertAdjacentHTML("afterend", bloco("val") + conferencia(s, "val")); bind(host, s); }; }
   if (EXT_VIEWS.pos){ const _p = EXT_VIEWS.pos; EXT_VIEWS.pos = function(){ _p.apply(this, arguments); const host = $("#pos"), s = D.alvoSel(); if (!host || !s || host.querySelector("[data-mx]")) return; const xl = $("#ppa-xl", host); if (!xl) return;
     const card = xl.closest(".card"); if (!card) return; card.insertAdjacentHTML("afterend", bloco("ppa") + conferencia(s, "ppa")); bind(host, s); }; }
   window.KT_MODX = {valuationXlsx, ppaXlsx, importar, conferencia};

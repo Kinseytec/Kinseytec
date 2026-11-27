@@ -1,5 +1,11 @@
 # Registro de versões
 
+## v3.27 — 2026-11-27 · Padrão em R$ milhões e modelagem de valuation em Excel
+- **Padrão do sistema: R$ milhões (R$ mi).** Balancetes (saldo das contas em R$ mi, 3 casas), efeitos dos ajustes de Due Diligence (digitados e mostrados em R$ mi), dívida analítica e complementos do valuation, revisão analítica e relatórios em PDF (demonstrações da DD e do valuation, contingências) passam para R$ mi.
+- **Onde o padrão não se aplica (indicado na tela):** workbook da Due Diligence em R$ mil; abas Balancete AAAA-MM do workbook em R$ (saldo contábil exato); valores de contratos e processos do Jurídico, honorários e success fee em R$ mil; inventário de ativos e imóveis em R$ (valor por item); planilha do PPA em R$; percentuais, múltiplos (x), dias e preço por ação nas suas unidades.
+- **Workbook da Due Diligence em R$ mil (milhares de reais):** Sumário, Posição patrimonial, DRE comparativa, Análise do EBITDA, Capital de giro (inclusive a NCG mês a mês), Endividamento, Resumo financeiro e Ajustes. A importação reconhece a unidade pelo cabeçalho (workbooks antigos, em R$, continuam aceitos).
+- **Modelagem do valuation em Excel, com fórmulas, em R$ mi:** botão "Exportar modelagem em Excel (com fórmulas)" na Síntese, no FCD e no Relatório do valuation. Abas Resumo, Premissas, WACC (CAPM), Histórico, DRE projetada, Capital de giro em dias, FCD (meio do período, Gordon, sensibilidade WACC × g), Múltiplos, Conferências e Plano de contas; células em azul são entradas e as demais são fórmulas vivas. A planilha revisada pelos especialistas de Finanças volta pelo botão "Importar planilha do consultor", com a conferência sistema × planilha.
+
 ## v3.26 — 2026-11-27 · Convite enviado pelo próprio sistema
 - O convite de novos usuários sai pelo KinseyTec – M&A, e não mais pelo e-mail automático do Firebase: o servidor cria o acesso e gera o link de senha, e o administrador envia a mensagem do sistema pelo **próprio e-mail** (botão "Enviar por e-mail", que abre o aplicativo de e-mail, ou "Abrir no Gmail") ou pelo **WhatsApp**.
 - A mensagem chega com o remetente da Kinsey (não cai como "noreply do Firebase" no spam) e traz o assunto "Convite: acesso ao KinseyTec – M&A", o link para criar a senha e o passo a passo.

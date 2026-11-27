@@ -10,7 +10,8 @@ if (typeof MA_MODELOS !== "undefined") (() => {
   const areaNome = k => (AREAS_TODAS.find(a => a[0] === k) || [k, k])[1];
   const EF = [["ebitda","EBITDA"],["divida","Dívida líquida"],["ncg","Capital de giro"],["pl","Patrimônio líquido"],["lucro","Lucro líquido"]];
   const mi = (v, d = 1) => v == null || !isFinite(v) ? "—" : (v < 0 ? "−" : "") + "R$ " + fmt(Math.abs(v) / 1e6, d) + " mi";
-  const mil = v => v == null || !isFinite(v) ? "—" : (v < 0 ? "−" : "+") + "R$ " + fmt(Math.abs(v) / 1e3, 0) + " mil";
+  /* padrão do sistema: R$ milhões (R$ mi); efeitos de ajuste com sinal e 2 casas (R$ 0,35 mi = R$ 350 mil) */
+  const mil = v => v == null || !isFinite(v) ? "—" : (v < 0 ? "−" : "+") + "R$ " + fmt(Math.abs(v) / 1e6, 2) + " mi";
   const pc = (v, d = 1) => v == null || !isFinite(v) ? "—" : fmt(v * 100, d) + "%";
   const xx = (v, d = 1) => v == null || !isFinite(v) ? "—" : fmt(v, d) + "×";
   const dias = v => v == null || !isFinite(v) ? "—" : fmt(v, 0) + " dias";
@@ -315,7 +316,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
         <p class="sub" style="margin:0">${esc(areaNome(a.area))} · ${esc(a.norma || "")} · ${esc(a.origem)}${a.per ? " · balancete " + esc(a.per) : ""}</p>
         <p style="margin:0;font-size:13.5px;line-height:1.5">${esc(a.desc || "")}</p>
         ${extra || ""}
-        ${fase === "fin" ? `<div class="eyebrow">Efeitos anuais (R$ mil) · ajuste se necessário</div><div class="form">${EF.map(([k, l]) => `<div class="fld"><label for="ap-${k}">${l}</label><input id="ap-${k}" inputmode="decimal" value="${a.v[k] ? fmt(a.v[k] / 1e3, 0) : ""}"></div>`).join("")}</div>`
+        ${fase === "fin" ? `<div class="eyebrow">Efeitos anuais (R$ mi) · ajuste se necessário</div><div class="form">${EF.map(([k, l]) => `<div class="fld"><label for="ap-${k}">${l}</label><input id="ap-${k}" inputmode="decimal" value="${a.v[k] ? fmt(a.v[k] / 1e6, 3) : ""}"></div>`).join("")}</div>`
           : `<div class="sub" style="margin:0">Efeitos aprovados nas Análises financeiras: ${esc(efeitoTxt(a))}</div>`}
         <div class="form"><div class="fld"><label for="ap-cons">Consultor responsável (${esc(areaNome(a.area))})</label><input id="ap-cons" value="${esc(cons)}" placeholder="Nome e registro (CRC, OAB…)" list="ap-eq"><datalist id="ap-eq">${(typeof EQUIPE_KINSEY !== "undefined" ? EQUIPE_KINSEY : []).map(([n, c]) => `<option value="${esc(n)}">${esc(c)}</option>`).join("")}</datalist></div>
         <div class="fld full"><label for="ap-obs">Fundamento do OK ou da recusa</label><textarea id="ap-obs"></textarea></div></div>
@@ -325,7 +326,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
       if (!nome){ $("#ap-err").textContent = "Informe o consultor responsável."; $("#ap-err").hidden = false; return; }
       if (st === "recusado" && !obs){ $("#ap-err").textContent = "Escreva o motivo da recusa."; $("#ap-err").hidden = false; return; }
       const reg = {st, por:nome, user:Store.me?.email || Store.me?.id || "", em:nowISO(), obs}, patch = {dd:{cons:{[a.area]:nome}, aj:{[a.id]:{[fase]:reg}}}};
-      if (fase === "fin"){ const v = {}; let mud = false; EF.forEach(([k]) => { const x = num($("#ap-" + k).value); v[k] = x == null ? 0 : x * 1e3; if (Math.abs(v[k] - a.v[k]) > 1) mud = true; }); patch.dd.aj[a.id].v = v; if (mud) patch.dd.aj[a.id].editado = true; }
+      if (fase === "fin"){ const v = {}; let mud = false; EF.forEach(([k]) => { const x = num($("#ap-" + k).value); v[k] = x == null ? 0 : x * 1e6; if (Math.abs(v[k] - a.v[k]) > 500) mud = true; }); patch.dd.aj[a.id].v = v; if (mud) patch.dd.aj[a.id].editado = true; }
       up(s, patch).then(() => { close(); toast(st === "aprovado" ? (fase === "fin" ? "Ajuste aprovado: indicadores atualizados" : "Ajuste aprovado: valuation atualizado") : "Ajuste recusado"); }); };
     $("#fap").onsubmit = e => { e.preventDefault(); grava("aprovado"); };
     $("#ap-rec").onclick = () => grava("recusado");
@@ -359,12 +360,12 @@ if (typeof MA_MODELOS !== "undefined") (() => {
         <div class="fld"><label for="am-a">Área</label><select id="am-a">${AREAS_TODAS.map(([k, l]) => `<option value="${k}" ${k === area ? "selected" : ""}>${l}</option>`).join("")}</select></div>
         <div class="fld"><label for="am-n">Norma ou fundamento</label><input id="am-n" placeholder="ex.: CPC 25"></div>
         <div class="fld"><label for="am-tp">Tipo</label><select id="am-tp">${["Normalização do EBITDA","Dívida equivalente","Capital de giro e PL","Contábil (lucro e PL)","Reclassificação (EBITDA e dívida)","Item não operacional"].map(t => `<option>${t}</option>`).join("")}</select></div>
-        <div class="fld full eyebrow" style="margin-top:6px">Efeitos anuais (R$ mil; negativo reduz)</div>
+        <div class="fld full eyebrow" style="margin-top:6px">Efeitos anuais (R$ mi, ex.: 0,35 = R$ 350 mil; negativo reduz)</div>
         ${EF.map(([k, l]) => `<div class="fld"><label for="am-${k}">${l}</label><input id="am-${k}" inputmode="decimal"></div>`).join("")}
         <div class="fld full"><label for="am-d">Descrição e base de cálculo</label><textarea id="am-d"></textarea></div>
       </div><p class="err" id="am-err" hidden></p><div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="btn ghost" data-x>Cancelar</button><button type="submit" class="btn primary">Enviar para o OK do consultor</button></div></form>`);
     $("#fam").onsubmit = e => { e.preventDefault(); const t = $("#am-t").value.trim(), v = {};
-      EF.forEach(([k]) => { const x = num($("#am-" + k).value); v[k] = x == null ? 0 : x * 1e3; });
+      EF.forEach(([k]) => { const x = num($("#am-" + k).value); v[k] = x == null ? 0 : x * 1e6; });
       if (!t || !EF.some(([k]) => v[k])){ $("#am-err").textContent = !t ? "Dê um título ao ajuste." : "Informe pelo menos um efeito em valor."; $("#am-err").hidden = false; return; }
       const id = "m" + Date.now().toString(36);
       up(s, {dd:{aj:{[id]:{manual:true, per, area:$("#am-a").value, titulo:t, norma:$("#am-n").value.trim(), tipo:$("#am-tp").value, v, desc:$("#am-d").value.trim(), criadoEm:nowISO(), por:Store.me?.email || ""}}}}).then(() => { close(); toast("Ajuste enviado para as Análises financeiras"); }); };
@@ -386,7 +387,7 @@ if (typeof MA_MODELOS !== "undefined") (() => {
     const prev = () => { const K = calc({contas:lidas, meses:+$("#bl-m").value || 12});
       $("#bl-prev").innerHTML = `<div class="card" style="display:flex;flex-direction:column;gap:8px"><b>${lidas.length} contas analíticas lidas</b>
         <div class="sub" style="margin:0">Ativo ${mi(K.AT)} · Passivo ${mi(K.PC + K.PNC)} · PL ${mi(K.PL)} · Receita líquida ${mi(K.recLiq)} · EBITDA ${mi(K.ebitda)} · ${K.fecha ? "débitos = créditos" : `<b style="color:var(--bad)">não fecha (${mi(K.soma, 2)})</b>`}</div>
-        <div class="tbl" style="max-height:300px;overflow:auto"><table><thead><tr><th>Conta</th><th>Descrição</th><th>Saldo</th><th>Classificação</th></tr></thead><tbody>${lidas.map((c, i) => `<tr><td class="mono" style="white-space:nowrap">${esc(c[0])}</td><td>${esc(c[1])}</td><td class="mono" style="white-space:nowrap;text-align:right">${fmt(Math.abs(c[2]), 2)} ${c[2] < 0 ? "C" : "D"}</td>
+        <div class="tbl" style="max-height:300px;overflow:auto"><table><thead><tr><th>Conta</th><th>Descrição</th><th>Saldo (R$ mi)</th><th>Classificação</th></tr></thead><tbody>${lidas.map((c, i) => `<tr><td class="mono" style="white-space:nowrap">${esc(c[0])}</td><td>${esc(c[1])}</td><td class="mono" style="white-space:nowrap;text-align:right">${fmt(Math.abs(c[2]) / 1e6, 3)} ${c[2] < 0 ? "C" : "D"}</td>
           <td><select data-cl="${i}" aria-label="Classificação de ${esc(c[1])}">${Object.entries(GRUPOS).map(([k, g]) => `<option value="${k}" ${k === c[3] ? "selected" : ""}>${g[2]} · ${g[0]}</option>`).join("")}</select></td></tr>`).join("")}</tbody></table></div></div>`;
       $$("[data-cl]").forEach(x => x.onchange = () => { lidas[+x.dataset.cl][3] = x.value; prev(); });
       $("#bl-ok").disabled = false; };

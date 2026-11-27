@@ -14,7 +14,7 @@ if (window.KT_DD) (() => {
   const NAT = /s[oó]ci|pr[oó].?labore|retirad|diversa|outras despesas|brinde|doa[cç]|viage|hospedag|consultori|honor[aá]ri|assessori|multa|indeniza|acordo|n[aã]o recorrente|extraordin|partes relacionadas|ve[ií]culo|combust|celular|presente|festa|confraterniza|patroc[ií]nio/i;
   const MES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
   const nrm = t => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim();
-  const mi = v => v == null || !isFinite(v) ? "—" : `R$ ${fmt(v / 1e3, 0)} mil`;
+  const mi = v => v == null || !isFinite(v) ? "—" : `R$ ${fmt(v / 1e6, 2)} mi`;
   const val = (g, v) => ["P", "R"].includes(G[g]?.[1]) ? -v : v;
   const med = a => { const b = a.filter(x => isFinite(x)).slice().sort((x, y) => x - y); if (!b.length) return 0; const m = Math.floor(b.length / 2); return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; };
 
