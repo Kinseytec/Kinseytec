@@ -208,7 +208,7 @@ const VISAO = (() => {
     $("#fjs").onsubmit = async e => { e.preventDefault(); const fs = [...$("#js-file").files], err = $("#js-err"), go = $("#js-go");
       if (!fs.length){ err.textContent = "Escolha pelo menos um arquivo."; err.hidden = false; return; }
       go.disabled = true; let n = 0;
-      try{ for (const f of fs){ go.textContent = `Enviando ${++n}/${fs.length}…`; const up = await Store.upload(f);
+      try{ for (const f of fs){ go.textContent = `Enviando ${++n}/${fs.length}…`; const up = await Store.upload(f, {sup: $("#js-sup").value, tipo: $("#js-tipo").value, nome: f.name});
           await salvarEvid(uid(), {supplierId: $("#js-sup").value, tipo: $("#js-tipo").value, obs: [$("#js-obs").value.trim(), "Importado pelo Jurídico"].filter(Boolean).join(" · "), ...up, mime: f.type, nome: f.name, gps: null, distKm: null, takenAt: null, criadoEm: nowISO(), criadoPor: Store.me.id || "", origem: "Jurídico"}, f); }
         close(); toast(`${fs.length} documento(s) importado(s): pré-análise em andamento`); }
       catch(x){ err.textContent = "Não foi possível importar. Verifique a conexão e o seu acesso."; err.hidden = false; go.disabled = false; go.textContent = "Importar e analisar"; } };
@@ -471,7 +471,7 @@ const VISAO = (() => {
           await Store.set("suppliers", id, {nivel: nv.nivel, tipo: (SUP_TYPES[nv.nivel] || [""])[0], parentId: nv.nivel === "N1" ? "" : nv.par, nome: nv.nome.trim(), doc: doc.length === 14 ? doc.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5") : doc.length === 11 ? doc.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4") : doc,
             ie: "", abertura: nv.abertura || "", volume: "", uf: nv.uf || "", municipio: nv.municipio || "", lat: c[0] + j(), lng: c[1] + j(), coordAprox: true, answers: {}, docs: {}, insp: {}, balanco: {}, invest: {},
             origem: "Importação de documentos", nomeProvisorio: !!nv.provisorio, criadoEm: nowISO(), criadoPor: Store.me.id || ""}); ids["novo:" + nv.doc] = id; }
-        for (const r of L){ const sd = supDe(r); if (ids[sd]){ r.sup = ids[sd]; r.achado = null; r.docNovo = ""; } go.textContent = `Enviando ${++n}/${L.length}…`; const rp = window.ktDocDuplicado ? await ktDocDuplicado(supDe(r), r.f) : null; if (rp?.dup){ repet++; continue; } const up = await Store.upload(r.f);
+        for (const r of L){ const sd = supDe(r); if (ids[sd]){ r.sup = ids[sd]; r.achado = null; r.docNovo = ""; } go.textContent = `Enviando ${++n}/${L.length}…`; const rp = window.ktDocDuplicado ? await ktDocDuplicado(supDe(r), r.f) : null; if (rp?.dup){ repet++; continue; } const up = await Store.upload(r.f, {sup: supDe(r), tipo: r.tipo, tipoDoc: r.rotulo || "", nome: r.f.name});
           await salvarEvid(uid(), {...(rp?.hash ? {hash: rp.hash} : {}), tam: r.f.size, supplierId: supDe(r), tipo: r.tipo, obs: ["Importação de documentos", r.tipo === A_CLASS ? "aguardando classificação do revisor" : "tipo identificado pelo " + r.como + (r.rotulo && r.rotulo !== r.tipo ? " (" + r.rotulo + ")" : "")].join(" · "), ...up, mime: r.f.type, nome: r.f.name, gps: null, distKm: null, takenAt: null,
             criadoEm: nowISO(), criadoPor: Store.me.id || "", origem: "Importação de documentos", aClassificar: r.tipo === A_CLASS}, r.f); }
         close(); const aC = L.filter(r => r.tipo === A_CLASS).length, nN = Object.keys(ids).length; toast(`${L.length - repet} documento(s) importado(s)${repet ? ` · ${repet} já estava(m) no dossiê (não duplicado)` : ""}${nN ? ` · ${nN} fornecedor(es) novo(s) cadastrado(s)` : ""}${aC ? ` · ${aC} a classificar` : ""} · análise automática em andamento`); }
@@ -1044,7 +1044,7 @@ const VISAO = (() => {
   renderAll = function(){ _ra.apply(this, arguments); botaoTopo(); setTimeout(corrigirAcentos, 1500); clearTimeout(chkT); chkT = setTimeout(() => { autoChecklist(); autoInvest(); autoQuest(); }, 1200); };
   setTimeout(botaoTopo, 0);
   async function anexar(supId, files, extra){
-    let n = 0; for (const f of files){ const r = await lerDoc(f), up = await Store.upload(f);
+    let n = 0; for (const f of files){ const r = await lerDoc(f), up = await Store.upload(f, {sup: supId, tipo: r.tipoEv, tipoDoc: r.rotulo || "", nome: f.name});
       await salvarEvid(uid(), {supplierId: supId, tipo: r.tipoEv === A_CLASS ? (evTipo(/^outro$/i) || "Outro") : r.tipoEv, ...up, mime: f.type, nome: f.name, gps: null, distKm: null, takenAt: null, criadoEm: nowISO(), criadoPor: Store.me.id || "", origem: "Importação de documentos", ...(extra || {}), obs: [extra?.obs, r.rotulo ? "identificado: " + r.rotulo : ""].filter(Boolean).join(" · ")}, f); n++; }
     return n;
   }

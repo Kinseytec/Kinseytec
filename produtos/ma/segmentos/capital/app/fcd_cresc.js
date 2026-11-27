@@ -82,7 +82,7 @@ if (window.KT_DD && window.KT_VAL) (() => {
           <div class="fld full"><label for="fe-p">Comprovação</label><input id="fe-p" value="Estudo de viabilidade ${esc(f.name)}${invT ? ` · investimento previsto R$ ${fmt(invT, 1)} mi` : ""}"></div></div>
         <div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="btn" data-x>Cancelar</button><button type="submit" class="btn primary">Incluir no otimista</button></div></form>`);
     $("#fe-f").onsubmit = async e => { e.preventDefault(); const g = id => nn($("#" + id).value);
-      try{ const up = await Store.upload(f); await salvarEvid(uid(), {supplierId:s.id, tipo:"Estudo de viabilidade", obs:"Valuation otimista", ...up, mime:f.type, nome:f.name, criadoEm:nowISO(), criadoPor:Store.me?.id || "", origem:"Valuation"}, f); }catch(err){}
+      try{ const up = await Store.upload(f, {sup:s.id, tipo:"Estudo de viabilidade", nome:f.name}); await salvarEvid(uid(), {supplierId:s.id, tipo:"Estudo de viabilidade", obs:"Valuation otimista", ...up, mime:f.type, nome:f.name, criadoEm:nowISO(), criadoPor:Store.me?.id || "", origem:"Valuation"}, f); }catch(err){}
       await D.up(s, {dd:{vl:{novos:{["n" + Date.now().toString(36)]:{tipo:$("#fe-t").value, nome:$("#fe-n").value.trim() || f.name, inicio:Math.max(1, Math.min(5, Math.round(g("fe-i") || 1))), rec1:g("fe-r") || 0, cresc:g("fe-c") || 0, margem:g("fe-m") || 0, fonte:"Estudo de viabilidade", comprova:$("#fe-p").value.trim(), estudo:{arquivo:f.name, serie:S2, investimento:invT}}}}}});
       close(); toast("Estudo incluído no cenário otimista: justifique para emitir"); };
   }

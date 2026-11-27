@@ -1,5 +1,12 @@
 # Registro de versões
 
+## v3.28 — 2026-11-27 · Arquivos organizados por empresa e natureza; publicação automática avisa quando falta a configuração
+- Documentos importados passam a ser guardados no Storage em evidences/<cliente>/<empresa>/<natureza>/<data>_<nome original>, com o nome original, a empresa e a natureza também nos metadados do arquivo. Naturezas: 01 Financeiro e contábil, 02 Fiscal e tributário, 03 Trabalhista e previdenciário, 04 Societário, 05 Jurídico e contratos, 06 Valuation e laudos, 07 Comercial e apresentações, 08 Ativos e imóveis, 99 Outros.
+- O registro de cada documento grava a natureza. Nova tela "Arquivo do dossiê" (junto do sininho dos documentos) com os documentos de cada empresa agrupados por natureza e o botão "Baixar o dossiê organizado (.zip)", já nas pastas. Arquivos enviados antes continuam onde estão (nada é movido nem apagado) e aparecem organizados do mesmo jeito.
+- Regras do Storage aceitam as subpastas por empresa e natureza, com o mesmo controle de acesso por cliente.
+- Publicação automática: enquanto as variáveis GCP_WIF_PROVIDER e GCP_SERVICE_ACCOUNT não existem, o GitHub monta e testa o sistema e mostra "aguardando a configuração única", em vez de falhar.
+- Guia de atualização e arquivos também publicado como página (link).
+
 ## v3.27 — 2026-11-27 · Padrão em R$ milhões e modelagem de valuation em Excel
 - **Padrão do sistema: R$ milhões (R$ mi).** Balancetes (saldo das contas em R$ mi, 3 casas), efeitos dos ajustes de Due Diligence (digitados e mostrados em R$ mi), dívida analítica e complementos do valuation, revisão analítica e relatórios em PDF (demonstrações da DD e do valuation, contingências) passam para R$ mi.
 - **Onde o padrão não se aplica (indicado na tela):** workbook da Due Diligence em R$ mil; abas Balancete AAAA-MM do workbook em R$ (saldo contábil exato); valores de contratos e processos do Jurídico, honorários e success fee em R$ mil; inventário de ativos e imóveis em R$ (valor por item); planilha do PPA em R$; percentuais, múltiplos (x), dias e preço por ação nas suas unidades.

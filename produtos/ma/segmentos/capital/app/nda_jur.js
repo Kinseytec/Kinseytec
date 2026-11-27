@@ -89,7 +89,7 @@ if (window.KT_DD && window.KT_DOCX && window.KT_MAND) (() => {
   }
   async function registrar(s, f, paras, o = {}){
     paras = paras || await paragrafos(f); const t = paras.join(" "), C = comparar(paras), L = KT_AUTO?.lerNda ? KT_AUTO.lerNda(t) : {};
-    let arq = null; if (!o.semEvid) try{ const up = await Store.upload(f); arq = {...up, nome:f.name}; await salvarEvid(uid(), {supplierId:s.id, tipo:"NDA assinado", obs:"NDA assinado registrado no Jurídico", ...up, mime:f.type, nome:f.name, criadoEm:nowISO(), criadoPor:Store.me?.id || "", origem:"Jurídico · NDA"}, f); }catch(e){}
+    let arq = null; if (!o.semEvid) try{ const up = await Store.upload(f, {sup:s.id, tipo:"NDA assinado", nome:f.name}); arq = {...up, nome:f.name}; await salvarEvid(uid(), {supplierId:s.id, tipo:"NDA assinado", obs:"NDA assinado registrado no Jurídico", ...up, mime:f.type, nome:f.name, criadoEm:nowISO(), criadoPor:Store.me?.id || "", origem:"Jurídico · NDA"}, f); }catch(e){}
     await D.up(s, {nda:{aceito:true, status:"assinado", doc:f.name, em:nowISO(), versao:C ? (C.conforme ? `padrão Kinsey (${C.versao})` : `com alterações em relação ao padrão (${C.versao})`) : "documento importado", validado:false,
       conformidade:C, assinaturaEletronica:!!L.ass, prazo:L.prazo || "", naoAbordagem:!!L.naoAbordagem, multa:!!L.multa, registradoPor:eu()}});
     return C;

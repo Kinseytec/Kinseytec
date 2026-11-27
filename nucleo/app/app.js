@@ -513,7 +513,7 @@ function openImport(){
 /* ---------- ficha vinda do Portal do Fornecedor ---------- */
 function dataURLtoBlob(u){ const [h, b] = u.split(","); const mime = h.slice(5, h.indexOf(";")); const bin = atob(b); const a = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return new Blob([a], {type:mime}); }
 /* grava a evidência e avisa os módulos (pré-análise do documento, nota fiscal → operações) */
-async function salvarEvid(id, body, blob){ await Store.set("evidences", id, body); EXT_EVID.forEach(f => { try{ f(id, blob || null, body); }catch(e){} }); }
+async function salvarEvid(id, body, blob){ if (window.ktNatureza && !body.natureza) body = {...body, natureza: ktNatureza(body.tipo, body.nome, body.tipoDoc).pasta}; await Store.set("evidences", id, body); EXT_EVID.forEach(f => { try{ f(id, blob || null, body); }catch(e){} }); }
 /* ---------- leitura dos arquivos guardados ----------
    No Firebase os arquivos ficam no Storage; o navegador só consegue baixá-los direto se o bucket tiver CORS liberado
    para o domínio do sistema (não vem liberado). Por isso a leitura segue, nesta ordem: arquivo ainda na memória (acabou
@@ -1047,7 +1047,7 @@ function openContractForm(preSup){
     if (!v("#c-cp")){ $("#cerr").textContent = "Informe a contraparte do contrato."; $("#cerr").hidden = false; return; }
     $("#c-go").disabled = true; $("#c-go").textContent = "Enviando…";
     try{
-      let file = null; if (f){ const blob = /^image\//.test(f.type) ? await shrink(f) : f; const up = await Store.upload(blob); file = {...up, nome:f.name, mime:blob.type||f.type}; }
+      let file = null; if (f){ const blob = /^image\//.test(f.type) ? await shrink(f) : f; const up = await Store.upload(blob, {sup:v("#c-sup"), tipo:"Contrato " + v("#c-tipo"), nome:f.name}); file = {...up, nome:f.name, mime:blob.type||f.type}; }
       await Store.set("contracts", uid(), {supplierId:v("#c-sup"), tipo:v("#c-tipo"), numero:v("#c-num"), contraparte:v("#c-cp"), inicio:v("#c-ini"), fim:v("#c-fim"), volume:v("#c-vol"), preco:v("#c-pr"), obs:v("#c-obs"), file, criadoEm:nowISO(), criadoPor:Store.me.id||""});
       close(); toast("Contrato enviado ao Jurídico");
     }catch(x){ $("#cerr").textContent = x?.code==="quota_exceeded" ? "Espaço de arquivos cheio. Remova anexos antigos." : "Não foi possível enviar. Verifique a conexão e o seu nível de acesso."; $("#cerr").hidden = false; $("#c-go").disabled = false; $("#c-go").textContent = "Enviar para aprovação"; }
@@ -1182,7 +1182,7 @@ function openEvidenceForm(preSup, preTipo){
     e.preventDefault(); const f = $("#e-file").files[0]; if (!f){ $("#eerr").textContent = "Escolha uma foto ou arquivo."; $("#eerr").hidden = false; return; }
     const go = $("#e-go"); go.disabled = true; go.textContent = "Enviando…";
     try{
-      const blob = f.type.startsWith("image/") ? await shrink(f) : f, up = await Store.upload(blob);
+      const blob = f.type.startsWith("image/") ? await shrink(f) : f, up = await Store.upload(blob, {sup:$("#e-sup").value, tipo:$("#e-tipo").value, nome:f.name});
       const s = supById($("#e-sup").value), gps = meta?.gps || null, distKm = gps && s?.lat!=null ? Math.round(haversine(gps.lat, gps.lng, s.lat, s.lng)*10)/10 : null;
       const id = uid(), body = {supplierId:s.id, tipo:$("#e-tipo").value, obs:$("#e-obs").value.trim(), ...up, mime:blob.type||f.type, nome:f.name, gps, distKm, takenAt:meta?.takenAt||null, criadoEm:nowISO(), criadoPor:Store.me.id||""};
       await salvarEvid(id, body, blob);

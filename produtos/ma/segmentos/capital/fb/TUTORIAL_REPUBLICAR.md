@@ -1,8 +1,8 @@
-# KinseyTec – M&A · tutorial para republicar (versão 3.27)
+# KinseyTec – M&A · tutorial para republicar (versão 3.28)
 
 O sistema já está publicado. Republicar **substitui** a versão no ar e **não apaga nenhum dado**: empresas, documentos, balancetes, análises e usuários continuam. Tempo: cerca de 10 minutos, tudo no navegador.
 
-Arquivo: **KinseyTec_MA_Firebase.zip** (está dentro do pacote KinseyTec_MA_publicacao_v3.27.zip; não envie o pacote inteiro, só este arquivo).
+Arquivo: **KinseyTec_MA_Firebase.zip** (está dentro do pacote KinseyTec_MA_publicacao_v3.28.zip; não envie o pacote inteiro, só este arquivo).
 
 ## Seus dados ficam guardados (o que a publicação troca e o que não troca)
 | O que | Onde fica | Na publicação |
@@ -49,7 +49,7 @@ npx -y firebase-tools@13 deploy --project kinsey-capital-ma
 
 5. Pronto quando aparecer **Deploy complete!**. Atualize a página do sistema; no celular, feche e abra o aplicativo.
 
-## Importante nesta versão (3.27, inclui as versões 3.03 a 3.26)
+## Importante nesta versão (3.28, inclui as versões 3.03 a 3.27)
 Esta versão corrige o problema de os documentos não serem reconhecidos nem analisados no sistema publicado. **As funções precisam ser publicadas junto** (o comando de deploy acima já publica tudo): a leitura dos arquivos agora passa por uma função nova do servidor, chamada **lerArquivo**. Se o deploy das funções falhar, me envie a mensagem: sem ela, a análise automática continua sem conseguir abrir os documentos guardados.
 
 **Assinatura:** as funções só rodam no plano Blaze; confira em Firebase › Uso e faturamento (passo 1 do tutorial "Resolver a leitura automática dos documentos"). O que acontecia:
@@ -62,6 +62,27 @@ Esta versão corrige o problema de os documentos não serem reconhecidos nem ana
 echo '[{"origin":["https://kinseytec-ma.web.app","https://kinseytec-ma.firebaseapp.com","https://kinsey-capital-ma.web.app","https://kinsey-capital-ma.firebaseapp.com"],"method":["GET"],"maxAgeSeconds":3600}]' > cors.json && gcloud storage buckets update gs://$(gcloud storage buckets list --project kinsey-capital-ma --format="value(name)" | grep -E "firebasestorage.app|appspot.com" | head -1) --cors-file=cors.json
 ```
 (Se o sistema for acessado por outro domínio, me avise para incluir. Com este passo a leitura funciona mesmo se a função do servidor falhar.)
+
+## Documentos importados: como ficam guardados
+Todo arquivo importado fica no Storage do Firebase da Kinsey, separado por cliente, por empresa e pela natureza do documento, com a data e o nome original:
+
+`evidences/<cliente>/<EMPRESA>_<código>/<natureza>/<AAAA-MM-DD>_<nome original>`
+
+| Pasta | Natureza | Exemplos |
+|---|---|---|
+| 01 | Financeiro e contábil | balanço, DRE, balancete, ECD, razão, relatório de auditoria |
+| 02 | Fiscal e tributário | ECF, EFD, certidões, guias, parcelamentos, notas fiscais |
+| 03 | Trabalhista e previdenciário | folha, eSocial, FGTS, INSS, CAGED |
+| 04 | Societário | contrato social, alterações, estatuto, atas, acordo de sócios, cartão CNPJ |
+| 05 | Jurídico e contratos | NDA, mandato, IOI, LOI, MOU, SPA, contratos, processos, pareceres |
+| 06 | Valuation e laudos | laudos, avaliações, estudos de viabilidade, projeções |
+| 07 | Comercial e apresentações | teaser, apresentação institucional, comunicados |
+| 08 | Ativos e imóveis | matrícula, escritura, IPTU, inventário, fotos de visita |
+| 99 | Outros | documentos sem natureza reconhecida |
+
+- Em **Importação de documentos**, escolha a empresa: junto do sininho aparece **Arquivo do dossiê**, com os documentos agrupados por natureza e o botão **Baixar o dossiê organizado (.zip)**, já nas pastas.
+- Documentos enviados antes da versão 3.28 continuam onde estão (nada é movido nem apagado) e aparecem organizados do mesmo jeito na tela e no .zip.
+- Publicar uma nova versão não mexe nos documentos nem no banco.
 
 ## Convites de novos usuários (enviados pelo próprio sistema)
 1. Em **Usuários e convites**, preencha e-mail, nome, perfil, cliente e WhatsApp e toque em **Convidar**. O sistema cria o acesso e prepara a mensagem com o link para criar a senha.

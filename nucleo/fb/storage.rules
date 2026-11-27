@@ -9,8 +9,8 @@ service firebase.storage {
     function isStaff() { return superAdmin() || (hasUser() && userDoc().data.role in ['admin', 'editor', 'colaborador']); }
     function okFile() { return request.resource.size < 25 * 1024 * 1024; }
 
-    // arquivos por cliente: evidences/{clienteId}/arquivo
-    match /evidences/{cid}/{file} {
+    // arquivos por cliente: evidences/{clienteId}/arquivo ou, organizados, evidences/{clienteId}/{empresa}/{natureza}/arquivo
+    match /evidences/{cid}/{caminho=**} {
       allow read, delete: if superAdmin() || (hasUser() && (userDoc().data.role == 'admin' || (userDoc().data.role in ['editor', 'colaborador'] && userDoc().data.get('clienteId', '') == cid)));
       allow create, update: if okFile() && (superAdmin() || (hasUser() && (userDoc().data.role == 'admin' || (userDoc().data.role in ['editor', 'colaborador'] && userDoc().data.get('clienteId', '') == cid))));
     }

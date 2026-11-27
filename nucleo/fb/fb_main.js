@@ -90,11 +90,12 @@ const KT_FB = !KT_AUTH ? null : {
           return; }
         baseListen(col, cb);
       }; }
-    Store.upload = async blob => {
+    /* arquivos organizados: evidences/<cliente>/<empresa>/<natureza>/<data>_<nome original> (quando o sistema informa a empresa e o tipo) */
+    Store.upload = async (blob, meta) => {
       if (!st) return {assetId: null, url: await ktInline(blob)};
       const ext = (blob.type.split("/")[1] || "bin").replace("jpeg", "jpg").replace(/[^a-z0-9]/g, "");
-      const path = `evidences/${KT_FB.cid || "sem-cliente"}/${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}.${ext}`;
-      const ref = st.ref(path); await ref.put(blob, {contentType: blob.type || "application/octet-stream"});
+      const path = window.ktPastaArq ? ktPastaArq(meta || {}, blob, KT_FB.cid) : `evidences/${KT_FB.cid || "sem-cliente"}/${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}.${ext}`;
+      const ref = st.ref(path); await ref.put(blob, {contentType: blob.type || "application/octet-stream", customMetadata: {nomeOriginal: String(meta?.nome || blob.name || "").slice(0, 200), empresa: String(meta?.sup || ""), natureza: window.ktNatureza ? ktNatureza(meta?.tipo, meta?.nome || blob.name, meta?.tipoDoc).pasta : ""}});
       return {assetId: path, url: await ref.getDownloadURL()};
     };
     setMode("live");
